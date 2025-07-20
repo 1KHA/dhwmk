@@ -5,78 +5,95 @@ import { PrismaClient } from '@prisma/client'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { teamName, teamIdea, leader, members } = body
+    const { teamName, leader, members, idea } = body
 
-    // Validate input
-    if (!teamName || !teamIdea || !leader || !members || members.length < 2 || members.length > 5) {
-      return NextResponse.json(
-        { error: 'Invalid input data' },
-        { status: 400 }
-      )
+    // Basic validation
+    if (!leader || !leader.email) {
+      return NextResponse.json({ error: 'Leader information is missing or invalid.' }, { status: 400 })
+    }
+    
+    if (teamName && (!members || members.length < 2 || members.length > 5)) {
+      return NextResponse.json({ error: 'A team must have between 2 and 5 members.' }, { status: 400 })
     }
 
     // Check if any email already exists
-    const allEmails = [leader.email, ...members.map((m: any) => m.email)]
-    const existingParticipants = await prisma.participant.findMany({
-      where: {
-        email: {
-          in: allEmails
-        }
-      }
-    })
+    const allEmails = [leader.email, ...(members?.map((m: any) => m.email) || [])].filter(Boolean)
+    if (allEmails.length > 0) {
+      const existingParticipants = await prisma.participant.findMany({
+        where: { email: { in: allEmails } },
+      })
 
-    if (existingParticipants.length > 0) {
-      return NextResponse.json(
-        { error: 'One or more email addresses are already registered' },
-        { status: 400 }
-      )
+      if (existingParticipants.length > 0) {
+        return NextResponse.json(
+          { error: 'One or more email addresses are already registered.' },
+          { status: 400 }
+        )
+      }
     }
 
-    // Create team and participants in a transaction
     const result = await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
-      // Create team
-      const team = await tx.team.create({
-        data: {
-          teamName,
-          teamIdea,
-          status: 'pending'
-        }
-      })
+      // Step 1: Create the team first.
+      const teamData = {
+        teamName: teamName || `فريق ${leader.firstName} ${leader.familyName}`,
+        status: 'pending',
+        challenge: idea.challenge,
+        challengeReason: idea.challengeReason,
+        ideaName: idea.ideaName,
+        ideaDescription: idea.ideaDescription || 'مشارك فردي',
+        ideaSolution: idea.ideaSolution,
+        ideaResults: idea.ideaResults,
+        ideaStage: idea.ideaStage,
+        attachmentsLink: idea.attachmentsLink,
+        hasParticipated: idea.hasParticipated,
+        participationDetails: idea.participationDetails,
+      };
 
-      // Create team leader
+      const team = await tx.team.create({ data: teamData });
+      const teamId = team.id;
+
+      // Step 2: Create the leader and associate with the new team.
       await tx.participant.create({
         data: {
-          fullName: leader.fullName,
-          email: leader.email,
-          phoneNumber: leader.phoneNumber,
-          specialty: leader.specialty,
+          ...leader,
           isLeader: true,
-          teamId: team.id
-        }
-      })
+          teamId: teamId,
+        },
+      });
 
-      // Create team members
-      for (const member of members) {
-        await tx.participant.create({
-          data: {
-            fullName: member.fullName,
-            email: member.email,
-            phoneNumber: member.phoneNumber,
-            specialty: member.specialty,
-            isLeader: false,
-            teamId: team.id
-          }
-        })
+      // Step 3: Create team members if they exist.
+      if (members && members.length > 0) {
+        for (const member of members) {
+          await tx.participant.create({
+            data: {
+              firstName: member.firstName,
+              secondName: member.secondName,
+              familyName: member.familyName,
+              nationalId: member.nationalId,
+              dob: member.dob,
+              email: member.email,
+              phoneNumber: member.phoneNumber,
+              education: member.education,
+              university: member.university,
+              major: member.major,
+              employmentStatus: member.employmentStatus,
+              nationality: member.nationality,
+              residence: member.residence,
+              canAttend: member.canAttend,
+              isLeader: false,
+              teamId: teamId,
+            },
+          })
+        }
       }
 
-      return team
+      return { teamId };
     })
 
     return NextResponse.json(
-      { 
-        success: true, 
+      {
+        success: true,
         message: 'Team registration submitted successfully',
-        teamId: result.id 
+        teamId: result.teamId,
       },
       { status: 201 }
     )

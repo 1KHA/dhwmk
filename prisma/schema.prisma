@@ -11,28 +11,46 @@ datasource db {
 }
 
 model Team {
-  id          String   @id @default(cuid())
-  teamName    String
-  teamIdea    String
-  status      String   @default("pending") // pending, approved, rejected
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  participants Participant[]
+  id                   String    @id @default(cuid())
+  teamName             String
+  status               String    @default("pending") // pending, approved, rejected
+  challenge            String
+  challengeReason      String
+  ideaName             String
+  ideaDescription      String
+  ideaSolution         String
+  ideaResults          String
+  ideaStage            String
+  attachmentsLink      String?
+  hasParticipated      Boolean
+  participationDetails String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  participants         Participant[]
 }
 
 model Participant {
-  id           String   @id @default(cuid())
-  fullName     String
-  email        String   @unique
-  phoneNumber  String
-  specialty    String
-  isLeader     Boolean  @default(false)
-  passwordHash String?
-  teamId       String
-  team         Team     @relation(fields: [teamId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  firstName        String
+  secondName       String
+  familyName       String
+  nationalId       String
+  dob              String
+  email            String   @unique
+  phoneNumber      String
+  education        String
+  university       String
+  major            String
+  employmentStatus String
+  nationality      String
+  residence        String
+  canAttend        Boolean
+  isLeader         Boolean  @default(false)
+  passwordHash     String?
+  teamId           String
+  team             Team     @relation(fields: [teamId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Admin {
