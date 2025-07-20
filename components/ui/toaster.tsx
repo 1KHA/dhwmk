@@ -5,8 +5,8 @@ import {
   ToastClose,
   ToastDescription,
   ToastTitle,
-} from "@/components/ui/toast"
-import { useToast } from "@/components/ui/use-toast"
+} from "./toast"
+import { useToast, ToasterToast } from "./use-toast"
 import { useEffect } from "react"
 
 export function Toaster() {
@@ -16,7 +16,7 @@ export function Toaster() {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = []
     
-    toasts.forEach((toast) => {
+    toasts.forEach((toast: ToasterToast) => {
       const timer = setTimeout(() => {
         dismiss(toast.id)
       }, 3000) // Changed from 5000 to 3000 ms
@@ -32,7 +32,7 @@ export function Toaster() {
 
   return (
     <div className="fixed top-0 z-[100] flex flex-col items-end gap-2 p-4 max-h-screen w-full overflow-hidden">
-      {toasts.map(function ({ id, title, description, variant, ...props }) {
+      {toasts.map(function ({ id, title, description, variant, ...props }: ToasterToast) {
         return (
           <Toast key={id} id={id} variant={variant} {...props}>
             <div className="grid gap-1">
