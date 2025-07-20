@@ -87,7 +87,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="fixed right-0 top-16 h-[calc(100vh-4rem)] w-64 border-l bg-background p-4 overflow-y-auto">
+    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-background p-4 overflow-y-auto">
       <div className="space-y-1">
         {navItems.map((item, index) => (
           <div key={item.href} className="mb-1">
@@ -147,7 +147,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <div className="absolute bottom-4 right-4 left-4">
+      <div className="absolute bottom-4 left-4 w-full pr-8">
         <div className="rounded-md bg-muted p-4">
           <div className="flex items-center justify-between">
             <div>
