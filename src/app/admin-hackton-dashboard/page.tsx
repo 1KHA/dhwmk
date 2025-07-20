@@ -25,13 +25,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">لوحة التحكم</h1>
-        <div className="text-sm text-muted-foreground">
-          آخر تحديث: {new Date().toLocaleDateString("ar-SA")}
-        </div>
-      </div>
-
       <Tabs defaultValue="overview" onValueChange={handleTabChange}>
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="overview">النظرة العامة</TabsTrigger>

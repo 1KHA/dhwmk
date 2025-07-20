@@ -39,7 +39,7 @@ export default function Header() {
             <DropdownMenuLabel>حسابي</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>الملف الشخصي</DropdownMenuItem>
-            <DropdownMenuItem>الإعدادات</DropdownMenuItem>
+            <DropdownMenuItem>إعدادات الحساب</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
               تبديل المظهر
             </DropdownMenuItem>
