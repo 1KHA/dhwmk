@@ -51,6 +51,46 @@ export default function ParticipantsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editedParticipant, setEditedParticipant] = useState<Participant | null>(null);
 
+  const handleUpdateParticipant = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editedParticipant) return;
+
+    try {
+      const response = await fetch('/api/admin/update-participant', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedParticipant),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update participant');
+      }
+
+      const updatedParticipant = await response.json();
+
+      // Update the state
+      setTeams(prevTeams =>
+        prevTeams.map(team => ({
+          ...team,
+          participants: team.participants.map(p =>
+            p.id === updatedParticipant.id ? updatedParticipant : p
+          ),
+        }))
+      );
+
+      toast({ title: "تم التحديث بنجاح", description: "تم حفظ تغييرات المشارك." });
+      setIsEditModalOpen(false);
+    } catch (error) {
+      toast({
+        title: "خطأ في التحديث",
+        description: "فشل حفظ تغييرات المشارك. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+      console.error("Failed to update participant:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -266,12 +306,7 @@ export default function ParticipantsPage() {
             <DialogTitle>تعديل المشارك: {selectedParticipant?.fullName}</DialogTitle>
           </DialogHeader>
           {editedParticipant && (
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              // Dummy action
-              toast({ title: "تم الحفظ", description: "تم حفظ تغييرات المشارك (وهمي)." });
-              setIsEditModalOpen(false);
-            }}>
+            <form onSubmit={handleUpdateParticipant}>
               <div className="grid gap-4 py-4 text-right">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label htmlFor="fullName" className="text-right col-span-1">الاسم</label>
