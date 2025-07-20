@@ -4,6 +4,18 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Download, Trash, Edit, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useToast } from "../../../../components/ui/use-toast";
+
 
 // Define types for our data
 interface Participant {
@@ -29,6 +41,16 @@ export default function ParticipantsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+
+  // State for modals
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editedParticipant, setEditedParticipant] = useState<Participant | null>(null);
+
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -164,13 +186,35 @@ export default function ParticipantsPage() {
                               </td>
                               <td className="p-3">
                                 <div className="flex gap-2 justify-center">
-                                  <button className="p-1 rounded-md hover:bg-muted">
+                                  <button
+                                    className="p-1 rounded-md hover:bg-muted"
+                                    title="عرض التفاصيل"
+                                    onClick={() => {
+                                      setSelectedParticipant(participant);
+                                      setIsViewModalOpen(true);
+                                    }}
+                                  >
                                     <Eye className="h-4 w-4" />
                                   </button>
-                                  <button className="p-1 rounded-md hover:bg-muted">
+                                  <button
+                                    className="p-1 rounded-md hover:bg-muted"
+                                    title="تعديل"
+                                    onClick={() => {
+                                      setSelectedParticipant(participant);
+                                      setEditedParticipant(participant);
+                                      setIsEditModalOpen(true);
+                                    }}
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </button>
-                                  <button className="p-1 rounded-md hover:bg-muted text-red-500">
+                                  <button
+                                    className="p-1 rounded-md hover:bg-muted text-red-500"
+                                    title="حذف"
+                                    onClick={() => {
+                                      setSelectedParticipant(participant);
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                  >
                                     <Trash className="h-4 w-4" />
                                   </button>
                                 </div>
@@ -193,6 +237,108 @@ export default function ParticipantsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* View Participant Details Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تفاصيل المشارك: {selectedParticipant?.fullName}</DialogTitle>
+          </DialogHeader>
+          {selectedParticipant && (
+            <div className="space-y-2 text-right">
+              <p><strong>الاسم الكامل:</strong> {selectedParticipant.fullName}</p>
+              <p><strong>البريد الإلكتروني:</strong> {selectedParticipant.email}</p>
+              <p><strong>رقم الهاتف:</strong> {selectedParticipant.phoneNumber}</p>
+              <p><strong>التخصص:</strong> {selectedParticipant.specialty}</p>
+              <p><strong>قائد الفريق:</strong> {selectedParticipant.isLeader ? "نعم" : "لا"}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewModalOpen(false)}>إغلاق</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Participant Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل المشارك: {selectedParticipant?.fullName}</DialogTitle>
+          </DialogHeader>
+          {editedParticipant && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              // Dummy action
+              toast({ title: "تم الحفظ", description: "تم حفظ تغييرات المشارك (وهمي)." });
+              setIsEditModalOpen(false);
+            }}>
+              <div className="grid gap-4 py-4 text-right">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="fullName" className="text-right col-span-1">الاسم</label>
+                  <input
+                    id="fullName"
+                    value={editedParticipant.fullName}
+                    onChange={(e) => setEditedParticipant({ ...editedParticipant, fullName: e.target.value })}
+                    className="col-span-3 p-2 border rounded-md"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="email" className="text-right col-span-1">البريد</label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={editedParticipant.email}
+                    onChange={(e) => setEditedParticipant({ ...editedParticipant, email: e.target.value })}
+                    className="col-span-3 p-2 border rounded-md"
+                  />
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="phoneNumber" className="text-right col-span-1">الهاتف</label>
+                  <input
+                    id="phoneNumber"
+                    value={editedParticipant.phoneNumber}
+                    onChange={(e) => setEditedParticipant({ ...editedParticipant, phoneNumber: e.target.value })}
+                    className="col-span-3 p-2 border rounded-md"
+                  />
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="specialty" className="text-right col-span-1">التخصص</label>
+                  <input
+                    id="specialty"
+                    value={editedParticipant.specialty}
+                    onChange={(e) => setEditedParticipant({ ...editedParticipant, specialty: e.target.value })}
+                    className="col-span-3 p-2 border rounded-md"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>إلغاء</Button>
+                <Button type="submit">حفظ التغييرات</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Participant Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد حذف المشارك "{selectedParticipant?.fullName}"؟
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={() => {
+              // Dummy action
+              toast({ title: "تم الحذف", description: `تم حذف المشارك ${selectedParticipant?.fullName} (وهمي).` });
+              setIsDeleteModalOpen(false);
+            }}>حذف</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
