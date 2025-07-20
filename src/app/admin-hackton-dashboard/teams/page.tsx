@@ -5,6 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Download, Trash, Edit, Eye, UserPlus, Check, X } from "lucide-react";
 import { useToast } from "@/../../components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface Participant {
   id: string;
@@ -30,6 +40,11 @@ export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editedTeam, setEditedTeam] = useState<{ teamName: string; teamIdea: string } | null>(null);
 
   // Fetch teams from API
   useEffect(() => {
@@ -83,6 +98,75 @@ export default function TeamsPage() {
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء الموافقة على الفريق",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTeam = async (teamId: string) => {
+    try {
+      const response = await fetch('/api/admin/delete-team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamId }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "نجح",
+          description: "تم حذف الفريق بنجاح",
+        });
+        fetchTeams(); // Refresh the list
+        setIsDeleteModalOpen(false);
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل في حذف الفريق",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الفريق",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeam || !editedTeam) return;
+
+    try {
+      const response = await fetch('/api/admin/update-team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamId: selectedTeam.id, ...editedTeam }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "نجح",
+          description: "تم تحديث الفريق بنجاح",
+        });
+        fetchTeams(); // Refresh the list
+        setIsEditModalOpen(false);
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل في تحديث الفريق",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث الفريق",
         variant: "destructive",
       });
     }
@@ -234,9 +318,13 @@ export default function TeamsPage() {
                       </td>
                       <td className="border p-2">
                         <div className="flex gap-2 justify-center">
-                          <button 
+                          <button
                             className="p-1 rounded-md hover:bg-muted"
                             title="عرض التفاصيل"
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setIsViewModalOpen(true);
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -258,10 +346,23 @@ export default function TeamsPage() {
                               </button>
                             </>
                           )}
-                          <button className="p-1 rounded-md hover:bg-muted">
+                          <button
+                            className="p-1 rounded-md hover:bg-muted"
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setEditedTeam({ teamName: team.teamName, teamIdea: team.teamIdea });
+                              setIsEditModalOpen(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button className="p-1 rounded-md hover:bg-muted text-red-500">
+                          <button
+                            className="p-1 rounded-md hover:bg-muted text-red-500"
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
                             <Trash className="h-4 w-4" />
                           </button>
                         </div>
@@ -316,6 +417,87 @@ export default function TeamsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* View Team Details Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تفاصيل الفريق: {selectedTeam?.teamName}</DialogTitle>
+          </DialogHeader>
+          {selectedTeam && (
+            <div>
+              <p><strong>فكرة المشروع:</strong> {selectedTeam.teamIdea}</p>
+              <p><strong>الحالة:</strong> {selectedTeam.status}</p>
+              <h4 className="font-bold mt-4">الأعضاء:</h4>
+              <ul>
+                {selectedTeam.participants.map(p => (
+                  <li key={p.id}>{p.fullName} ({p.email}) {p.isLeader && <strong>(قائد)</strong>}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewModalOpen(false)}>إغلاق</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Team Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد حذف فريق "{selectedTeam?.teamName}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={() => selectedTeam && handleDeleteTeam(selectedTeam.id)}>حذف</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Team Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل الفريق: {selectedTeam?.teamName}</DialogTitle>
+          </DialogHeader>
+          {editedTeam && (
+            <form onSubmit={handleUpdateTeam}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="teamName" className="text-right">
+                    اسم الفريق
+                  </label>
+                  <input
+                    id="teamName"
+                    value={editedTeam.teamName}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, teamName: e.target.value })}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="teamIdea" className="text-right">
+                    فكرة المشروع
+                  </label>
+                  <textarea
+                    id="teamIdea"
+                    value={editedTeam.teamIdea}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, teamIdea: e.target.value })}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>إلغاء</Button>
+                <Button type="submit">حفظ التغييرات</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
