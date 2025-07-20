@@ -51,6 +51,45 @@ export default function ParticipantsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editedParticipant, setEditedParticipant] = useState<Participant | null>(null);
 
+  const handleDeleteParticipant = async (participantId: string) => {
+    try {
+      const response = await fetch('/api/admin/delete-participant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ participantId }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "نجح",
+          description: "تم حذف المشارك بنجاح",
+        });
+        // Refresh the list by filtering out the deleted participant
+        setTeams(prevTeams =>
+          prevTeams.map(team => ({
+            ...team,
+            participants: team.participants.filter(p => p.id !== participantId),
+          })).filter(team => team.participants.length > 0) // Optional: remove team if no participants left
+        );
+        setIsDeleteModalOpen(false);
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل في حذف المشارك",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف المشارك",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUpdateParticipant = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editedParticipant) return;
@@ -366,11 +405,7 @@ export default function ParticipantsPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
-            <Button variant="destructive" onClick={() => {
-              // Dummy action
-              toast({ title: "تم الحذف", description: `تم حذف المشارك ${selectedParticipant?.fullName} (وهمي).` });
-              setIsDeleteModalOpen(false);
-            }}>حذف</Button>
+            <Button variant="destructive" onClick={() => selectedParticipant && handleDeleteParticipant(selectedParticipant.id)}>حذف</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

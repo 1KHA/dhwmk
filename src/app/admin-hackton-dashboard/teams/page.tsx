@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Download, Trash, Edit, Eye, UserPlus, Check, X } from "lucide-react";
@@ -45,6 +45,7 @@ export default function TeamsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editedTeam, setEditedTeam] = useState<{ teamName: string; teamIdea: string } | null>(null);
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
 
   // Fetch teams from API
   useEffect(() => {
@@ -290,9 +291,22 @@ export default function TeamsPage() {
                 {filteredTeams.map((team) => {
                   const leader = team.participants.find(p => p.isLeader);
                   return (
-                    <tr key={team.id} className="hover:bg-muted/50">
-                      <td className="border p-2">{team.teamName}</td>
-                      <td className="border p-2">{team.participants.length}</td>
+                    <React.Fragment key={team.id}>
+                      <tr className="hover:bg-muted/50">
+                        <td className="border p-2">{team.teamName}</td>
+                        <td className="border p-2">
+                        {team.status === 'pending' ? (
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto"
+                            onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
+                          >
+                            {team.participants.length} (عرض التفاصيل)
+                          </Button>
+                        ) : (
+                          team.participants.length
+                        )}
+                      </td>
                       <td className="border p-2">{leader?.fullName || 'غير متوفر'}</td>
                       <td className="border p-2">
                         <div className="max-w-xs truncate" title={team.teamIdea}>
@@ -366,8 +380,46 @@ export default function TeamsPage() {
                             <Trash className="h-4 w-4" />
                           </button>
                         </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                      {expandedTeam === team.id && (
+                        <tr className="bg-muted/20">
+                          <td colSpan={7} className="p-0">
+                            <div className="p-4">
+                              <h4 className="font-bold mb-2">أعضاء الفريق:</h4>
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="bg-muted/50">
+                                    <th className="p-2 text-right font-semibold">الاسم الكامل</th>
+                                    <th className="p-2 text-right font-semibold">البريد الإلكتروني</th>
+                                    <th className="p-2 text-right font-semibold">رقم الهاتف</th>
+                                    <th className="p-2 text-right font-semibold">التخصص</th>
+                                    <th className="p-2 text-center font-semibold">قائد الفريق</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {team.participants.map(p => (
+                                    <tr key={p.id} className="border-t">
+                                      <td className="p-2">{p.fullName}</td>
+                                      <td className="p-2">{p.email}</td>
+                                      <td className="p-2">{p.phoneNumber}</td>
+                                      <td className="p-2">{p.specialty}</td>
+                                      <td className="p-2 text-center">
+                                        {p.isLeader ? (
+                                          <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                            نعم
+                                          </span>
+                                        ) : "لا"}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
