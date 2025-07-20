@@ -83,7 +83,10 @@ export default function Sidebar() {
   };
 
   const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (href === "/admin-hackton-dashboard") {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
   };
 
   return (
