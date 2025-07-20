@@ -53,7 +53,6 @@ export default function RegisterTeamPage() {
 
   // Team & Idea Info
   const [teamName, setTeamName] = useState('')
-  const [hasTeam, setHasTeam] = useState(false)
   const [challenge, setChallenge] = useState('')
   const [challengeReason, setChallengeReason] = useState('')
   const [ideaName, setIdeaName] = useState('')
@@ -233,21 +232,15 @@ export default function RegisterTeamPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="has-team" checked={hasTeam} onCheckedChange={(checked: boolean | 'indeterminate') => setHasTeam(!!checked)} />
-                <Label htmlFor="has-team">هل لديك فريق؟</Label>
-              </div>
-
               {/* Team Leader Information */}
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold border-b pb-2">معلومات قائد الفريق</h3>
                 {renderParticipantFields(leaderInfo, (field, value) => updateParticipant(setLeaderInfo, field, value), 'leader')}
               </div>
 
-              {hasTeam && (
-                <>
-                  {/* Idea Information */}
-                  <div className="space-y-6">
+              <>
+                {/* Idea Information */}
+                <div className="space-y-6">
                     <h3 className="text-xl font-semibold border-b pb-2">معلومات الفكرة</h3>
                     
                     <div>
@@ -360,8 +353,7 @@ export default function RegisterTeamPage() {
                     ))}
                   </div>
                 </>
-              )}
-
+              
               <div className="flex items-center space-x-2">
                 <Checkbox id="terms" required checked={agreeToTerms} onCheckedChange={(checked) => setAgreeToTerms(!!checked)} />
                 <Label htmlFor="terms">أوافق على الشروط والأحكام</Label>

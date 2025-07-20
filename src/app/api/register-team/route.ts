@@ -32,23 +32,23 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
-      // Step 1: Create the team first.
-      const teamData = {
-        teamName: teamName || `فريق ${leader.firstName} ${leader.familyName}`,
-        status: 'pending',
-        challenge: idea.challenge,
-        challengeReason: idea.challengeReason,
-        ideaName: idea.ideaName,
-        ideaDescription: idea.ideaDescription || 'مشارك فردي',
-        ideaSolution: idea.ideaSolution,
-        ideaResults: idea.ideaResults,
-        ideaStage: idea.ideaStage,
-        attachmentsLink: idea.attachmentsLink,
-        hasParticipated: idea.hasParticipated,
-        participationDetails: idea.participationDetails,
-      };
-
-      const team = await tx.team.create({ data: teamData });
+      // Step 1: Create the team.
+      const team = await tx.team.create({
+        data: {
+          teamName,
+          status: 'pending',
+          challenge: idea.challenge,
+          challengeReason: idea.challengeReason,
+          ideaName: idea.ideaName,
+          ideaDescription: idea.ideaDescription,
+          ideaSolution: idea.ideaSolution,
+          ideaResults: idea.ideaResults,
+          ideaStage: idea.ideaStage,
+          attachmentsLink: idea.attachmentsLink,
+          hasParticipated: idea.hasParticipated,
+          participationDetails: idea.participationDetails,
+        },
+      });
       const teamId = team.id;
 
       // Step 2: Create the leader and associate with the new team.
