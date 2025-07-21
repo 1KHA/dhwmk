@@ -3,18 +3,20 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
-    const { teamId, teamName, teamIdea } = await req.json();
+    const { teamId, teamName, ideaName } = await req.json();
 
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
+    const dataToUpdate: { teamName?: string; ideaName?: string } = {};
+    if (teamName) dataToUpdate.teamName = teamName;
+    if (ideaName) dataToUpdate.ideaName = ideaName;
+
+
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
-      data: {
-        teamName,
-        teamIdea,
-      },
+      data: dataToUpdate,
     });
 
     return NextResponse.json(updatedTeam);

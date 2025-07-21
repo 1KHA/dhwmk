@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ interface Team {
 }
 
 export default function TeamsPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [teams, setTeams] = useState<Team[]>([]);
@@ -260,7 +262,7 @@ export default function TeamsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">الفرق</h1>
-        <Button onClick={() => window.location.href = '/register-team'}>
+        <Button onClick={() => router.push('/admin-hackton-dashboard/teams/create')}>
           <Plus className="ml-2 h-4 w-4" />
           إنشاء فريق
         </Button>

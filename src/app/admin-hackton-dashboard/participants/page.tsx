@@ -108,7 +108,7 @@ export default function ParticipantsPage() {
 
     try {
       const response = await fetch('/api/admin/update-participant', {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -119,7 +119,14 @@ export default function ParticipantsPage() {
         throw new Error('Failed to update participant');
       }
 
-      const updatedParticipant = await response.json();
+      const updatedParticipantData = await response.json();
+      
+      // Re-add computed fullName after update
+      const updatedParticipant = {
+        ...updatedParticipantData,
+        fullName: `${updatedParticipantData.firstName} ${updatedParticipantData.secondName} ${updatedParticipantData.familyName}`,
+      };
+
 
       // Update the state
       setTeams(prevTeams =>
