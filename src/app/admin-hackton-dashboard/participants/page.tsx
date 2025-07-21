@@ -20,17 +20,29 @@ import { useToast } from "../../../../components/ui/use-toast";
 // Define types for our data
 interface Participant {
   id: string;
-  fullName: string;
+  firstName: string;
+  secondName: string;
+  familyName: string;
+  nationalId: string;
+  dob: string;
   email: string;
   phoneNumber: string;
-  specialty: string;
+  education: string;
+  university: string;
+  major: string;
+  employmentStatus: string;
+  nationality: string;
+  residence: string;
+  canAttend: boolean;
   isLeader: boolean;
+  // Computed
+  fullName?: string;
 }
 
 interface Team {
   id: string;
   teamName: string;
-  teamIdea: string;
+  ideaName: string;
   status: string;
   participants: Participant[];
 }
@@ -140,7 +152,15 @@ export default function ParticipantsPage() {
           throw new Error('Failed to fetch teams');
         }
         const allTeams: Team[] = await response.json();
-        setTeams(allTeams);
+        // Add computed fullName to each participant
+        const teamsWithComputedNames = allTeams.map(team => ({
+          ...team,
+          participants: team.participants.map(p => ({
+            ...p,
+            fullName: `${p.firstName} ${p.secondName} ${p.familyName}`,
+          })),
+        }));
+        setTeams(teamsWithComputedNames);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
@@ -156,8 +176,8 @@ export default function ParticipantsPage() {
     .filter(team => selectedStatus === "all" || team.status === selectedStatus)
     .filter(team =>
       team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.teamIdea.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.participants.some(p => p.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
+      team.ideaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      team.participants.some(p => p.fullName && p.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
   const getStatusBadge = (status: string) => {
@@ -225,7 +245,7 @@ export default function ParticipantsPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-xl mb-2">{team.teamName}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{team.teamIdea}</p>
+                        <p className="text-sm text-muted-foreground">{team.ideaName}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         {getStatusBadge(team.status)}
@@ -243,8 +263,9 @@ export default function ParticipantsPage() {
                           <tr>
                             <th className="p-3 text-right font-semibold">الاسم الكامل</th>
                             <th className="p-3 text-right font-semibold">البريد الإلكتروني</th>
-                            <th className="p-3 text-right font-semibold">رقم الهاتف</th>
+                            <th className="p-3 text-right font-semibold">رقم الهوية</th>
                             <th className="p-3 text-right font-semibold">التخصص</th>
+                            <th className="p-3 text-right font-semibold">الجامعة</th>
                             <th className="p-3 text-center font-semibold">قائد الفريق</th>
                             <th className="p-3 text-center font-semibold">الإجراءات</th>
                           </tr>
@@ -254,8 +275,9 @@ export default function ParticipantsPage() {
                             <tr key={participant.id} className="border-t hover:bg-muted/20">
                               <td className="p-3">{participant.fullName}</td>
                               <td className="p-3">{participant.email}</td>
-                              <td className="p-3">{participant.phoneNumber}</td>
-                              <td className="p-3">{participant.specialty}</td>
+                              <td className="p-3">{participant.nationalId}</td>
+                              <td className="p-3">{participant.major}</td>
+                              <td className="p-3">{participant.university}</td>
                               <td className="p-3 text-center">
                                 {participant.isLeader && (
                                   <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
@@ -319,17 +341,27 @@ export default function ParticipantsPage() {
 
       {/* View Participant Details Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>تفاصيل المشارك: {selectedParticipant?.fullName}</DialogTitle>
           </DialogHeader>
           {selectedParticipant && (
-            <div className="space-y-2 text-right">
-              <p><strong>الاسم الكامل:</strong> {selectedParticipant.fullName}</p>
-              <p><strong>البريد الإلكتروني:</strong> {selectedParticipant.email}</p>
-              <p><strong>رقم الهاتف:</strong> {selectedParticipant.phoneNumber}</p>
-              <p><strong>التخصص:</strong> {selectedParticipant.specialty}</p>
-              <p><strong>قائد الفريق:</strong> {selectedParticipant.isLeader ? "نعم" : "لا"}</p>
+            <div className="space-y-4 p-4 max-h-[70vh] overflow-y-auto text-right">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                  <p><strong>الاسم الكامل:</strong> {selectedParticipant.fullName}</p>
+                  <p><strong>البريد الإلكتروني:</strong> {selectedParticipant.email}</p>
+                  <p><strong>رقم الهوية:</strong> {selectedParticipant.nationalId}</p>
+                  <p><strong>تاريخ الميلاد:</strong> {selectedParticipant.dob}</p>
+                  <p><strong>رقم الجوال:</strong> {selectedParticipant.phoneNumber}</p>
+                  <p><strong>المؤهل التعليمي:</strong> {selectedParticipant.education}</p>
+                  <p><strong>الجامعة:</strong> {selectedParticipant.university}</p>
+                  <p><strong>التخصص:</strong> {selectedParticipant.major}</p>
+                  <p><strong>الحالة الوظيفية:</strong> {selectedParticipant.employmentStatus}</p>
+                  <p><strong>الجنسية:</strong> {selectedParticipant.nationality}</p>
+                  <p><strong>منطقة الإقامة:</strong> {selectedParticipant.residence}</p>
+                  <p><strong>يمكنه الحضور؟</strong> {selectedParticipant.canAttend ? 'نعم' : 'لا'}</p>
+                  <p><strong>قائد الفريق:</strong> {selectedParticipant.isLeader ? 'نعم' : 'لا'}</p>
+                </div>
             </div>
           )}
           <DialogFooter>
@@ -340,52 +372,48 @@ export default function ParticipantsPage() {
 
       {/* Edit Participant Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>تعديل المشارك: {selectedParticipant?.fullName}</DialogTitle>
           </DialogHeader>
           {editedParticipant && (
             <form onSubmit={handleUpdateParticipant}>
-              <div className="grid gap-4 py-4 text-right">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="fullName" className="text-right col-span-1">الاسم</label>
-                  <input
-                    id="fullName"
-                    value={editedParticipant.fullName}
-                    onChange={(e) => setEditedParticipant({ ...editedParticipant, fullName: e.target.value })}
-                    className="col-span-3 p-2 border rounded-md"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 text-right max-h-[70vh] overflow-y-auto p-2">
+                {/* We can't edit fullName directly, it's composed of parts */}
+                <div>
+                  <label htmlFor="firstName" className="text-sm font-medium">الاسم الأول</label>
+                  <input id="firstName" value={editedParticipant.firstName} onChange={(e) => setEditedParticipant({ ...editedParticipant, firstName: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="email" className="text-right col-span-1">البريد</label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={editedParticipant.email}
-                    onChange={(e) => setEditedParticipant({ ...editedParticipant, email: e.target.value })}
-                    className="col-span-3 p-2 border rounded-md"
-                  />
+                <div>
+                  <label htmlFor="secondName" className="text-sm font-medium">الاسم الثاني</label>
+                  <input id="secondName" value={editedParticipant.secondName} onChange={(e) => setEditedParticipant({ ...editedParticipant, secondName: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="phoneNumber" className="text-right col-span-1">الهاتف</label>
-                  <input
-                    id="phoneNumber"
-                    value={editedParticipant.phoneNumber}
-                    onChange={(e) => setEditedParticipant({ ...editedParticipant, phoneNumber: e.target.value })}
-                    className="col-span-3 p-2 border rounded-md"
-                  />
+                <div>
+                  <label htmlFor="familyName" className="text-sm font-medium">اسم العائلة</label>
+                  <input id="familyName" value={editedParticipant.familyName} onChange={(e) => setEditedParticipant({ ...editedParticipant, familyName: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="specialty" className="text-right col-span-1">التخصص</label>
-                  <input
-                    id="specialty"
-                    value={editedParticipant.specialty}
-                    onChange={(e) => setEditedParticipant({ ...editedParticipant, specialty: e.target.value })}
-                    className="col-span-3 p-2 border rounded-md"
-                  />
+                <div>
+                  <label htmlFor="email" className="text-sm font-medium">البريد الإلكتروني</label>
+                  <input id="email" type="email" value={editedParticipant.email} onChange={(e) => setEditedParticipant({ ...editedParticipant, email: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
+                </div>
+                <div>
+                  <label htmlFor="phoneNumber" className="text-sm font-medium">رقم الهاتف</label>
+                  <input id="phoneNumber" value={editedParticipant.phoneNumber} onChange={(e) => setEditedParticipant({ ...editedParticipant, phoneNumber: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
+                </div>
+                <div>
+                  <label htmlFor="nationalId" className="text-sm font-medium">رقم الهوية</label>
+                  <input id="nationalId" value={editedParticipant.nationalId} onChange={(e) => setEditedParticipant({ ...editedParticipant, nationalId: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
+                </div>
+                <div>
+                  <label htmlFor="major" className="text-sm font-medium">التخصص</label>
+                  <input id="major" value={editedParticipant.major} onChange={(e) => setEditedParticipant({ ...editedParticipant, major: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
+                </div>
+                <div>
+                  <label htmlFor="university" className="text-sm font-medium">الجامعة</label>
+                  <input id="university" value={editedParticipant.university} onChange={(e) => setEditedParticipant({ ...editedParticipant, university: e.target.value })} className="w-full p-2 border rounded-md mt-1" />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>إلغاء</Button>
                 <Button type="submit">حفظ التغييرات</Button>
               </DialogFooter>

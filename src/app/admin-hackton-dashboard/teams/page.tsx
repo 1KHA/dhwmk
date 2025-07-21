@@ -18,18 +18,40 @@ import {
 
 interface Participant {
   id: string;
-  fullName: string;
+  firstName: string;
+  secondName: string;
+  familyName: string;
+  nationalId: string;
+  dob: string;
   email: string;
   phoneNumber: string;
-  specialty: string;
+  education: string;
+  university: string;
+  major: string;
+  employmentStatus: string;
+  nationality: string;
+  residence: string;
+  canAttend: boolean;
   isLeader: boolean;
+  // Computed property
+  fullName?: string; 
 }
 
 interface Team {
   id: string;
   teamName: string;
-  teamIdea: string;
   status: string;
+  challenge: string;
+  challengeReason: string;
+  ideaName: string;
+  ideaDescription: string;
+  ideaSolution: string;
+  ideaResults: string;
+  ideaStage: string;
+  attachmentsLink: string | null;
+  hasParticipated: boolean;
+  participationDetails: string | null;
+  attachmentPath: string | null;
   createdAt: string;
   participants: Participant[];
 }
@@ -44,7 +66,7 @@ export default function TeamsPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editedTeam, setEditedTeam] = useState<{ teamName: string; teamIdea: string } | null>(null);
+  const [editedTeam, setEditedTeam] = useState<Partial<Team> | null>(null);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
 
   // Fetch teams from API
@@ -57,7 +79,15 @@ export default function TeamsPage() {
       const response = await fetch('/api/admin/teams');
       if (response.ok) {
         const data = await response.json();
-        setTeams(data);
+        // Add computed fullName to each participant
+        const teamsWithComputedNames = data.map((team: Team) => ({
+          ...team,
+          participants: team.participants.map((p: Participant) => ({
+            ...p,
+            fullName: `${p.firstName} ${p.secondName} ${p.familyName}`,
+          })),
+        }));
+        setTeams(teamsWithComputedNames);
       }
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -210,8 +240,8 @@ export default function TeamsPage() {
     const leader = team.participants.find(p => p.isLeader);
     const matchesSearch =
       team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.teamIdea.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (leader && leader.fullName.toLowerCase().includes(searchQuery.toLowerCase()));
+      team.ideaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (leader && leader.fullName && leader.fullName.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesFilter =
       selectedFilter === "all" ||
@@ -279,9 +309,10 @@ export default function TeamsPage() {
               <thead>
                 <tr className="bg-muted">
                   <th className="border p-2 text-right">اسم الفريق</th>
+                  <th className="border p-2 text-right">اسم الفكرة</th>
+                  <th className="border p-2 text-right">التحدي</th>
                   <th className="border p-2 text-right">الأعضاء</th>
                   <th className="border p-2 text-right">قائد الفريق</th>
-                  <th className="border p-2 text-right">فكرة المشروع</th>
                   <th className="border p-2 text-right">الحالة</th>
                   <th className="border p-2 text-right">تاريخ الإنشاء</th>
                   <th className="border p-2 text-right">الإجراءات</th>
@@ -294,26 +325,19 @@ export default function TeamsPage() {
                     <React.Fragment key={team.id}>
                       <tr className="hover:bg-muted/50">
                         <td className="border p-2">{team.teamName}</td>
+                        <td className="border p-2">{team.ideaName}</td>
+                        <td className="border p-2">{team.challenge}</td>
                         <td className="border p-2">
-                        {team.status === 'pending' ? (
                           <Button
                             variant="link"
                             className="p-0 h-auto"
                             onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
                           >
-                            {team.participants.length} (عرض التفاصيل)
+                            {team.participants.length} (عرض)
                           </Button>
-                        ) : (
-                          team.participants.length
-                        )}
-                      </td>
-                      <td className="border p-2">{leader?.fullName || 'غير متوفر'}</td>
-                      <td className="border p-2">
-                        <div className="max-w-xs truncate" title={team.teamIdea}>
-                          {team.teamIdea}
-                        </div>
-                      </td>
-                      <td className="border p-2">
+                        </td>
+                        <td className="border p-2">{leader?.fullName || 'غير متوفر'}</td>
+                        <td className="border p-2">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             team.status === "approved"
@@ -364,7 +388,7 @@ export default function TeamsPage() {
                             className="p-1 rounded-md hover:bg-muted"
                             onClick={() => {
                               setSelectedTeam(team);
-                              setEditedTeam({ teamName: team.teamName, teamIdea: team.teamIdea });
+                              setEditedTeam({ teamName: team.teamName, ideaName: team.ideaName });
                               setIsEditModalOpen(true);
                             }}
                           >
@@ -384,7 +408,7 @@ export default function TeamsPage() {
                       </tr>
                       {expandedTeam === team.id && (
                         <tr className="bg-muted/20">
-                          <td colSpan={7} className="p-0">
+                          <td colSpan={8} className="p-0">
                             <div className="p-4">
                               <h4 className="font-bold mb-2">أعضاء الفريق:</h4>
                               <table className="w-full text-sm">
@@ -392,8 +416,9 @@ export default function TeamsPage() {
                                   <tr className="bg-muted/50">
                                     <th className="p-2 text-right font-semibold">الاسم الكامل</th>
                                     <th className="p-2 text-right font-semibold">البريد الإلكتروني</th>
-                                    <th className="p-2 text-right font-semibold">رقم الهاتف</th>
+                                    <th className="p-2 text-right font-semibold">رقم الهوية</th>
                                     <th className="p-2 text-right font-semibold">التخصص</th>
+                                    <th className="p-2 text-right font-semibold">الجامعة</th>
                                     <th className="p-2 text-center font-semibold">قائد الفريق</th>
                                   </tr>
                                 </thead>
@@ -402,8 +427,9 @@ export default function TeamsPage() {
                                     <tr key={p.id} className="border-t">
                                       <td className="p-2">{p.fullName}</td>
                                       <td className="p-2">{p.email}</td>
-                                      <td className="p-2">{p.phoneNumber}</td>
-                                      <td className="p-2">{p.specialty}</td>
+                                      <td className="p-2">{p.nationalId}</td>
+                                      <td className="p-2">{p.major}</td>
+                                      <td className="p-2">{p.university}</td>
                                       <td className="p-2 text-center">
                                         {p.isLeader ? (
                                           <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
@@ -472,20 +498,55 @@ export default function TeamsPage() {
 
       {/* View Team Details Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>تفاصيل الفريق: {selectedTeam?.teamName}</DialogTitle>
           </DialogHeader>
           {selectedTeam && (
-            <div>
-              <p><strong>فكرة المشروع:</strong> {selectedTeam.teamIdea}</p>
-              <p><strong>الحالة:</strong> {selectedTeam.status}</p>
-              <h4 className="font-bold mt-4">الأعضاء:</h4>
-              <ul>
-                {selectedTeam.participants.map(p => (
-                  <li key={p.id}>{p.fullName} ({p.email}) {p.isLeader && <strong>(قائد)</strong>}</li>
-                ))}
-              </ul>
+            <div className="space-y-6 max-h-[80vh] overflow-y-auto p-4 text-right">
+              {/* Team Details */}
+              <div className="p-4 border rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">تفاصيل الفريق</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                  <p><strong>اسم الفريق:</strong> {selectedTeam.teamName}</p>
+                  <p><strong>اسم الفكرة:</strong> {selectedTeam.ideaName}</p>
+                  <p><strong>التحدي:</strong> {selectedTeam.challenge}</p>
+                  <p><strong>مرحلة الفكرة:</strong> {selectedTeam.ideaStage}</p>
+                  <p className="col-span-2"><strong>سبب اختيار التحدي:</strong> {selectedTeam.challengeReason}</p>
+                  <p className="col-span-2"><strong>وصف الفكرة:</strong> {selectedTeam.ideaDescription}</p>
+                  <p className="col-span-2"><strong>الحل المقترح:</strong> {selectedTeam.ideaSolution}</p>
+                  <p className="col-span-2"><strong>النتائج المتوقعة:</strong> {selectedTeam.ideaResults}</p>
+                  <p><strong>هل شاركت الفكرة من قبل؟</strong> {selectedTeam.hasParticipated ? 'نعم' : 'لا'}</p>
+                  {selectedTeam.hasParticipated && <p><strong>تفاصيل المشاركة:</strong> {selectedTeam.participationDetails}</p>}
+                  {selectedTeam.attachmentPath && <p><strong>المرفقات:</strong> <a href={selectedTeam.attachmentPath} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">عرض المرفق</a></p>}
+                </div>
+              </div>
+
+              {/* Participants Details */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">الأعضاء</h3>
+                <div className="space-y-4">
+                  {selectedTeam.participants.map((p, index) => (
+                    <div key={p.id} className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">{p.isLeader ? 'قائد الفريق' : `العضو ${index}`}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
+                        <p><strong>الاسم الكامل:</strong> {p.fullName}</p>
+                        <p><strong>البريد الإلكتروني:</strong> {p.email}</p>
+                        <p><strong>رقم الهوية:</strong> {p.nationalId}</p>
+                        <p><strong>تاريخ الميلاد:</strong> {p.dob}</p>
+                        <p><strong>رقم الجوال:</strong> {p.phoneNumber}</p>
+                        <p><strong>المؤهل التعليمي:</strong> {p.education}</p>
+                        <p><strong>الجامعة:</strong> {p.university}</p>
+                        <p><strong>التخصص:</strong> {p.major}</p>
+                        <p><strong>الحالة الوظيفية:</strong> {p.employmentStatus}</p>
+                        <p><strong>الجنسية:</strong> {p.nationality}</p>
+                        <p><strong>منطقة الإقامة:</strong> {p.residence}</p>
+                        <p><strong>يمكنه الحضور؟</strong> {p.canAttend ? 'نعم' : 'لا'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -525,19 +586,19 @@ export default function TeamsPage() {
                   </label>
                   <input
                     id="teamName"
-                    value={editedTeam.teamName}
+                    value={editedTeam.teamName || ''}
                     onChange={(e) => setEditedTeam({ ...editedTeam, teamName: e.target.value })}
                     className="col-span-3"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="teamIdea" className="text-right">
+                  <label htmlFor="ideaName" className="text-right">
                     فكرة المشروع
                   </label>
                   <textarea
-                    id="teamIdea"
-                    value={editedTeam.teamIdea}
-                    onChange={(e) => setEditedTeam({ ...editedTeam, teamIdea: e.target.value })}
+                    id="ideaName"
+                    value={editedTeam.ideaName || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, ideaName: e.target.value })}
                     className="col-span-3"
                   />
                 </div>
