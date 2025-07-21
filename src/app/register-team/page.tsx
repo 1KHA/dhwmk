@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -46,88 +46,105 @@ const initialParticipantState: Participant = {
   canAttend: false,
 }
 
+const initialFormState = {
+  teamName: '',
+  challenge: '',
+  challengeReason: '',
+  ideaName: '',
+  ideaDescription: '',
+  ideaSolution: '',
+  ideaResults: '',
+  ideaStage: '',
+  attachmentsLink: '',
+  hasParticipated: false,
+  participationDetails: '',
+  agreeToTerms: false,
+  leaderInfo: initialParticipantState,
+  members: Array(2).fill(null).map(() => initialParticipantState),
+  memberCount: 2,
+}
+
+type FormState = typeof initialFormState;
+
 export default function RegisterTeamPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
 
-  // Team & Idea Info
-  const [teamName, setTeamName] = useState('')
-  const [challenge, setChallenge] = useState('')
-  const [challengeReason, setChallengeReason] = useState('')
-  const [ideaName, setIdeaName] = useState('')
-  const [ideaDescription, setIdeaDescription] = useState('')
-  const [ideaSolution, setIdeaSolution] = useState('')
-  const [ideaResults, setIdeaResults] = useState('')
-  const [ideaStage, setIdeaStage] = useState('')
-  const [attachmentsLink, setAttachmentsLink] = useState('')
-  const [hasParticipated, setHasParticipated] = useState(false)
-  const [participationDetails, setParticipationDetails] = useState('')
-  const [agreeToTerms, setAgreeToTerms] = useState(false)
+  const [formState, setFormState] = useState(() => {
+    if (typeof window === 'undefined') {
+      return initialFormState
+    }
+    try {
+      const savedState = localStorage.getItem('registrationForm')
+      return savedState ? JSON.parse(savedState) : initialFormState
+    } catch (error) {
+      console.error('Failed to parse form state from localStorage', error)
+      return initialFormState
+    }
+  })
 
-  // Leader Info
-  const [leaderInfo, setLeaderInfo] = useState<Participant>(initialParticipantState)
+  useEffect(() => {
+    localStorage.setItem('registrationForm', JSON.stringify(formState))
+  }, [formState])
 
-  // Members Info
-  const [memberCount, setMemberCount] = useState<number>(2)
-  const [members, setMembers] = useState<Participant[]>(
-    Array(2).fill(null).map(() => initialParticipantState)
-  )
+  const handleStateChange = (field: keyof FormState, value: any) => {
+    setFormState((prev: FormState) => ({ ...prev, [field]: value }))
+  }
+
+  const handleLeaderChange = (field: keyof Participant, value: string | boolean) => {
+    setFormState((prev: FormState) => ({
+      ...prev,
+      leaderInfo: { ...prev.leaderInfo, [field]: value },
+    }))
+  }
+
+  const handleMemberChange = (index: number, field: keyof Participant, value: string | boolean) => {
+    setFormState((prev: FormState) => {
+      const newMembers = [...prev.members]
+      newMembers[index] = { ...newMembers[index], [field]: value }
+      return { ...prev, members: newMembers }
+    })
+  }
 
   const handleMemberCountChange = (value: string) => {
     const count = parseInt(value)
-    setMemberCount(count)
-
-    if (count > members.length) {
-      const newMembers = [...members]
-      for (let i = members.length; i < count; i++) {
-        newMembers.push(initialParticipantState)
+    setFormState((prev: FormState) => {
+      const currentMembers = prev.members
+      if (count > currentMembers.length) {
+        const newMembers = [...currentMembers]
+        for (let i = currentMembers.length; i < count; i++) {
+          newMembers.push(initialParticipantState)
+        }
+        return { ...prev, memberCount: count, members: newMembers }
       }
-      setMembers(newMembers)
-    } else {
-      setMembers(members.slice(0, count))
-    }
-  }
-
-  const updateParticipant = (
-    setter: React.Dispatch<React.SetStateAction<Participant>>,
-    field: keyof Participant,
-    value: string | boolean
-  ) => {
-    setter((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const updateMember = (index: number, field: keyof Participant, value: string | boolean) => {
-    const newMembers = [...members]
-    newMembers[index] = { ...newMembers[index], [field]: value }
-    setMembers(newMembers)
+      return { ...prev, memberCount: count, members: currentMembers.slice(0, count) }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
+    const formData = new FormData()
+    // Append all form fields to FormData
+    Object.entries(formState).forEach(([key, value]) => {
+        if (key === 'leaderInfo' || key === 'members') {
+            formData.append(key, JSON.stringify(value));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    if (attachmentFile) {
+      formData.append('attachment', attachmentFile)
+    }
+
     try {
       const response = await fetch('/api/register-team', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teamName,
-          leader: leaderInfo,
-          members: members.slice(0, memberCount),
-          idea: {
-            challenge,
-            challengeReason,
-            ideaName,
-            ideaDescription,
-            ideaSolution,
-            ideaResults,
-            ideaStage,
-            attachmentsLink,
-            hasParticipated,
-            participationDetails,
-          }
-        }),
+        body: formData,
       })
 
       const data = await response.json()
@@ -137,6 +154,7 @@ export default function RegisterTeamPage() {
           title: 'نجح!',
           description: 'تم إرسال النموذج بنجاح',
         })
+        localStorage.removeItem('registrationForm')
         router.push('/')
       } else {
         toast({
@@ -235,7 +253,7 @@ export default function RegisterTeamPage() {
               {/* Team Leader Information */}
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold border-b pb-2">معلومات قائد الفريق</h3>
-                {renderParticipantFields(leaderInfo, (field, value) => updateParticipant(setLeaderInfo, field, value), 'leader')}
+                {renderParticipantFields(formState.leaderInfo, handleLeaderChange, 'leader')}
               </div>
 
               <>
@@ -245,12 +263,12 @@ export default function RegisterTeamPage() {
                     
                     <div>
                       <Label htmlFor="team-name">اسم الفريق</Label>
-                      <Input id="team-name" required value={teamName} onChange={(e) => setTeamName(e.target.value)} />
+                      <Input id="team-name" required value={formState.teamName} onChange={(e) => handleStateChange('teamName', e.target.value)} />
                     </div>
 
                     <div>
                       <Label>اختر أحد التحديات الأساسية</Label>
-                      <Select required onValueChange={setChallenge} value={challenge}>
+                      <Select required onValueChange={(value) => handleStateChange('challenge', value)} value={formState.challenge}>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر تحدي..." />
                         </SelectTrigger>
@@ -265,32 +283,32 @@ export default function RegisterTeamPage() {
 
                     <div>
                       <Label htmlFor="challenge-reason">لماذا اخترت هذا التحدي؟</Label>
-                      <Textarea id="challenge-reason" required value={challengeReason} onChange={(e) => setChallengeReason(e.target.value)} />
+                      <Textarea id="challenge-reason" required value={formState.challengeReason} onChange={(e) => handleStateChange('challengeReason', e.target.value)} />
                     </div>
 
                     <div>
                       <Label htmlFor="idea-name">ما اسم الفكرة الابتكارية (عنوان قصير)</Label>
-                      <Input id="idea-name" required value={ideaName} onChange={(e) => setIdeaName(e.target.value)} />
+                      <Input id="idea-name" required value={formState.ideaName} onChange={(e) => handleStateChange('ideaName', e.target.value)} />
                     </div>
 
                     <div>
                       <Label htmlFor="idea-description">ماهو وصف الفكرة الابتكارية (نبذة مختصرة توضح المنتج او الخدمة المقدمة ان وجد)</Label>
-                      <Textarea id="idea-description" required value={ideaDescription} onChange={(e) => setIdeaDescription(e.target.value)} />
+                      <Textarea id="idea-description" required value={formState.ideaDescription} onChange={(e) => handleStateChange('ideaDescription', e.target.value)} />
                     </div>
 
                     <div>
                       <Label htmlFor="idea-solution">ما هو الحل للمشكلة الابتكارية (نبذة مختصرة لحل المشكلة)</Label>
-                      <Textarea id="idea-solution" required value={ideaSolution} onChange={(e) => setIdeaSolution(e.target.value)} />
+                      <Textarea id="idea-solution" required value={formState.ideaSolution} onChange={(e) => handleStateChange('ideaSolution', e.target.value)} />
                     </div>
 
                     <div>
                       <Label htmlFor="idea-results">النتائج المتوقعة / المخرجات للفكرة الابتكارية</Label>
-                      <Textarea id="idea-results" required value={ideaResults} onChange={(e) => setIdeaResults(e.target.value)} />
+                      <Textarea id="idea-results" required value={formState.ideaResults} onChange={(e) => handleStateChange('ideaResults', e.target.value)} />
                     </div>
 
                     <div>
                       <Label>مرحلة الفكرة الابتكارية</Label>
-                      <RadioGroup required value={ideaStage} onValueChange={setIdeaStage} className="flex space-x-4">
+                      <RadioGroup required value={formState.ideaStage} onValueChange={(value) => handleStateChange('ideaStage', value)} className="flex space-x-4">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="idea" id="r1" />
                           <Label htmlFor="r1">فكرة: المرحلة الاولى</Label>
@@ -307,20 +325,20 @@ export default function RegisterTeamPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="attachments-link">إضافة مرفقات (رابط ون درايف)</Label>
-                      <Input id="attachments-link" type="url" value={attachmentsLink} onChange={(e) => setAttachmentsLink(e.target.value)} />
-                      <p className="text-xs text-gray-500 mt-1">ارفاق المتوفر من شعار، ملف تعريفي، الخ. تأكد من أن إمكانية الوصول متاحة للجميع.</p>
+                      <Label htmlFor="attachments-file">إضافة مرفقات</Label>
+                      <Input id="attachments-file" type="file" onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} />
+                      <p className="text-xs text-gray-500 mt-1">ارفاق المتوفر من شعار، ملف تعريفي، الخ.</p>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="has-participated" checked={hasParticipated} onCheckedChange={(checked) => setHasParticipated(!!checked)} />
+                        <Checkbox id="has-participated" checked={formState.hasParticipated} onCheckedChange={(checked) => handleStateChange('hasParticipated', !!checked)} />
                         <Label htmlFor="has-participated">هل تم مشاركة الفكرة / او حققت الفكرة جوائز داخل السعودية؟</Label>
                       </div>
-                      {hasParticipated && (
+                      {formState.hasParticipated && (
                         <div>
                           <Label htmlFor="participation-details">الرجاء ذكر (اسم التحدي / الهاكثون والمركز)</Label>
-                          <Input id="participation-details" required={hasParticipated} value={participationDetails} onChange={(e) => setParticipationDetails(e.target.value)} />
+                          <Input id="participation-details" required={formState.hasParticipated} value={formState.participationDetails} onChange={(e) => handleStateChange('participationDetails', e.target.value)} />
                         </div>
                       )}
                     </div>
@@ -329,7 +347,7 @@ export default function RegisterTeamPage() {
                   {/* Number of Team Members */}
                   <div>
                     <Label htmlFor="member-count">عدد أعضاء الفريق (باستثناء القائد)</Label>
-                    <Select value={memberCount.toString()} onValueChange={handleMemberCountChange}>
+                    <Select value={String(formState.memberCount)} onValueChange={handleMemberCountChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -345,21 +363,21 @@ export default function RegisterTeamPage() {
                   {/* Team Members Information */}
                   <div className="space-y-6">
                     <h3 className="text-xl font-semibold border-b pb-2">معلومات أعضاء الفريق</h3>
-                    {members.slice(0, memberCount).map((member, index) => (
+                    {formState.members.slice(0, formState.memberCount).map((member: Participant, index: number) => (
                       <div key={index} className="p-4 border rounded-lg space-y-4">
                         <h4 className="font-medium text-lg">العضو {index + 1}</h4>
-                        {renderParticipantFields(member, (field, value) => updateMember(index, field, value), `member-${index}`)}
+                        {renderParticipantFields(member, (field, value) => handleMemberChange(index, field, value), `member-${index}`)}
                       </div>
                     ))}
                   </div>
                 </>
               
               <div className="flex items-center space-x-2">
-                <Checkbox id="terms" required checked={agreeToTerms} onCheckedChange={(checked) => setAgreeToTerms(!!checked)} />
+                <Checkbox id="terms" required checked={formState.agreeToTerms} onCheckedChange={(checked) => handleStateChange('agreeToTerms', !!checked)} />
                 <Label htmlFor="terms">أوافق على الشروط والأحكام</Label>
               </div>
 
-              <Button type="submit" className="w-full text-lg py-3" disabled={isSubmitting || !agreeToTerms}>
+              <Button type="submit" className="w-full text-lg py-3" disabled={isSubmitting || !formState.agreeToTerms}>
                 {isSubmitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
               </Button>
             </form>
