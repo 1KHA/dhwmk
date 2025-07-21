@@ -1,15 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { PrismaClient } from '@prisma/client'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { teamName, leader, members, idea } = body
+    const formData = await request.formData();
+
+    const formState = {
+        teamName: formData.get('teamName') as string,
+        challenge: formData.get('challenge') as string,
+        challengeReason: formData.get('challengeReason') as string,
+        ideaName: formData.get('ideaName') as string,
+        ideaDescription: formData.get('ideaDescription') as string,
+        ideaSolution: formData.get('ideaSolution') as string,
+        ideaResults: formData.get('ideaResults') as string,
+        ideaStage: formData.get('ideaStage') as string,
+        hasParticipated: formData.get('hasParticipated') === 'true',
+        participationDetails: formData.get('participationDetails') as string,
+        leaderInfo: JSON.parse(formData.get('leaderInfo') as string || '{}'),
+        members: JSON.parse(formData.get('members') as string || '[]'),
+    };
+    
+    const attachmentFile = formData.get('attachment') as File | null;
+    let attachmentPath: string | null = null;
+
+    if (attachmentFile) {
+        const bytes = await attachmentFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
+        const filename = `${Date.now()}_${attachmentFile.name}`;
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        const filePath = path.join(uploadDir, filename);
+        
+        // Ensure the upload directory exists
+        await mkdir(uploadDir, { recursive: true });
+
+        await writeFile(filePath, buffer);
+        attachmentPath = `/uploads/${filename}`;
+    }
+
+    const { teamName, challenge, challengeReason, ideaName, ideaDescription, ideaSolution, ideaResults, ideaStage, hasParticipated, participationDetails, leaderInfo, members } = formState;
 
     // Basic validation
-    if (!leader || !leader.email) {
-      return NextResponse.json({ error: 'Leader information is missing or invalid.' }, { status: 400 })
+    if (!leaderInfo || !leaderInfo.email || !teamName || !challenge || !ideaName) {
+      return NextResponse.json({ error: 'Required fields are missing from the form submission.' }, { status: 400 })
     }
     
     if (teamName && (!members || members.length < 2 || members.length > 5)) {
@@ -17,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if any email already exists
-    const allEmails = [leader.email, ...(members?.map((m: any) => m.email) || [])].filter(Boolean)
+    const allEmails = [leaderInfo.email, ...members.map((m: any) => m.email)].filter(Boolean)
     if (allEmails.length > 0) {
       const existingParticipants = await prisma.participant.findMany({
         where: { email: { in: allEmails } },
@@ -32,53 +68,37 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
-      // Step 1: Create the team.
       const team = await tx.team.create({
         data: {
-          teamName,
+          teamName: teamName || '',
           status: 'pending',
-          challenge: idea.challenge,
-          challengeReason: idea.challengeReason,
-          ideaName: idea.ideaName,
-          ideaDescription: idea.ideaDescription,
-          ideaSolution: idea.ideaSolution,
-          ideaResults: idea.ideaResults,
-          ideaStage: idea.ideaStage,
-          attachmentsLink: idea.attachmentsLink,
-          hasParticipated: idea.hasParticipated,
-          participationDetails: idea.participationDetails,
+          challenge: challenge || '',
+          challengeReason: challengeReason || '',
+          ideaName: ideaName || '',
+          ideaDescription: ideaDescription || '',
+          ideaSolution: ideaSolution || '',
+          ideaResults: ideaResults || '',
+          ideaStage: ideaStage || '',
+          hasParticipated: hasParticipated || false,
+          participationDetails: participationDetails || null,
+          attachmentPath,
         },
       });
       const teamId = team.id;
 
-      // Step 2: Create the leader and associate with the new team.
       await tx.participant.create({
         data: {
-          ...leader,
+          ...leaderInfo,
           isLeader: true,
           teamId: teamId,
         },
       });
 
-      // Step 3: Create team members if they exist.
       if (members && members.length > 0) {
         for (const member of members) {
           await tx.participant.create({
             data: {
-              firstName: member.firstName,
-              secondName: member.secondName,
-              familyName: member.familyName,
-              nationalId: member.nationalId,
-              dob: member.dob,
-              email: member.email,
-              phoneNumber: member.phoneNumber,
-              education: member.education,
-              university: member.university,
-              major: member.major,
-              employmentStatus: member.employmentStatus,
-              nationality: member.nationality,
-              residence: member.residence,
-              canAttend: member.canAttend,
+              ...member,
               isLeader: false,
               teamId: teamId,
             },
