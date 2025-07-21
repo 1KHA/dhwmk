@@ -1,27 +1,30 @@
-# System Patterns: Hackathon Registration Form
+# System Patterns: Hackathon Registration & Management
 
 ## 1. System Architecture
 The application follows a standard client-server architecture built on the Next.js framework.
-- **Client (Frontend):** A single-page application (SPA) built with React and TypeScript, responsible for rendering the UI and managing user interactions. It is located at `src/app/register-team/page.tsx`.
-- **Server (Backend):** A set of serverless API routes within the same Next.js application, responsible for business logic, data processing, and database interactions. The primary endpoint is `src/app/api/register-team/route.ts`.
+- **Client (Frontend):** A single-page application (SPA) built with React and TypeScript.
+  - **Public Area:** The registration form at `src/app/register-team/page.tsx`.
+  - **Admin Dashboard:** A protected area under `src/app/admin-hackton-dashboard/` for managing data. It uses a table-based layout with modals for CRUD operations.
+- **Server (Backend):** A set of serverless API routes within the same Next.js application.
+  - **Public Endpoint:** `src/app/api/register-team/route.ts` handles new team registrations.
+  - **Admin Endpoints:** Routes under `src/app/api/admin/` handle data fetching, updates, deletions, and status changes (approve/reject).
 - **Database:** A SQLite database managed by the Prisma ORM.
 
-## 2. Key Technical Decisions
-- **Monorepo Approach:** The frontend and backend are part of the same Next.js project, simplifying development and deployment.
-- **`multipart/form-data` for Submissions:** To support file uploads, the form is submitted as `multipart/form-data`. This decision was made after encountering serialization issues with JSON when handling file objects.
-- **Native `formData()` API:** The backend uses the native `request.formData()` API provided by Next.js to parse `multipart/form-data`. This avoids external dependencies like `formidable` and ensures better compatibility with the Vercel/Next.js environment.
-- **Programmatic Directory Creation:** The file upload handler in the API route programmatically checks for and creates the `public/uploads` directory to prevent `ENOENT` (No such file or directory) errors.
-- **Prisma for Database Management:** Prisma is used for schema definition, migrations, and type-safe database access, ensuring that the application code and database schema are always synchronized.
+## 2. Key Technical Decisions & Patterns
+- **Monorepo Approach:** Frontend and backend are part of the same Next.js project, simplifying development.
+- **`multipart/form-data` for Submissions:** The public form uses this to support file uploads.
+- **Dynamic API Routes for Admin Actions:** The admin backend uses dynamic, single-purpose API routes (e.g., `delete-team`, `update-participant`) for clear separation of concerns.
+- **Client-Side Data Fetching:** The admin dashboard uses `useEffect` hooks to fetch data from the admin API routes and manages state with `useState`. This provides a dynamic, responsive user experience.
+- **Modal-Based UI for CRUD:** Instead of navigating to separate pages for every action, the admin dashboard uses dialogs/modals for viewing details, editing, and confirming deletions, which is a common pattern for modern admin panels.
+- **Component Reusability:** UI components from `shadcn/ui` (e.g., Card, Button, Dialog, Table) are used extensively to build the UI quickly and consistently.
 
 ## 3. Component Relationships
-- **`register-team/page.tsx` (Frontend):**
-  - Manages form state using `useState`.
-  - Persists form state to `localStorage` using `useEffect`.
-  - Constructs a `FormData` object on submit.
-  - Sends the `FormData` to the `/api/register-team` endpoint.
-- **`api/register-team/route.ts` (Backend):**
-  - Receives the `POST` request.
-  - Parses the `FormData` using `request.formData()`.
-  - Extracts text fields and the uploaded file.
-  - Writes the file to the server's file system (`public/uploads`).
-  - Creates a new `Team` and associated `Participant` records in the database using Prisma Client.
+- **Public Registration:**
+  - `register-team/page.tsx` manages form state, persists to `localStorage`, and sends `FormData` to `/api/register-team`.
+  - `api/register-team/route.ts` processes the `FormData`, saves the file, and creates `Team` and `Participant` records in the database.
+- **Admin Dashboard:**
+  - `admin-hackton-dashboard/teams/page.tsx` and `participants/page.tsx` fetch data from `/api/admin/teams`.
+  - User actions (click delete, edit, etc.) trigger handler functions within the component.
+  - These handlers send requests (`POST`, `PATCH`) to the appropriate admin API routes (e.g., `/api/admin/delete-team`).
+  - The API routes perform the requested database operation via Prisma and return a confirmation.
+  - The frontend component then re-fetches the data or updates its state to reflect the change.

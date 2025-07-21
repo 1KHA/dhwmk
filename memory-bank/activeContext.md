@@ -1,25 +1,23 @@
-# Active Context: Hackathon Registration Form
+# Active Context: Admin Dashboard Implementation
 
 ## 1. Current Work Focus
-The immediate priority is to resolve a persistent `PrismaClientKnownRequestError` that is blocking the successful submission of the registration form. The error message, `The column main.Participant.firstName does not exist in the current database`, indicates a mismatch between the Prisma schema and the actual database state being used by the application.
+The project has successfully transitioned from building the public registration form to implementing a full-featured admin dashboard. The most recent tasks focused on building out CRUD functionalities, ensuring all data is visible and manageable, and creating dedicated admin workflows.
 
 ## 2. Recent Changes
-- **Backend Refactoring:** The `api/register-team/route.ts` endpoint was refactored to handle `multipart/form-data` using the native `request.formData()` API, replacing a previous implementation that used the `formidable` library.
-- **File Upload Logic:** The backend now includes logic to create the `public/uploads` directory if it doesn't exist, resolving `ENOENT` errors.
-- **Prisma Schema Updates:** The `prisma/schema.prisma` file has been updated multiple times to align with the form's data requirements.
-- **Database Migrations:** `prisma migrate reset` and `prisma generate` have been run successfully multiple times to apply the latest schema changes.
+- **Full Data Display:** The admin dashboard pages for teams and participants were updated to display all fields from the database, providing a comprehensive view of each record.
+- **CRUD Functionality Repair:** The "Edit" and "Delete" functionalities were debugged and fixed. This involved updating the backend API routes (`/api/admin/update-team` and `/api/admin/update-participant`) to correctly handle the data structures sent from the frontend.
+- **Admin-Specific Create Page:** A new page was created at `/admin-hackton-dashboard/teams/create` to allow administrators to create teams directly, separating this workflow from the public registration page.
+- **UI Linking:** The "Create Team" button in the admin dashboard was re-routed to the new admin-specific creation page.
 
 ## 3. Next Steps
-The sole remaining task is to resolve the database schema mismatch. All necessary code changes have been completed. The error persists despite correct code and successful migrations, which strongly points to a caching issue within the Next.js development server.
+The core requirements for the admin dashboard are now complete. The system is functional and meets the user's requests. Future work could involve:
+- **Authentication:** Implementing a login system to protect the admin dashboard.
+- **Advanced Features:** Adding features like pagination, advanced filtering, and data export to the dashboard.
+- **Refinement:** General UI/UX improvements.
 
-**The definitive next step is to completely stop and restart the Next.js development server.** This action will force the server to:
-1.  Discard any cached version of the old database schema.
-2.  Reload the newly generated Prisma Client.
-3.  Connect to the correctly migrated database.
-
-There are no further code modifications required to fix this issue. The solution is environmental, not code-based.
+For the current scope, all tasks are considered complete.
 
 ## 4. Key Learnings & Patterns
-- **`multipart/form-data` is essential for file uploads:** JSON-based API routes are not suitable for handling file objects directly.
-- **Native APIs are preferable:** Using Next.js's native `formData()` API is more reliable and less prone to compatibility issues than third-party libraries.
-- **Development server caching can cause deceptive errors:** A running development server can hold on to outdated schema information, leading to errors that appear to be database-related but are actually caused by the server's cache.
+- **API-UI Synchronization:** It is critical to keep frontend component state, API request/response bodies, and database schemas perfectly aligned. The bugs in the edit functionality were caused by mismatches in this area.
+- **Separation of Concerns:** Creating a dedicated page for the admin's "Create Team" function, separate from the public registration page, leads to cleaner code and a better user experience for both user types.
+- **Generic API Handlers:** Refactoring the update API routes to handle a flexible data object (`...dataToUpdate`) makes the backend more robust and adaptable to future frontend changes without requiring constant backend modifications.
