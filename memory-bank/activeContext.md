@@ -1,23 +1,19 @@
-# Active Context: Admin Dashboard Implementation
+# Active Context: Participant Dashboard Refinement
 
 ## 1. Current Work Focus
-The project has successfully transitioned from building the public registration form to implementing a full-featured admin dashboard. The most recent tasks focused on building out CRUD functionalities, ensuring all data is visible and manageable, and creating dedicated admin workflows.
+The primary focus has been on building and iteratively refining the participant-facing dashboard, specifically the team management page (`/participant-dashboard/team`), based on user feedback.
 
 ## 2. Recent Changes
-- **Full Data Display:** The admin dashboard pages for teams and participants were updated to display all fields from the database, providing a comprehensive view of each record.
-- **CRUD Functionality Repair:** The "Edit" and "Delete" functionalities were debugged and fixed. This involved updating the backend API routes (`/api/admin/update-team` and `/api/admin/update-participant`) to correctly handle the data structures sent from the frontend.
-- **Admin-Specific Create Page:** A new page was created at `/admin-hackton-dashboard/teams/create` to allow administrators to create teams directly, separating this workflow from the public registration page.
-- **UI Linking:** The "Create Team" button in the admin dashboard was re-routed to the new admin-specific creation page.
+- **Initial Implementation:** A team management page was created that allowed the team leader to add, edit, and delete members.
+- **First Refinement (Simplification):** Based on feedback, the team management page was removed, and the main participant dashboard (`/participant-dashboard`) was simplified to a "My Profile" view, showing only the logged-in user's data with an edit button.
+- **Second Refinement (Re-introduction & Enhancement):** Based on new feedback, the team management page (`/participant-dashboard/team`) was re-introduced with enhanced features.
+  - **Full Team Details:** The top of the page now displays all details about the team, not just the name and idea.
+  - **Full Member Details:** The members table was expanded to show all details for each participant directly, removing the need for a "view" modal.
 
 ## 3. Next Steps
-The core requirements for the admin dashboard are now complete. The system is functional and meets the user's requests. Future work could involve:
-- **Authentication:** Implementing a login system to protect the admin dashboard.
-- **Advanced Features:** Adding features like pagination, advanced filtering, and data export to the dashboard.
-- **Refinement:** General UI/UX improvements.
-
-For the current scope, all tasks are considered complete.
+All requested features for the participant dashboard and team management page are now complete and reflect the latest user feedback. The system is stable. Future work would likely involve new feature requests.
 
 ## 4. Key Learnings & Patterns
-- **API-UI Synchronization:** It is critical to keep frontend component state, API request/response bodies, and database schemas perfectly aligned. The bugs in the edit functionality were caused by mismatches in this area.
-- **Separation of Concerns:** Creating a dedicated page for the admin's "Create Team" function, separate from the public registration page, leads to cleaner code and a better user experience for both user types.
-- **Generic API Handlers:** Refactoring the update API routes to handle a flexible data object (`...dataToUpdate`) makes the backend more robust and adaptable to future frontend changes without requiring constant backend modifications.
+- **Iterative Design:** The participant dashboard's evolution highlights the importance of building features based on a tight feedback loop with the user. The requirements changed significantly, demonstrating the need for flexible and adaptable code.
+- **Secure, Role-Based APIs:** The creation of specific API endpoints for participants (`/api/participant/*`) that check JWTs and user roles (`isLeader`) is a robust pattern for securing data and actions.
+- **Data Display Density:** The final iteration of the team management page required displaying a large amount of data in a single table. Using `overflow-x-auto` is a simple but effective solution for handling wide tables on smaller screens without breaking the layout.

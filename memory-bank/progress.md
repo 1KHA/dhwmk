@@ -1,24 +1,25 @@
 # Progress: Hackathon Registration & Management System
 
 ## 1. What Works
-- **Public Registration:** The form at `/register-team` is fully functional, including data persistence to `localStorage` and file uploads.
-- **Database & API:** The backend correctly processes registrations and saves all data to the SQLite database via Prisma.
-- **Admin Dashboard:** The dashboard at `/admin-hackton-dashboard` is fully operational.
-  - **Data Viewing:** Admins can view lists of all teams and participants. A detailed view modal shows all fields for any selected record.
-  - **CRUD Operations:** Admins can successfully approve, reject, edit, and delete teams. They can also edit and delete individual participants.
-  - **Admin Team Creation:** A dedicated form allows admins to create new teams.
+- **Public Registration:** The form at `/register-team` is fully functional.
+- **Admin Dashboard:** The dashboard at `/admin-hackton-dashboard` is fully operational with full CRUD capabilities for teams and participants.
+- **Participant Dashboard:**
+  - **Profile Page:** `/participant-dashboard` shows the logged-in user's profile with an edit function.
+  - **Team Management Page:** `/participant-dashboard/team` provides a comprehensive view of the participant's team.
+    - All team and member details are displayed directly on the page.
+    - Team leaders can add, edit, and delete members.
+- **Authentication & APIs:** A JWT-based login system is in place. Secure API endpoints exist for admin and participant-specific actions.
 
 ## 2. What's Left to Build
-- From a feature perspective, all user requests have been completed.
+- All user-requested features have been implemented.
 - **Potential future enhancements include:**
-  - A secure login system for the admin dashboard.
-  - Pagination for the data tables to handle a large number of records.
-  - Advanced search, sorting, and filtering capabilities.
-  - Data export functionality (e.g., to CSV).
+  - A secure login system for the admin dashboard (currently only participant login is implemented).
+  - Pagination for data tables.
+  - Advanced search and filtering.
 
 ## 3. Current Status
-- **Completed & Stable:** The application is in a stable, functional state. All core features for both public registration and admin management have been implemented and debugged.
+- **Completed & Stable:** The application is in a stable, functional state. The public form, admin dashboard, and participant dashboard all meet the current requirements.
 
 ## 4. Known Issues & Evolution
-- **Initial Admin Bugs:** The first version of the admin dashboard had non-functional edit/delete buttons due to a mismatch between the data models used in the frontend and the data expected by the backend APIs. This was resolved by refactoring the API routes to be more flexible and ensuring data consistency across the stack.
-- **Workflow Improvement:** The admin's "Create Team" button was initially linked to the public registration page. This was identified as a poor user experience and was rectified by creating a separate, dedicated creation page for admins.
+- **Participant Dashboard Iteration:** The participant dashboard underwent significant changes based on user feedback, evolving from a complex team view to a simple profile, and then to a two-page system with both a profile and a detailed team management page. This iterative process was crucial for arriving at the final design.
+- **API Refinements:** API routes were continuously updated to support new features and fix bugs related to data model mismatches. Secure, role-based endpoints were created for participant-specific actions.
