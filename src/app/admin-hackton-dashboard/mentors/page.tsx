@@ -819,8 +819,9 @@ export default function MentorsPage() {
               startAccessor="start"
               endAccessor="end"
               style={{ height: '100%' }}
-              views={['month', 'week', 'day']}
-              defaultView="week"
+              view="week"
+              views={['week']}
+              toolbar={false}
               rtl={true}
               selectable
               onSelectSlot={(slotInfo) => setSlotToAdd(slotInfo)}
