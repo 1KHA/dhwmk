@@ -1,17 +1,22 @@
 # Active Context: Participant Dashboard Refinement
 
 ## 1. Current Work Focus
-The primary focus has been on building and iteratively refining the participant-facing dashboard, specifically the team management page (`/participant-dashboard/team`), based on user feedback.
+The current focus is on implementing a time management and availability feature for mentors.
 
 ## 2. Recent Changes
-- **Initial Implementation:** A team management page was created that allowed the team leader to add, edit, and delete members.
-- **First Refinement (Simplification):** Based on feedback, the team management page was removed, and the main participant dashboard (`/participant-dashboard`) was simplified to a "My Profile" view, showing only the logged-in user's data with an edit button.
-- **Second Refinement (Re-introduction & Enhancement):** Based on new feedback, the team management page (`/participant-dashboard/team`) was re-introduced with enhanced features.
-  - **Full Team Details:** The top of the page now displays all details about the team, not just the name and idea.
-  - **Full Member Details:** The members table was expanded to show all details for each participant directly, removing the need for a "view" modal.
+- **Database Schema:** Added a `MentorAvailability` model to the Prisma schema to store mentor availability slots.
+- **API Endpoints:**
+  - Created endpoints for mentors to `GET`, `POST`, and `DELETE` their availability (`/api/mentor/availability`).
+  - Created an endpoint for admins to `GET` a specific mentor's availability (`/api/admin/mentors/[mentorId]/availability`).
+- **Mentor Dashboard:**
+  - Created a new page at `/mentor-dashboard/availability` with an interactive calendar (`react-big-calendar`) for mentors to manage their schedules.
+  - Added a link to the new page in the mentor's sidebar.
+- **Admin Dashboard:**
+  - Added a "Manage Time" button to the mentors' table in the admin dashboard.
+  - This button opens a dialog with a read-only calendar view of the selected mentor's availability.
 
 ## 3. Next Steps
-All requested features for the participant dashboard and team management page are now complete and reflect the latest user feedback. The system is stable. Future work would likely involve new feature requests.
+All requested features for the mentor availability management are now complete. The system is stable. Future work could involve integrating this availability with a booking system for participants.
 
 ## 4. Key Learnings & Patterns
 - **Iterative Design:** The participant dashboard's evolution highlights the importance of building features based on a tight feedback loop with the user. The requirements changed significantly, demonstrating the need for flexible and adaptable code.

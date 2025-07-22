@@ -63,13 +63,23 @@ model Admin {
 }
 
 model Mentor {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  specialty    String
-  phone        String
-  status       String   @default("pending") // pending, active, inactive
-  passwordHash String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String               @id @default(cuid())
+  name           String
+  email          String               @unique
+  specialty      String
+  phone          String
+  status         String               @default("pending") // pending, active, inactive
+  passwordHash   String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  availabilities MentorAvailability[]
+}
+
+model MentorAvailability {
+  id        String   @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime
+  mentorId  String
+  mentor    Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }

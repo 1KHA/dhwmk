@@ -53,6 +53,35 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '../../../../components/ui/use-toast';
 import { Label } from '@/components/ui/label';
+import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'moment/locale/ar'; // Import Arabic locale
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+moment.locale('ar'); // Set moment to use Arabic
+const localizer = momentLocalizer(moment);
+
+const messages = {
+  allDay: 'يوم كامل',
+  previous: 'السابق',
+  next: 'التالي',
+  today: 'اليوم',
+  month: 'شهر',
+  week: 'أسبوع',
+  day: 'يوم',
+  agenda: 'أجندة',
+  date: 'تاريخ',
+  time: 'وقت',
+  event: 'حدث',
+  showMore: (total: number) => `+${total} المزيد`,
+};
+
+interface AvailabilityEvent {
+  id: string;
+  start: Date;
+  end: Date;
+  title: string;
+}
 
 // Define the Mentor type
 interface Mentor {
@@ -82,6 +111,11 @@ export default function MentorsPage() {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mentorToEdit, setMentorToEdit] = useState<Mentor | null>(null);
   const [mentorToDelete, setMentorToDelete] = useState<Mentor | null>(null);
+  const [isAvailabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
+  const [mentorForAvailability, setMentorForAvailability] = useState<Mentor | null>(null);
+  const [availabilityEvents, setAvailabilityEvents] = useState<AvailabilityEvent[]>([]);
+  const [slotToAdd, setSlotToAdd] = useState<{ start: Date; end: Date } | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<AvailabilityEvent | null>(null);
   const [newMentor, setNewMentor] = useState({
     name: '',
     email: '',
@@ -91,6 +125,94 @@ export default function MentorsPage() {
   });
   const [generatedPassword, setGeneratedPassword] = useState('');
   const { toast } = useToast();
+
+  const fetchMentorAvailability = async (mentorId: string) => {
+    try {
+      const response = await fetch(`/api/admin/mentors/${mentorId}/availability`);
+      if (response.ok) {
+        const data = await response.json();
+        const formattedEvents = data.map((avail: any) => ({
+          id: avail.id,
+          start: new Date(avail.startTime),
+          end: new Date(avail.endTime),
+          title: 'Available',
+        }));
+        setAvailabilityEvents(formattedEvents);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch mentor availability.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while fetching availability.",
+        variant: "destructive",
+      })
+    }
+  };
+
+  const handleAddAvailability = async () => {
+    if (!mentorForAvailability || !slotToAdd) return;
+
+    try {
+      const response = await fetch(`/api/admin/mentors/${mentorForAvailability.id}/availability`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start: slotToAdd.start, end: slotToAdd.end }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Availability added successfully.',
+        });
+        fetchMentorAvailability(mentorForAvailability.id); // Refresh events
+      } else {
+        throw new Error('Failed to add availability');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while adding availability.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSlotToAdd(null);
+    }
+  };
+
+  const handleDeleteAvailability = async () => {
+    if (!mentorForAvailability || !eventToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/mentors/${mentorForAvailability.id}/availability`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ availabilityId: eventToDelete.id }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: 'Availability removed successfully.',
+        });
+        fetchMentorAvailability(mentorForAvailability.id); // Refresh events
+      } else {
+        throw new Error('Failed to remove availability');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while removing availability.',
+        variant: 'destructive',
+      });
+    } finally {
+      setEventToDelete(null);
+    }
+  };
 
   const fetchMentors = async () => {
     try {
@@ -225,6 +347,12 @@ export default function MentorsPage() {
   const openDeleteDialog = (mentor: Mentor) => {
     setMentorToDelete(mentor);
     setDeleteDialogOpen(true);
+  };
+
+  const openAvailabilityDialog = (mentor: Mentor) => {
+    setMentorForAvailability(mentor);
+    fetchMentorAvailability(mentor.id);
+    setAvailabilityDialogOpen(true);
   };
 
   const filteredMentors = mentors.filter(mentor => {
@@ -474,6 +602,10 @@ export default function MentorsPage() {
                           <Edit className="ml-2 h-4 w-4" />
                           تعديل المعلومات
                         </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => openAvailabilityDialog(mentor)}>
+                          <Clock className="ml-2 h-4 w-4" />
+                          إدارة الوقت
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
@@ -611,6 +743,85 @@ export default function MentorsPage() {
               إلغاء
             </Button>
             <Button variant="destructive" onClick={handleDeleteMentor}>
+              تأكيد الحذف
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Availability Dialog */}
+      <Dialog open={isAvailabilityDialogOpen} onOpenChange={setAvailabilityDialogOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle>إدارة جدول توفر الموجه: {mentorForAvailability?.name}</DialogTitle>
+            <DialogDescription>
+              انقر على خانة زمنية لإضافتها، أو انقر على موعد موجود لإزالته.
+            </DialogDescription>
+          </DialogHeader>
+          <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
+            <BigCalendar
+              localizer={localizer}
+              events={availabilityEvents}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: '100%' }}
+              views={['month', 'week', 'day']}
+              defaultView="week"
+              rtl={true}
+              selectable
+              onSelectSlot={(slotInfo) => setSlotToAdd(slotInfo)}
+              onSelectEvent={(event) => setEventToDelete(event)}
+              messages={messages}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAvailabilityDialogOpen(false)}>
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Availability Confirmation */}
+      <Dialog open={!!slotToAdd} onOpenChange={() => setSlotToAdd(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إضافة فترة توفر</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد إضافة فترة التوفر هذه؟
+              <br />
+              <strong>من:</strong> {slotToAdd?.start.toLocaleString()}
+              <br />
+              <strong>إلى:</strong> {slotToAdd?.end.toLocaleString()}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSlotToAdd(null)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleAddAvailability}>تأكيد الإضافة</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Availability Confirmation */}
+      <Dialog open={!!eventToDelete} onOpenChange={() => setEventToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إزالة فترة توفر</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد إزالة فترة التوفر هذه؟
+              <br />
+              <strong>من:</strong> {eventToDelete?.start.toLocaleString()}
+              <br />
+              <strong>إلى:</strong> {eventToDelete?.end.toLocaleString()}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEventToDelete(null)}>
+              إلغاء
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteAvailability}>
               تأكيد الحذف
             </Button>
           </DialogFooter>

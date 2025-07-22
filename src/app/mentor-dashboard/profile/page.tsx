@@ -5,7 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mail, Phone, Briefcase, Calendar, Clock, UserCheck } from 'lucide-react';
+import { Mail, Phone, Briefcase, Calendar, Clock, UserCheck, Edit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/../../components/ui/use-toast';
 
 interface Mentor {
   id: string;
@@ -19,28 +24,29 @@ interface Mentor {
 }
 
 function MentorProfile() {
-  const searchParams = useSearchParams();
-  const mentorId = searchParams.get('id');
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', specialty: '', phone: '' });
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!mentorId) {
-      setError('Mentor ID is required.');
-      setLoading(false);
-      return;
-    }
-
     const fetchMentor = async () => {
       try {
-        const response = await fetch(`/api/admin/mentors?id=${mentorId}`);
+        const response = await fetch(`/api/mentor/me`);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch mentor data');
         }
         const data = await response.json();
         setMentor(data);
+        setFormData({
+          name: data.name,
+          email: data.email,
+          specialty: data.specialty,
+          phone: data.phone,
+        });
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -49,7 +55,39 @@ function MentorProfile() {
     };
 
     fetchMentor();
-  }, [mentorId]);
+  }, []);
+
+  const handleUpdate = async () => {
+    if (!mentor) return;
+
+    try {
+      const response = await fetch(`/api/mentor/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+
+      const updatedMentor = await response.json();
+      setMentor(updatedMentor);
+      toast({
+        title: 'نجاح',
+        description: 'تم تحديث ملفك الشخصي بنجاح.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'خطأ',
+        description: err.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -131,6 +169,44 @@ function MentorProfile() {
                 {getStatusBadge(mentor.status)}
             </div>
           </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon" className="ml-auto">
+                <Edit className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>تعديل الملف الشخصي</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">الاسم</Label>
+                  <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">البريد الإلكتروني</Label>
+                  <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="specialty">التخصص</Label>
+                  <Input id="specialty" value={formData.specialty} onChange={(e) => setFormData({ ...formData, specialty: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">رقم الجوال</Label>
+                  <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary">إلغاء</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button type="submit" onClick={handleUpdate}>حفظ التغييرات</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

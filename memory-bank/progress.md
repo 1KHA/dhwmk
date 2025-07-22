@@ -2,18 +2,22 @@
 
 ## 1. What Works
 - **Public Registration:** The form at `/register-team` is fully functional.
-- **Admin Dashboard:** The dashboard at `/admin-hackton-dashboard` is fully operational with full CRUD capabilities for teams and participants.
+- **Admin Dashboard:** The dashboard at `/admin-hackton-dashboard` is fully operational with full CRUD capabilities for teams and participants. It now includes a feature to view mentor availability.
 - **Participant Dashboard:**
   - **Profile Page:** `/participant-dashboard` shows the logged-in user's profile with an edit function.
   - **Team Management Page:** `/participant-dashboard/team` provides a comprehensive view of the participant's team.
     - All team and member details are displayed directly on the page.
     - Team leaders can add, edit, and delete members.
-- **Authentication & APIs:** A JWT-based login system is in place. Secure API endpoints exist for admin and participant-specific actions.
+- **Mentor Dashboard:**
+  - **Profile Page:** `/mentor-dashboard/profile` allows mentors to view and update their profile.
+  - **Availability Page:** `/mentor-dashboard/availability` allows mentors to manage their available time slots using an interactive calendar.
+- **Authentication & APIs:** A JWT-based login system is in place for both participants and mentors. Secure API endpoints exist for admin, participant, and mentor-specific actions.
 
 ## 2. What's Left to Build
 - All user-requested features have been implemented.
 - **Potential future enhancements include:**
-  - A secure login system for the admin dashboard (currently only participant login is implemented).
+  - A booking system for participants to schedule sessions with mentors based on their availability.
+  - A secure login system for the admin dashboard.
   - Pagination for data tables.
   - Advanced search and filtering.
 
