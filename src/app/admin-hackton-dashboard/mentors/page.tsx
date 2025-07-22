@@ -398,16 +398,16 @@ export default function MentorsPage() {
   return (
     <div className="p-8" dir="rtl">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">إدارة الموجهين</h1>
+        <h1 className="text-3xl font-bold text-blue-800">إدارة الموجهين</h1>
         <div className="flex gap-4">
           <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full">
                 <UserPlus className="ml-2 h-4 w-4" />
                 إضافة موجه جديد
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] rounded-lg border-0 shadow-lg">
               <DialogHeader>
                 <DialogTitle>إضافة موجه جديد</DialogTitle>
                 <DialogDescription>
@@ -480,13 +480,13 @@ export default function MentorsPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">إضافة الموجه</Button>
+                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-full">إضافة الموجه</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
-          <Button variant="outline">
-            <Download className="ml-2 h-4 w-4" />
+          <Button variant="outline" className="rounded-full border-blue-200 hover:bg-blue-50">
+            <Download className="ml-2 h-4 w-4 text-blue-600" />
             تصدير القائمة
           </Button>
         </div>
@@ -494,37 +494,91 @@ export default function MentorsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-blue-50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الموجهين</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              إجمالي الموجهين
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mentors.length}</div>
+            <div className="text-3xl font-bold text-blue-600">{mentors.length}</div>
             <p className="text-xs text-muted-foreground">
-              {mentors.filter(m => m.status === 'active').length} نشط، {mentors.filter(m => m.status === 'pending').length} بانتظار
+              <span className="text-green-600 font-medium">{mentors.filter(m => m.status === 'active').length} نشط</span>، 
+              <span className="text-yellow-600 font-medium"> {mentors.filter(m => m.status === 'pending').length} بانتظار</span>
             </p>
           </CardContent>
         </Card>
-        {/* Other stat cards can be updated similarly */}
+        
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-green-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-green-500" />
+              الجلسات المكتملة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">
+              {mentors.reduce((total, mentor) => total + (mentor.sessionsCompleted || 0), 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              معدل {(mentors.reduce((total, mentor) => total + (mentor.sessionsCompleted || 0), 0) / (mentors.length || 1)).toFixed(1)} جلسة لكل موجه
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-yellow-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Award className="h-5 w-5 text-yellow-500" />
+              متوسط التقييم
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-600">
+              {(mentors.reduce((total, mentor) => total + (mentor.rating || 0), 0) / (mentors.length || 1)).toFixed(1)}/5
+            </div>
+            <p className="text-xs text-muted-foreground">
+              بناءً على تقييمات المشاركين
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-purple-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-5 w-5 text-purple-500" />
+              حالة التوفر
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600">
+              {mentors.filter(m => m.availability === 'متاح').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              موجه متاح حالياً للمساعدة
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters and Search */}
-      <Card className="mb-8">
+      <Card className="mb-8 border-0 shadow-sm overflow-hidden">
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-4 w-4" />
                 <Input
                   placeholder="البحث بالاسم، البريد الإلكتروني، أو التخصص..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 border-blue-100 focus:border-blue-300 rounded-full"
                 />
               </div>
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] border-blue-100 focus:border-blue-300 rounded-full">
                 <SelectValue placeholder="حالة الموجه" />
               </SelectTrigger>
               <SelectContent>
@@ -534,8 +588,8 @@ export default function MentorsPage() {
                 <SelectItem value="inactive">غير نشط</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
-              <Filter className="ml-2 h-4 w-4" />
+            <Button variant="outline" className="rounded-full border-blue-200 hover:bg-blue-50">
+              <Filter className="ml-2 h-4 w-4 text-blue-500" />
               المزيد من الفلاتر
             </Button>
           </div>
@@ -543,11 +597,11 @@ export default function MentorsPage() {
       </Card>
 
       {/* Mentors Table */}
-      <Card>
+      <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          <Table>
+          <Table className="border-collapse">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-blue-50 hover:bg-blue-50">
                 <TableHead>الاسم</TableHead>
                 <TableHead>التخصص</TableHead>
                 <TableHead>الفرق المعينة</TableHead>
@@ -560,7 +614,7 @@ export default function MentorsPage() {
             </TableHeader>
             <TableBody>
               {filteredMentors.map((mentor) => (
-                <TableRow key={mentor.id}>
+                <TableRow key={mentor.id} className="hover:bg-gray-50 transition-colors duration-150">
                   <TableCell className="font-medium">
                     <div>{mentor.name}</div>
                     <div className="text-sm text-gray-500">{mentor.email}</div>
@@ -591,37 +645,43 @@ export default function MentorsPage() {
                   </TableCell>
                   <TableCell>{getStatusBadge(mentor.status)}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">فتح القائمة</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => setSelectedMentor(mentor)}>
-                          <Users className="ml-2 h-4 w-4" />
-                          عرض التفاصيل
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => openEditDialog(mentor)}>
-                          <Edit className="ml-2 h-4 w-4" />
-                          تعديل المعلومات
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => openAvailabilityDialog(mentor)}>
-                          <Clock className="ml-2 h-4 w-4" />
-                          إدارة الوقت
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onSelect={() => openDeleteDialog(mentor)}
-                        >
-                          <Trash2 className="ml-2 h-4 w-4" />
-                          إزالة الموجه
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-2 justify-end">
+                      <Button 
+                        variant="outline" 
+                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1"
+                        onClick={() => openAvailabilityDialog(mentor)}
+                      >
+                        <Clock className="h-4 w-4" />
+                        <span>إدارة الوقت</span>
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">فتح القائمة</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => setSelectedMentor(mentor)}>
+                            <Users className="ml-2 h-4 w-4" />
+                            عرض التفاصيل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openEditDialog(mentor)}>
+                            <Edit className="ml-2 h-4 w-4" />
+                            تعديل المعلومات
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onSelect={() => openDeleteDialog(mentor)}
+                          >
+                            <Trash2 className="ml-2 h-4 w-4" />
+                            إزالة الموجه
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -632,7 +692,7 @@ export default function MentorsPage() {
 
       {/* View Details Dialog */}
       <Dialog open={!!selectedMentor} onOpenChange={(isOpen) => !isOpen && setSelectedMentor(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>تفاصيل الموجه: {selectedMentor?.name}</DialogTitle>
             <DialogDescription>
@@ -649,7 +709,7 @@ export default function MentorsPage() {
 
       {/* Edit Mentor Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>تعديل بيانات الموجه</DialogTitle>
             <DialogDescription>
@@ -737,7 +797,7 @@ export default function MentorsPage() {
 
       {/* Delete Mentor Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>تأكيد الحذف</DialogTitle>
             <DialogDescription>
@@ -757,7 +817,7 @@ export default function MentorsPage() {
 
       {/* Availability Dialog */}
       <Dialog open={isAvailabilityDialogOpen} onOpenChange={setAvailabilityDialogOpen}>
-        <DialogContent className="max-w-6xl">
+        <DialogContent className="max-w-6xl rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>إدارة جدول توفر الموجه: {mentorForAvailability?.name}</DialogTitle>
             <DialogDescription>
@@ -841,7 +901,7 @@ export default function MentorsPage() {
 
       {/* Add Availability Confirmation */}
       <Dialog open={!!slotToAdd} onOpenChange={() => setSlotToAdd(null)}>
-        <DialogContent>
+        <DialogContent className="rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>إضافة فترة توفر</DialogTitle>
             <DialogDescription>
@@ -863,7 +923,7 @@ export default function MentorsPage() {
 
       {/* Delete Availability Confirmation */}
       <Dialog open={!!eventToDelete} onOpenChange={() => setEventToDelete(null)}>
-        <DialogContent>
+        <DialogContent className="rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>إزالة فترة توفر</DialogTitle>
             <DialogDescription>
