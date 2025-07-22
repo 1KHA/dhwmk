@@ -78,6 +78,10 @@ export default function MentorsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [mentorToEdit, setMentorToEdit] = useState<Mentor | null>(null);
+  const [mentorToDelete, setMentorToDelete] = useState<Mentor | null>(null);
   const [newMentor, setNewMentor] = useState({
     name: '',
     email: '',
@@ -145,6 +149,79 @@ export default function MentorsPage() {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleUpdateMentor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mentorToEdit) return;
+
+    try {
+      const response = await fetch('/api/admin/mentors', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mentorToEdit),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update mentor');
+      }
+
+      toast({
+        title: 'نجاح',
+        description: 'تم تحديث بيانات الموجه بنجاح.',
+      });
+      setEditDialogOpen(false);
+      setMentorToEdit(null);
+      fetchMentors(); // Refresh the list
+    } catch (error: any) {
+      toast({
+        title: 'خطأ',
+        description: error.message || 'فشل في تحديث بيانات الموجه.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteMentor = async () => {
+    if (!mentorToDelete) return;
+
+    try {
+      const response = await fetch('/api/admin/mentors', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: mentorToDelete.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete mentor');
+      }
+
+      toast({
+        title: 'نجاح',
+        description: 'تم إزالة الموجه بنجاح.',
+      });
+      setDeleteDialogOpen(false);
+      setMentorToDelete(null);
+      fetchMentors(); // Refresh the list
+    } catch (error: any) {
+      toast({
+        title: 'خطأ',
+        description: error.message || 'فشل في إزالة الموجه.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openEditDialog = (mentor: Mentor) => {
+    setMentorToEdit(mentor);
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (mentor: Mentor) => {
+    setMentorToDelete(mentor);
+    setDeleteDialogOpen(true);
   };
 
   const filteredMentors = mentors.filter(mentor => {
@@ -377,12 +454,15 @@ export default function MentorsPage() {
                           <Users className="ml-2 h-4 w-4" />
                           عرض التفاصيل
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => openEditDialog(mentor)}>
                           <Edit className="ml-2 h-4 w-4" />
                           تعديل المعلومات
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onSelect={() => openDeleteDialog(mentor)}
+                        >
                           <Trash2 className="ml-2 h-4 w-4" />
                           إزالة الموجه
                         </DropdownMenuItem>
@@ -410,6 +490,114 @@ export default function MentorsPage() {
               {/* Details content here */}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Mentor Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات الموجه</DialogTitle>
+            <DialogDescription>
+              قم بتحديث معلومات الموجه.
+            </DialogDescription>
+          </DialogHeader>
+          {mentorToEdit && (
+            <form onSubmit={handleUpdateMentor}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-name" className="text-right">
+                    الاسم
+                  </Label>
+                  <Input
+                    id="edit-name"
+                    value={mentorToEdit.name}
+                    onChange={(e) => setMentorToEdit({ ...mentorToEdit, name: e.target.value })}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-email" className="text-right">
+                    البريد الإلكتروني
+                  </Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={mentorToEdit.email}
+                    onChange={(e) => setMentorToEdit({ ...mentorToEdit, email: e.target.value })}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-specialty" className="text-right">
+                    التخصص
+                  </Label>
+                  <Input
+                    id="edit-specialty"
+                    value={mentorToEdit.specialty}
+                    onChange={(e) => setMentorToEdit({ ...mentorToEdit, specialty: e.target.value })}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-phone" className="text-right">
+                    رقم الجوال
+                  </Label>
+                  <Input
+                    id="edit-phone"
+                    value={mentorToEdit.phone}
+                    onChange={(e) => setMentorToEdit({ ...mentorToEdit, phone: e.target.value })}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-status" className="text-right">
+                    الحالة
+                  </Label>
+                  <Select
+                    value={mentorToEdit.status}
+                    onValueChange={(value) => setMentorToEdit({ ...mentorToEdit, status: value as 'pending' | 'active' | 'inactive' })}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="اختر الحالة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">نشط</SelectItem>
+                      <SelectItem value="pending">بانتظار التفعيل</SelectItem>
+                      <SelectItem value="inactive">غير نشط</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">حفظ التغييرات</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Mentor Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد إزالة الموجه "{mentorToDelete?.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteMentor}>
+              تأكيد الحذف
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

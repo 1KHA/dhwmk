@@ -43,3 +43,53 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to create mentor' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, email, specialty, phone, status } = body;
+
+    if (!id) {
+      return NextResponse.json({ message: 'Mentor ID is required' }, { status: 400 });
+    }
+
+    const updatedMentor = await prisma.mentor.update({
+      where: { id },
+      data: {
+        name,
+        email,
+        specialty,
+        phone,
+        status,
+      },
+    });
+
+    return NextResponse.json(updatedMentor);
+  } catch (error) {
+    console.error('Error updating mentor:', error);
+    if ((error as any).code === 'P2002' && (error as any).meta?.target?.includes('email')) {
+      return NextResponse.json({ message: 'Email already exists' }, { status: 409 });
+    }
+    return NextResponse.json({ message: 'Failed to update mentor' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json({ message: 'Mentor ID is required' }, { status: 400 });
+    }
+
+    await prisma.mentor.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: 'Mentor deleted successfully' }, { status: 200 });
+  } catch (error) {
+    console.error('Error deleting mentor:', error);
+    return NextResponse.json({ message: 'Failed to delete mentor' }, { status: 500 });
+  }
+}
