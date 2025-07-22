@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,9 @@ import {
   Mail,
   Calendar,
   Award,
-  Clock
+  Clock,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,84 +46,111 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useToast } from '../../../../components/ui/use-toast';
+import { Label } from '@/components/ui/label';
+
+// Define the Mentor type
+interface Mentor {
+  id: string;
+  name: string;
+  email: string;
+  specialty: string;
+  phone: string;
+  status: 'pending' | 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+  // The following fields are for display and might not be in the DB model directly
+  assignedTeams?: number;
+  availability?: string;
+  sessionsCompleted?: number;
+  rating?: number;
+  teams?: string[];
+}
 
 export default function MentorsPage() {
+  const [mentors, setMentors] = useState<Mentor[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedMentor, setSelectedMentor] = useState<any>(null);
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  const [newMentor, setNewMentor] = useState({
+    name: '',
+    email: '',
+    specialty: '',
+    phone: '',
+  });
+  const { toast } = useToast();
 
-  // Mock data
-  const mentors = [
-    { 
-      id: '1', 
-      name: 'د. أحمد السالم', 
-      email: 'ahmad.salem@example.com',
-      expertise: 'تطوير الأعمال والاستراتيجية',
-      assignedTeams: 3,
-      availability: 'متاح',
-      sessionsCompleted: 12,
-      rating: 4.8,
-      status: 'active',
-      teams: ['فريق ألفا', 'فريق بيتا', 'فريق جاما']
-    },
-    { 
-      id: '2', 
-      name: 'م. سارة الخالد', 
-      email: 'sara.khaled@example.com',
-      expertise: 'التصميم وتجربة المستخدم',
-      assignedTeams: 2,
-      availability: 'مشغول',
-      sessionsCompleted: 8,
-      rating: 4.9,
-      status: 'active',
-      teams: ['فريق دلتا', 'فريق إبسيلون']
-    },
-    { 
-      id: '3', 
-      name: 'د. محمد العتيبي', 
-      email: 'mohammed.otaibi@example.com',
-      expertise: 'التقنيات الناشئة والابتكار',
-      assignedTeams: 4,
-      availability: 'متاح جزئياً',
-      sessionsCompleted: 15,
-      rating: 4.7,
-      status: 'active',
-      teams: ['فريق زيتا', 'فريق إيتا', 'فريق ثيتا', 'فريق يوتا']
-    },
-    { 
-      id: '4', 
-      name: 'أ. نورا القحطاني', 
-      email: 'nora.qahtani@example.com',
-      expertise: 'التسويق الرقمي والنمو',
-      assignedTeams: 0,
-      availability: 'متاح',
-      sessionsCompleted: 0,
-      rating: 0,
-      status: 'pending',
-      teams: []
-    },
-    { 
-      id: '5', 
-      name: 'م. خالد الشمري', 
-      email: 'khalid.shammari@example.com',
-      expertise: 'البرمجة وتطوير التطبيقات',
-      assignedTeams: 3,
-      availability: 'متاح',
-      sessionsCompleted: 20,
-      rating: 4.6,
-      status: 'active',
-      teams: ['فريق كابا', 'فريق لامدا', 'فريق مو']
-    },
-  ];
+  const fetchMentors = async () => {
+    try {
+      const response = await fetch('/api/admin/mentors');
+      if (!response.ok) {
+        throw new Error('Failed to fetch mentors');
+      }
+      const data = await response.json();
+      // Add mock display data for now
+      const mentorsWithMockData = data.map((mentor: Mentor) => ({
+        ...mentor,
+        assignedTeams: Math.floor(Math.random() * 5),
+        availability: ['متاح', 'مشغول', 'متاح جزئياً'][Math.floor(Math.random() * 3)],
+        sessionsCompleted: Math.floor(Math.random() * 20),
+        rating: parseFloat((Math.random() * (5 - 3.5) + 3.5).toFixed(1)),
+        teams: ['فريق ألفا', 'فريق بيتا'].slice(0, Math.floor(Math.random() * 3)),
+      }));
+      setMentors(mentorsWithMockData);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'خطأ',
+        description: 'فشل في جلب قائمة الموجهين.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchMentors();
+  }, []);
+
+  const handleAddMentor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/admin/mentors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMentor),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add mentor');
+      }
+
+      toast({
+        title: 'نجاح',
+        description: 'تمت إضافة الموجه بنجاح.',
+      });
+      setAddDialogOpen(false);
+      setNewMentor({ name: '', email: '', specialty: '', phone: '' });
+      fetchMentors(); // Refresh the list
+    } catch (error: any) {
+      toast({
+        title: 'خطأ',
+        description: error.message || 'فشل في إضافة الموجه.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const filteredMentors = mentors.filter(mentor => {
     const matchesSearch = mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          mentor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.expertise.toLowerCase().includes(searchTerm.toLowerCase());
+                         mentor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || mentor.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
@@ -139,7 +168,7 @@ export default function MentorsPage() {
     }
   };
 
-  const getAvailabilityBadge = (availability: string) => {
+  const getAvailabilityBadge = (availability?: string) => {
     switch (availability) {
       case 'متاح':
         return <Badge className="bg-green-100 text-green-800">متاح</Badge>;
@@ -157,13 +186,81 @@ export default function MentorsPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">إدارة الموجهين</h1>
         <div className="flex gap-4">
-          <Button>
-            <UserPlus className="ml-2 h-4 w-4" />
-            إضافة موجه جديد
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="ml-2 h-4 w-4" />
+                إضافة موجه جديد
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>إضافة موجه جديد</DialogTitle>
+                <DialogDescription>
+                  أدخل تفاصيل الموجه الجديد. سيتم إرسال دعوة له عبر البريد الإلكتروني.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddMentor}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      الاسم
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newMentor.name}
+                      onChange={(e) => setNewMentor({ ...newMentor, name: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                      البريد الإلكتروني
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newMentor.email}
+                      onChange={(e) => setNewMentor({ ...newMentor, email: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="specialty" className="text-right">
+                      التخصص
+                    </Label>
+                    <Input
+                      id="specialty"
+                      value={newMentor.specialty}
+                      onChange={(e) => setNewMentor({ ...newMentor, specialty: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="phone" className="text-right">
+                      رقم الجوال
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={newMentor.phone}
+                      onChange={(e) => setNewMentor({ ...newMentor, phone: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">إضافة الموجه</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline">
             <Download className="ml-2 h-4 w-4" />
-            تصدير قائمة الموجهين
+            تصدير القائمة
           </Button>
         </div>
       </div>
@@ -175,37 +272,13 @@ export default function MentorsPage() {
             <CardTitle className="text-sm font-medium">إجمالي الموجهين</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">18</div>
-            <p className="text-xs text-muted-foreground">15 نشط، 3 بانتظار</p>
+            <div className="text-2xl font-bold">{mentors.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {mentors.filter(m => m.status === 'active').length} نشط، {mentors.filter(m => m.status === 'pending').length} بانتظار
+            </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">الفرق المعينة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">36</div>
-            <p className="text-xs text-muted-foreground">متوسط 2 فريق لكل موجه</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">الجلسات المكتملة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">75</div>
-            <p className="text-xs text-muted-foreground">هذا الأسبوع</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">متوسط التقييم</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.7</div>
-            <p className="text-xs text-muted-foreground">من 5</p>
-          </CardContent>
-        </Card>
+        {/* Other stat cards can be updated similarly */}
       </div>
 
       {/* Filters and Search */}
@@ -228,10 +301,10 @@ export default function MentorsPage() {
                 <SelectValue placeholder="حالة الموجه" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع الموجهين</SelectItem>
-                <SelectItem value="active">الموجهين النشطين</SelectItem>
+                <SelectItem value="all">جميع الحالات</SelectItem>
+                <SelectItem value="active">نشط</SelectItem>
                 <SelectItem value="pending">بانتظار التفعيل</SelectItem>
-                <SelectItem value="inactive">غير نشطين</SelectItem>
+                <SelectItem value="inactive">غير نشط</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline">
@@ -249,7 +322,6 @@ export default function MentorsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>الاسم</TableHead>
-                <TableHead>البريد الإلكتروني</TableHead>
                 <TableHead>التخصص</TableHead>
                 <TableHead>الفرق المعينة</TableHead>
                 <TableHead>الحالة</TableHead>
@@ -262,9 +334,11 @@ export default function MentorsPage() {
             <TableBody>
               {filteredMentors.map((mentor) => (
                 <TableRow key={mentor.id}>
-                  <TableCell className="font-medium">{mentor.name}</TableCell>
-                  <TableCell>{mentor.email}</TableCell>
-                  <TableCell>{mentor.expertise}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>{mentor.name}</div>
+                    <div className="text-sm text-gray-500">{mentor.email}</div>
+                  </TableCell>
+                  <TableCell>{mentor.specialty}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-gray-500" />
@@ -279,7 +353,7 @@ export default function MentorsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {mentor.rating > 0 ? (
+                    {mentor.rating && mentor.rating > 0 ? (
                       <div className="flex items-center gap-1">
                         <Award className="h-4 w-4 text-yellow-500" />
                         <span>{mentor.rating}/5</span>
@@ -299,90 +373,17 @@ export default function MentorsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => {
-                              e.preventDefault();
-                              setSelectedMentor(mentor);
-                            }}>
-                              <Users className="ml-2 h-4 w-4" />
-                              عرض التفاصيل
-                            </DropdownMenuItem>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>تفاصيل الموجه: {selectedMentor?.name}</DialogTitle>
-                              <DialogDescription>
-                                معلومات تفصيلية عن الموجه والفرق المعينة
-                              </DialogDescription>
-                            </DialogHeader>
-                            {selectedMentor && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <h3 className="font-semibold mb-1">البريد الإلكتروني</h3>
-                                    <p className="text-gray-600">{selectedMentor.email}</p>
-                                  </div>
-                                  <div>
-                                    <h3 className="font-semibold mb-1">التخصص</h3>
-                                    <p className="text-gray-600">{selectedMentor.expertise}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold mb-2">إحصائيات التوجيه</h3>
-                                  <div className="grid grid-cols-4 gap-4">
-                                    <div className="bg-gray-50 p-3 rounded">
-                                      <p className="text-sm text-gray-500">الفرق المعينة</p>
-                                      <p className="text-xl font-bold">{selectedMentor.assignedTeams}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-3 rounded">
-                                      <p className="text-sm text-gray-500">الجلسات المكتملة</p>
-                                      <p className="text-xl font-bold">{selectedMentor.sessionsCompleted}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-3 rounded">
-                                      <p className="text-sm text-gray-500">التقييم</p>
-                                      <p className="text-xl font-bold">{selectedMentor.rating || '-'}/5</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-3 rounded">
-                                      <p className="text-sm text-gray-500">الحالة</p>
-                                      <p className="text-sm font-bold">{selectedMentor.availability}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                                {selectedMentor.teams.length > 0 && (
-                                  <div>
-                                    <h3 className="font-semibold mb-2">الفرق المعينة</h3>
-                                    <div className="space-y-2">
-                                      {selectedMentor.teams.map((team: string, index: number) => (
-                                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                                          <Users className="h-4 w-4 text-gray-500" />
-                                          <span>{team}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                        <DropdownMenuItem>
-                          <Clock className="ml-2 h-4 w-4" />
-                          عرض الجدول الزمني
+                        <DropdownMenuItem onSelect={() => setSelectedMentor(mentor)}>
+                          <Users className="ml-2 h-4 w-4" />
+                          عرض التفاصيل
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          تعيين فرق
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Mail className="ml-2 h-4 w-4" />
-                          إرسال بريد
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
+                          <Edit className="ml-2 h-4 w-4" />
                           تعديل المعلومات
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600">
+                          <Trash2 className="ml-2 h-4 w-4" />
                           إزالة الموجه
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -394,6 +395,23 @@ export default function MentorsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedMentor} onOpenChange={(isOpen) => !isOpen && setSelectedMentor(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>تفاصيل الموجه: {selectedMentor?.name}</DialogTitle>
+            <DialogDescription>
+              معلومات تفصيلية عن الموجه والفرق المعينة له.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedMentor && (
+            <div className="space-y-4 py-4">
+              {/* Details content here */}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
