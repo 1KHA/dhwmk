@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function GET() {
   console.log('GET /api/mentor/availability');
@@ -18,12 +18,17 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 });
   }
 
+  if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not set');
+    return NextResponse.json({ error: 'Internal Server Error: JWT secret not configured' }, { status: 500 });
+  }
+
   try {
     const decoded = verify(token, JWT_SECRET) as { id: string };
     console.log('Token decoded successfully:', decoded);
     const mentorId = decoded.id;
 
-    const availabilities = await prisma.mentorAvailability.findMany({
+    const availabilities = await prisma.MentorAvailability.findMany({
       where: { mentorId },
       orderBy: { startTime: 'asc' },
     });
@@ -43,6 +48,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not set');
+    return NextResponse.json({ error: 'Internal Server Error: JWT secret not configured' }, { status: 500 });
+  }
+
   try {
     const decoded = verify(token, JWT_SECRET) as { id: string };
     const mentorId = decoded.id;
@@ -53,7 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Start time and end time are required' }, { status: 400 });
     }
 
-    const newAvailability = await prisma.mentorAvailability.create({
+    const newAvailability = await prisma.MentorAvailability.create({
       data: {
         startTime: new Date(startTime),
         endTime: new Date(endTime),
