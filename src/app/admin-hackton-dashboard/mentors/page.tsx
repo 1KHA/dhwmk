@@ -116,6 +116,8 @@ export default function MentorsPage() {
   const [availabilityEvents, setAvailabilityEvents] = useState<AvailabilityEvent[]>([]);
   const [slotToAdd, setSlotToAdd] = useState<{ start: Date; end: Date } | null>(null);
   const [eventToDelete, setEventToDelete] = useState<AvailabilityEvent | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(new Date());
   const [newMentor, setNewMentor] = useState({
     name: '',
     email: '',
@@ -212,6 +214,10 @@ export default function MentorsPage() {
     } finally {
       setEventToDelete(null);
     }
+  };
+
+  const handleDateChange = (newDate: Date) => {
+    setCalendarDate(newDate);
   };
 
   const fetchMentors = async () => {
@@ -758,6 +764,54 @@ export default function MentorsPage() {
               انقر على خانة زمنية لإضافتها، أو انقر على موعد موجود لإزالته.
             </DialogDescription>
           </DialogHeader>
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setShowDatePicker(!showDatePicker)}>
+              {showDatePicker ? 'إخفاء اختيار التاريخ' : 'إظهار اختيار التاريخ'}
+            </Button>
+          </div>
+          {showDatePicker && (
+            <div className="flex justify-center gap-4 mb-4 p-4 bg-gray-100 rounded-md">
+              <Select
+                value={String(calendarDate.getFullYear())}
+                onValueChange={(value) => handleDateChange(new Date(parseInt(value), calendarDate.getMonth(), calendarDate.getDate()))}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="السنة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
+                    <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={String(calendarDate.getMonth())}
+                onValueChange={(value) => handleDateChange(new Date(calendarDate.getFullYear(), parseInt(value), calendarDate.getDate()))}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="الشهر" />
+                </SelectTrigger>
+                <SelectContent>
+                  {moment.months().map((month, index) => (
+                    <SelectItem key={index} value={String(index)}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={String(calendarDate.getDate())}
+                onValueChange={(value) => handleDateChange(new Date(calendarDate.getFullYear(), calendarDate.getMonth(), parseInt(value)))}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="اليوم" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: moment(calendarDate).daysInMonth() }, (_, i) => i + 1).map(day => (
+                    <SelectItem key={day} value={String(day)}>{day}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
             <BigCalendar
               localizer={localizer}
@@ -772,6 +826,8 @@ export default function MentorsPage() {
               onSelectSlot={(slotInfo) => setSlotToAdd(slotInfo)}
               onSelectEvent={(event) => setEventToDelete(event)}
               messages={messages}
+              date={calendarDate}
+              onNavigate={(date) => handleDateChange(date)}
             />
           </div>
           <DialogFooter>

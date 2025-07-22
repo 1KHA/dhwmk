@@ -6,15 +6,21 @@ import { cookies } from 'next/headers';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function GET() {
+  console.log('GET /api/mentor/availability');
   const cookieStore = cookies();
   const token = cookieStore.get('auth-token')?.value;
+  console.log('Auth token from cookie:', token);
+  console.log('JWT_SECRET used:', process.env.JWT_SECRET ? 'Environment variable set' : 'Using default secret');
+
 
   if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.log('No token found, returning 401');
+    return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 });
   }
 
   try {
     const decoded = verify(token, JWT_SECRET) as { id: string };
+    console.log('Token decoded successfully:', decoded);
     const mentorId = decoded.id;
 
     const availabilities = await prisma.mentorAvailability.findMany({
@@ -24,6 +30,7 @@ export async function GET() {
 
     return NextResponse.json(availabilities);
   } catch (error) {
+    console.error('Error verifying token:', error);
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 }

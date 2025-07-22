@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -19,10 +20,11 @@ interface Availability {
 const AvailabilityPage = () => {
   const [events, setEvents] = useState<Availability[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   const fetchAvailabilities = async () => {
     try {
-      const response = await fetch('/api/mentor/availability');
+      const response = await fetch('/api/mentor/availability', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         const formattedEvents = data.map((avail: any) => ({
@@ -32,6 +34,13 @@ const AvailabilityPage = () => {
           title: 'Available',
         }));
         setEvents(formattedEvents);
+      } else if (response.status === 401) {
+        toast({
+          title: "Unauthorized",
+          description: "You must be logged in to view this page. Redirecting...",
+          variant: "destructive",
+        });
+        router.push('/login');
       } else {
         toast({
           title: "Error",
@@ -58,6 +67,7 @@ const AvailabilityPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ startTime: start, endTime: end }),
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -87,6 +97,7 @@ const AvailabilityPage = () => {
       try {
         const response = await fetch(`/api/mentor/availability/${event.id}`, {
           method: 'DELETE',
+          credentials: 'include',
         });
 
         if (response.ok) {

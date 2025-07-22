@@ -33,8 +33,12 @@ export async function DELETE(
       where: { id: availabilityId },
     });
 
-    return NextResponse.json({ message: 'Availability deleted successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'Availability deleted successfully' });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid token or server error' }, { status: 500 });
+    if (error instanceof Error && error.name === 'JsonWebTokenError') {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    console.error('Error deleting availability:', error);
+    return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });
   }
 }
