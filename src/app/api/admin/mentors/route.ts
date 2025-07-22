@@ -1,14 +1,30 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
+
   try {
-    const mentors = await prisma.mentor.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return NextResponse.json(mentors);
+    if (id) {
+      const mentor = await prisma.mentor.findUnique({
+        where: { id },
+      });
+
+      if (!mentor) {
+        return NextResponse.json({ message: 'Mentor not found' }, { status: 404 });
+      }
+
+      return NextResponse.json(mentor);
+    } else {
+      const mentors = await prisma.mentor.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return NextResponse.json(mentors);
+    }
   } catch (error) {
     console.error('Error fetching mentors:', error);
     return NextResponse.json({ message: 'Failed to fetch mentors' }, { status: 500 });
@@ -18,11 +34,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, specialty, phone } = body;
+    const { name, email, specialty, phone, password } = body;
 
-    if (!name || !email || !specialty || !phone) {
+    if (!name || !email || !specialty || !phone || !password) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
+
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const newMentor = await prisma.mentor.create({
       data: {
@@ -30,6 +48,7 @@ export async function POST(request: Request) {
         email,
         specialty,
         phone,
+        passwordHash,
       },
     });
 

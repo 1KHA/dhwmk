@@ -37,9 +37,12 @@ export default function LoginPage() {
         toast({
           title: "نجح",
           description: "تم تسجيل الدخول بنجاح!",
-        })
-        // Redirect to participant dashboard
-        router.push('/participant-dashboard')
+        });
+        if (data.user.role === 'mentor') {
+          router.push('/mentor-dashboard');
+        } else {
+          router.push('/participant-dashboard');
+        }
       } else {
         toast({
           title: "خطأ",
@@ -63,7 +66,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            تسجيل دخول المشارك
+            تسجيل الدخول
           </CardTitle>
           <CardDescription className="text-center">
             أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى لوحة التحكم

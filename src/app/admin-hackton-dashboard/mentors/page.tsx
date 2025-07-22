@@ -87,7 +87,9 @@ export default function MentorsPage() {
     email: '',
     specialty: '',
     phone: '',
+    password: '',
   });
+  const [generatedPassword, setGeneratedPassword] = useState('');
   const { toast } = useToast();
 
   const fetchMentors = async () => {
@@ -135,12 +137,13 @@ export default function MentorsPage() {
         throw new Error(errorData.message || 'Failed to add mentor');
       }
 
+      const addedMentor = await response.json();
       toast({
         title: 'نجاح',
-        description: 'تمت إضافة الموجه بنجاح.',
+        description: `تمت إضافة الموجه بنجاح. كلمة المرور الافتراضية: ${newMentor.password}`,
       });
       setAddDialogOpen(false);
-      setNewMentor({ name: '', email: '', specialty: '', phone: '' });
+      setNewMentor({ name: '', email: '', specialty: '', phone: '', password: '' });
       fetchMentors(); // Refresh the list
     } catch (error: any) {
       toast({
@@ -324,6 +327,19 @@ export default function MentorsPage() {
                       id="phone"
                       value={newMentor.phone}
                       onChange={(e) => setNewMentor({ ...newMentor, phone: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="password" className="text-right">
+                      كلمة المرور
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newMentor.password}
+                      onChange={(e) => setNewMentor({ ...newMentor, password: e.target.value })}
                       className="col-span-3"
                       required
                     />
