@@ -62,6 +62,8 @@ interface AvailabilityEvent {
   start: Date;
   end: Date;
   title: string;
+  isBooked?: boolean;
+  isOwnBooking?: boolean;
 }
 
 // Define the Mentor type
@@ -89,6 +91,8 @@ export default function MentorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [selectedEvent, setSelectedEvent] = useState<AvailabilityEvent | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchMentors = async () => {
@@ -144,12 +148,23 @@ export default function MentorsPage() {
       const response = await fetch(`/api/admin/mentors/${mentorId}/availability`);
       if (response.ok) {
         const data = await response.json();
-        const formattedEvents = data.map((avail: any) => ({
-          id: avail.id,
-          start: new Date(avail.startTime),
-          end: new Date(avail.endTime),
-          title: 'متاح',
+        
+        // Format events
+        const formattedEvents = await Promise.all(data.map(async (avail: any) => {
+          // Check if this availability is already booked
+          const bookingResponse = await fetch(`/api/participant/book-appointment?availabilityId=${avail.id}`);
+          const bookingData = await bookingResponse.json();
+          
+          return {
+            id: avail.id,
+            start: new Date(avail.startTime),
+            end: new Date(avail.endTime),
+            title: bookingData.isBooked ? (bookingData.isOwnBooking ? 'محجوز بواسطتك' : 'محجوز') : 'متاح',
+            isBooked: bookingData.isBooked,
+            isOwnBooking: bookingData.isOwnBooking,
+          };
         }));
+        
         setAvailabilityEvents(formattedEvents);
       } else {
         toast({
@@ -169,8 +184,98 @@ export default function MentorsPage() {
 
   const openAvailabilityDialog = (mentor: Mentor) => {
     setSelectedMentor(mentor);
+    setSelectedEvent(null); // Reset selected event
     fetchMentorAvailability(mentor.id);
     setAvailabilityDialogOpen(true);
+  };
+  
+  const handleSelectEvent = (event: AvailabilityEvent) => {
+    // If the event is already booked, don't allow selection
+    if (event.isBooked) {
+      if (event.isOwnBooking) {
+        toast({
+          title: "موعد محجوز",
+          description: "لقد قمت بحجز هذا الموعد بالفعل.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "موعد محجوز",
+          description: "هذا الموعد محجوز بالفعل من قبل مشارك آخر.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    
+    // If the event is in the past, don't allow selection
+    if (new Date(event.start) < new Date()) {
+      toast({
+        title: "موعد غير متاح",
+        description: "لا يمكن حجز موعد في الماضي.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedEvent(event);
+    toast({
+      title: "تم اختيار الموعد",
+      description: `${event.start.toLocaleString()} - ${event.end.toLocaleString()}`,
+    });
+  };
+  
+  const bookAppointment = async () => {
+    if (!selectedEvent) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار موعد أولاً.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setBookingLoading(true);
+      
+      const response = await fetch('/api/participant/book-appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          availabilityId: selectedEvent.id,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "تم الحجز بنجاح",
+          description: data.message,
+          variant: "default",
+        });
+        
+        // Refresh availability data
+        fetchMentorAvailability(selectedMentor!.id);
+        setSelectedEvent(null);
+      } else {
+        toast({
+          title: "فشل الحجز",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة حجز الموعد.",
+        variant: "destructive",
+      });
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   if (loading) {
@@ -354,18 +459,68 @@ export default function MentorsPage() {
           </DialogHeader>
           <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
             {availabilityEvents.length > 0 ? (
-              <BigCalendar
-                localizer={localizer}
-                events={availabilityEvents}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: '100%' }}
-                view="week"
-                views={['week']}
-                toolbar={true}
-                rtl={true}
-                messages={messages}
-              />
+              <>
+                <BigCalendar
+                  localizer={localizer}
+                  events={availabilityEvents.map(event => ({
+                    ...event,
+                    title: event.title,
+                    // Add color based on booking status
+                    style: {
+                      backgroundColor: event.isBooked 
+                        ? (event.isOwnBooking ? '#4ade80' : '#f87171') 
+                        : '#60a5fa'
+                    }
+                  }))}
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: 'calc(100% - 80px)' }}
+                  view="week"
+                  views={['week']}
+                  toolbar={true}
+                  rtl={true}
+                  messages={messages}
+                  onSelectEvent={handleSelectEvent}
+                  eventPropGetter={(event) => ({
+                    style: {
+                      backgroundColor: event.isBooked 
+                        ? (event.isOwnBooking ? '#4ade80' : '#f87171') 
+                        : '#60a5fa',
+                      color: 'white',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: event.isBooked ? 'default' : 'pointer',
+                    }
+                  })}
+                />
+                
+                <div className="flex justify-between items-center mt-4">
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-[#60a5fa]"></div>
+                      <span className="text-sm">متاح</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-[#f87171]"></div>
+                      <span className="text-sm">محجوز</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-[#4ade80]"></div>
+                      <span className="text-sm">محجوز بواسطتك</span>
+                    </div>
+                  </div>
+                  
+                  {selectedEvent && !selectedEvent.isBooked && (
+                    <Button 
+                      onClick={bookAppointment} 
+                      disabled={bookingLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {bookingLoading ? 'جاري الحجز...' : 'حجز هذا الموعد'}
+                    </Button>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <Calendar className="h-16 w-16 text-gray-300 mb-4" />

@@ -31,13 +31,13 @@ model Team {
 }
 
 model Participant {
-  id               String   @id @default(cuid())
+  id               String          @id @default(cuid())
   firstName        String
   secondName       String
   familyName       String
   nationalId       String
   dob              String
-  email            String   @unique
+  email            String          @unique
   phoneNumber      String
   education        String
   university       String
@@ -46,12 +46,13 @@ model Participant {
   nationality      String
   residence        String
   canAttend        Boolean
-  isLeader         Boolean  @default(false)
+  isLeader         Boolean         @default(false)
   passwordHash     String?
   teamId           String
-  team             Team     @relation(fields: [teamId], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  team             Team            @relation(fields: [teamId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  bookings         MentorBooking[]
 }
 
 model Admin {
@@ -76,10 +77,22 @@ model Mentor {
 }
 
 model MentorAvailability {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   startTime DateTime
   endTime   DateTime
   mentorId  String
-  mentor    Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  mentor    Mentor          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+  bookings  MentorBooking[]
+}
+
+model MentorBooking {
+  id             String             @id @default(cuid())
+  participantId  String
+  participant    Participant        @relation(fields: [participantId], references: [id])
+  availabilityId String
+  availability   MentorAvailability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  status         String             @default("booked") // booked, cancelled, completed
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
