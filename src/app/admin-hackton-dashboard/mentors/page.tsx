@@ -395,6 +395,196 @@ export default function MentorsPage() {
     }
   };
 
+  // --- Admin Mentor Bookings Management State ---
+  interface Booking {
+    id: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    mentor: { id: string; name: string; email: string; specialty: string };
+    participant: { id: string; name: string; email: string; phoneNumber: string };
+    availability: { id: string; startTime: string; endTime: string };
+  }
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError, setBookingsError] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isEditBookingDialogOpen, setEditBookingDialogOpen] = useState(false);
+  const [isDeleteBookingDialogOpen, setDeleteBookingDialogOpen] = useState(false);
+  const [editBookingStatus, setEditBookingStatus] = useState('');
+  const [editBookingAvailabilityId, setEditBookingAvailabilityId] = useState('');
+  const [editBookingLoading, setEditBookingLoading] = useState(false);
+  const [deleteBookingLoading, setDeleteBookingLoading] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<{ id: string; startTime: string; endTime: string }[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  // Fetch all bookings for admin
+  const fetchBookings = async () => {
+    setBookingsLoading(true);
+    setBookingsError(null);
+    try {
+      // First try to fetch from the participant API to see if we can get bookings
+      const participantRes = await fetch('/api/participant/my-bookings');
+      if (participantRes.ok) {
+        const participantData = await participantRes.json();
+        
+        // If we have participant bookings, let's fetch all mentor bookings
+        // We'll fetch bookings for each mentor the participant has booked with
+        const allBookings: Booking[] = [];
+        const mentorIds = new Set<string>();
+        
+        // Get unique mentor IDs from participant bookings
+        for (const booking of participantData) {
+          const mentorRes = await fetch(`/api/mentor/bookings?mentorId=${booking.mentorId}`);
+          if (mentorRes.ok) {
+            const mentorBookings = await mentorRes.json();
+            allBookings.push(...mentorBookings);
+          }
+        }
+        
+        // If we have bookings from the participant approach, use those
+        if (allBookings.length > 0) {
+          setBookings(allBookings);
+          setBookingsError(null);
+          setBookingsLoading(false);
+          return;
+        }
+      }
+      
+      // If the participant approach didn't work, try the admin API
+      const res = await fetch('/api/admin/mentor-bookings');
+      if (!res.ok) throw new Error('فشل في جلب الحجوزات');
+      const data = await res.json();
+      setBookings(data);
+    } catch (err: any) {
+      console.error('Error fetching bookings:', err);
+      setBookingsError(err.message || 'حدث خطأ أثناء جلب الحجوزات');
+      
+      // If we failed to get bookings, try to fetch mentors and then get bookings for each mentor
+      try {
+        const mentorsRes = await fetch('/api/admin/mentors');
+        if (mentorsRes.ok) {
+          const mentorsData = await mentorsRes.json();
+          const allBookings: Booking[] = [];
+          
+          for (const mentor of mentorsData) {
+            const mentorRes = await fetch(`/api/mentor/bookings?mentorId=${mentor.id}`);
+            if (mentorRes.ok) {
+              const mentorBookings = await mentorRes.json();
+              allBookings.push(...mentorBookings);
+            }
+          }
+          
+          if (allBookings.length > 0) {
+            setBookings(allBookings);
+            setBookingsError(null);
+          }
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback error:', fallbackErr);
+      }
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  // Edit booking dialog open
+  const openEditBookingDialog = async (booking: Booking) => {
+    setSelectedBooking(booking);
+    setEditBookingStatus(booking.status);
+    setEditBookingAvailabilityId(booking.availability.id);
+    setEditBookingDialogOpen(true);
+
+    // Fetch available slots for this mentor
+    setSlotsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/mentors/${booking.mentor.id}/availability`);
+      if (!res.ok) throw new Error('فشل في جلب المواعيد المتاحة');
+      const data = await res.json();
+      setAvailableSlots(data);
+    } catch (err) {
+      setAvailableSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  // Delete booking dialog open
+  const openDeleteBookingDialog = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setDeleteBookingDialogOpen(true);
+  };
+
+  // Handle edit booking submit
+  const handleEditBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBooking) return;
+    setEditBookingLoading(true);
+    try {
+      const res = await fetch(`/api/admin/mentor-bookings/${selectedBooking.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: editBookingStatus,
+          availabilityId: editBookingAvailabilityId,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'فشل في تحديث الحجز');
+      }
+      toast({
+        title: 'تم التحديث',
+        description: 'تم تحديث بيانات الحجز بنجاح.',
+      });
+      setEditBookingDialogOpen(false);
+      setSelectedBooking(null);
+      fetchBookings();
+    } catch (err: any) {
+      toast({
+        title: 'خطأ',
+        description: err.message || 'حدث خطأ أثناء تحديث الحجز.',
+        variant: 'destructive',
+      });
+    } finally {
+      setEditBookingLoading(false);
+    }
+  };
+
+  // Handle delete booking
+  const handleDeleteBooking = async () => {
+    if (!selectedBooking) return;
+    setDeleteBookingLoading(true);
+    try {
+      const res = await fetch(`/api/admin/mentor-bookings/${selectedBooking.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'فشل في حذف الحجز');
+      }
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف الحجز بنجاح.',
+      });
+      setDeleteBookingDialogOpen(false);
+      setSelectedBooking(null);
+      fetchBookings();
+    } catch (err: any) {
+      toast({
+        title: 'خطأ',
+        description: err.message || 'حدث خطأ أثناء حذف الحجز.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteBookingLoading(false);
+    }
+  };
+
   return (
     <div className="p-8" dir="rtl">
       <div className="flex justify-between items-center mb-8">
@@ -689,6 +879,183 @@ export default function MentorsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* --- Admin Mentor Bookings Management Box --- */}
+      <Card className="border-0 shadow-sm overflow-hidden mt-12">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-blue-800">جميع حجوزات الموجهين</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {bookingsLoading ? (
+            <div className="p-8 text-center text-blue-600">جاري تحميل الحجوزات...</div>
+          ) : bookingsError ? (
+            <div className="p-8 text-center text-red-600">{bookingsError}</div>
+          ) : bookings.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">لا توجد حجوزات حالياً.</div>
+          ) : (
+            <Table className="border-collapse">
+              <TableHeader>
+                <TableRow className="bg-blue-50 hover:bg-blue-50">
+                  <TableHead>الموجه</TableHead>
+                  <TableHead>المشارك</TableHead>
+                  <TableHead>البريد الإلكتروني للمشارك</TableHead>
+                  <TableHead>رقم الجوال</TableHead>
+                  <TableHead>التخصص</TableHead>
+                  <TableHead>تاريخ الجلسة</TableHead>
+                  <TableHead>الوقت</TableHead>
+                  <TableHead>الحالة</TableHead>
+                  <TableHead className="text-left">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bookings.map((booking) => (
+                  <TableRow key={booking.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <TableCell>
+                      <div>{booking.mentor.name}</div>
+                      <div className="text-xs text-gray-500">{booking.mentor.email}</div>
+                    </TableCell>
+                    <TableCell>{booking.participant.name}</TableCell>
+                    <TableCell>{booking.participant.email}</TableCell>
+                    <TableCell>{booking.participant.phoneNumber}</TableCell>
+                    <TableCell>{booking.mentor.specialty}</TableCell>
+                    <TableCell>
+                      {new Date(booking.availability.startTime).toLocaleDateString('ar-EG')}
+                    </TableCell>
+                    <TableCell>
+                      {`${new Date(booking.availability.startTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })} - ${new Date(booking.availability.endTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={
+                        booking.status === 'booked'
+                          ? 'bg-blue-100 text-blue-800'
+                          : booking.status === 'completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }>
+                        {booking.status === 'booked'
+                          ? 'محجوز'
+                          : booking.status === 'completed'
+                          ? 'مكتمل'
+                          : 'ملغي'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1"
+                          onClick={() => openEditBookingDialog(booking)}
+                        >
+                          <Edit className="h-4 w-4" />
+                          تعديل
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200 flex items-center gap-1"
+                          onClick={() => openDeleteBookingDialog(booking)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          حذف
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditBookingDialogOpen} onOpenChange={setEditBookingDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg border-0 shadow-lg">
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات الحجز</DialogTitle>
+            <DialogDescription>
+              قم بتحديث حالة الحجز أو إعادة جدولة الجلسة.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <form onSubmit={handleEditBooking}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-status" className="text-right">
+                    الحالة
+                  </Label>
+                  <Select
+                    value={editBookingStatus}
+                    onValueChange={setEditBookingStatus}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="اختر الحالة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="booked">محجوز</SelectItem>
+                      <SelectItem value="completed">مكتمل</SelectItem>
+                      <SelectItem value="cancelled">ملغي</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-availability" className="text-right">
+                    إعادة جدولة الموعد
+                  </Label>
+                  <Select
+                    value={editBookingAvailabilityId}
+                    onValueChange={setEditBookingAvailabilityId}
+                    disabled={slotsLoading}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="اختر موعداً جديداً" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {slotsLoading ? (
+                        <SelectItem value={editBookingAvailabilityId}>جاري التحميل...</SelectItem>
+                      ) : (
+                        availableSlots.length > 0 ? (
+                          availableSlots.map(slot => (
+                            <SelectItem key={slot.id} value={slot.id}>
+                              {new Date(slot.startTime).toLocaleDateString('ar-EG')} - {new Date(slot.startTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })} إلى {new Date(slot.endTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value={editBookingAvailabilityId}>لا توجد مواعيد متاحة أخرى</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={editBookingLoading}>
+                  {editBookingLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Booking Confirmation Dialog */}
+      <Dialog open={isDeleteBookingDialogOpen} onOpenChange={setDeleteBookingDialogOpen}>
+        <DialogContent className="rounded-lg border-0 shadow-lg">
+          <DialogHeader>
+            <DialogTitle>تأكيد حذف الحجز</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد حذف هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteBookingDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteBooking} disabled={deleteBookingLoading}>
+              {deleteBookingLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Details Dialog */}
       <Dialog open={!!selectedMentor} onOpenChange={(isOpen) => !isOpen && setSelectedMentor(null)}>
