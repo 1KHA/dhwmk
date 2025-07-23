@@ -23,7 +23,9 @@ import {
   Clock,
   Phone,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  CalendarClock
 } from 'lucide-react';
 import {
   Dialog,
@@ -66,6 +68,17 @@ interface AvailabilityEvent {
   isOwnBooking?: boolean;
 }
 
+// Define the Booking type
+interface Booking {
+  id: string;
+  mentorName: string;
+  mentorSpecialty: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  createdAt: string;
+}
+
 // Define the Mentor type
 interface Mentor {
   id: string;
@@ -93,7 +106,32 @@ export default function MentorsPage() {
   const [progress, setProgress] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<AvailabilityEvent | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
   const { toast } = useToast();
+
+  const fetchMyBookings = async () => {
+    try {
+      setBookingsLoading(true);
+      const response = await fetch('/api/participant/my-bookings');
+      
+      if (!response.ok) {
+        throw new Error('فشل في جلب المواعيد المحجوزة');
+      }
+      
+      const data = await response.json();
+      setMyBookings(data);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في جلب المواعيد المحجوزة",
+        variant: "destructive",
+      });
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
 
   const fetchMentors = async () => {
     try {
@@ -131,6 +169,7 @@ export default function MentorsPage() {
 
   useEffect(() => {
     fetchMentors();
+    fetchMyBookings();
   }, []);
 
   useEffect(() => {
@@ -257,8 +296,9 @@ export default function MentorsPage() {
           variant: "default",
         });
         
-        // Refresh availability data
+        // Refresh availability data and bookings
         fetchMentorAvailability(selectedMentor!.id);
+        fetchMyBookings(); // Refresh the bookings list
         setSelectedEvent(null);
       } else {
         toast({
@@ -301,6 +341,79 @@ export default function MentorsPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-blue-800">الموجهون المتاحون</h1>
       </div>
+
+      {/* My Booked Appointments Box */}
+      <Card className="mb-8 border-0 shadow-md bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold text-blue-800 flex items-center gap-2">
+            <CalendarClock className="h-6 w-6 text-blue-600" />
+            المواعيد التي حجزتها
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {bookingsLoading ? (
+            <div className="py-4 text-center">
+              <Progress value={70} className="w-full h-2 mb-2" />
+              <p className="text-sm text-muted-foreground">جاري تحميل المواعيد المحجوزة...</p>
+            </div>
+          ) : myBookings.length > 0 ? (
+            <div className="space-y-4">
+              {myBookings.map((booking) => {
+                // Format dates
+                const startDate = new Date(booking.startTime);
+                const endDate = new Date(booking.endTime);
+                const formattedDate = startDate.toLocaleDateString('ar-SA', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                });
+                const formattedStartTime = startDate.toLocaleTimeString('ar-SA', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                const formattedEndTime = endDate.toLocaleTimeString('ar-SA', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+                return (
+                  <div key={booking.id} className="flex items-center p-3 rounded-lg bg-white shadow-sm border border-blue-100">
+                    <div className="mr-4 bg-blue-100 p-2 rounded-full">
+                      <CheckCircle2 className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-blue-900">{booking.mentorName}</div>
+                      <div className="text-sm text-gray-600">{booking.mentorSpecialty}</div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {formattedDate} • {formattedStartTime} - {formattedEndTime}
+                      </div>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 ml-2">
+                      {booking.status === 'booked' ? 'محجوز' : booking.status}
+                    </Badge>
+                  </div>
+                );
+              })}
+              <div className="text-center mt-2">
+                <Button 
+                  variant="outline" 
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  onClick={fetchMyBookings}
+                >
+                  تحديث المواعيد
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <Calendar className="h-12 w-12 text-blue-300 mx-auto mb-3" />
+              <p className="text-gray-500">لم تقم بحجز أي مواعيد بعد</p>
+              <p className="text-sm text-gray-400 mt-1">يمكنك حجز موعد مع أحد الموجهين من القائمة أدناه</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
