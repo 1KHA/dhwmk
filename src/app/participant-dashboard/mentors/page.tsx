@@ -1,0 +1,381 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Button } from '../../../../components/ui/button';
+import { Input } from '../../../../components/ui/input';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../../../components/ui/table';
+import { Badge } from '../../../../components/ui/badge';
+import { Progress } from '../../../../components/ui/progress';
+import { 
+  Search, 
+  Users,
+  Mail,
+  Calendar,
+  Award,
+  Clock,
+  Phone,
+  Briefcase,
+  AlertCircle
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../../../../components/ui/dialog';
+import { useToast } from '../../../../components/ui/use-toast';
+import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'moment/locale/ar'; // Import Arabic locale
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { Alert, AlertDescription } from '../../../../components/ui/alert';
+
+moment.locale('ar'); // Set moment to use Arabic
+const localizer = momentLocalizer(moment);
+
+const messages = {
+  allDay: 'يوم كامل',
+  previous: 'السابق',
+  next: 'التالي',
+  today: 'اليوم',
+  month: 'شهر',
+  week: 'أسبوع',
+  day: 'يوم',
+  agenda: 'أجندة',
+  date: 'تاريخ',
+  time: 'وقت',
+  event: 'حدث',
+  showMore: (total: number) => `+${total} المزيد`,
+};
+
+interface AvailabilityEvent {
+  id: string;
+  start: Date;
+  end: Date;
+  title: string;
+}
+
+// Define the Mentor type
+interface Mentor {
+  id: string;
+  name: string;
+  email: string;
+  specialty: string;
+  phone: string;
+  status: 'pending' | 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+  // The following fields are for display and might not be in the DB model directly
+  rating?: number;
+  isAvailableNow?: boolean;
+}
+
+export default function MentorsPage() {
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+  const [availabilityEvents, setAvailabilityEvents] = useState<AvailabilityEvent[]>([]);
+  const [isAvailabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const { toast } = useToast();
+
+  const fetchMentors = async () => {
+    try {
+      setLoading(true);
+      setProgress(30);
+      const response = await fetch('/api/admin/mentors');
+      setProgress(60);
+      
+      if (!response.ok) {
+        throw new Error('فشل في جلب قائمة الموجهين');
+      }
+      
+      const data = await response.json();
+      
+      // Filter only active mentors
+      const activeMentors = data.filter((mentor: Mentor) => mentor.status === 'active');
+      
+      // Add mock rating data for display purposes
+      const mentorsWithRating = activeMentors.map((mentor: Mentor) => ({
+        ...mentor,
+        rating: parseFloat((Math.random() * (5 - 3.5) + 3.5).toFixed(1)),
+        isAvailableNow: Math.random() > 0.5, // Random availability for demo
+      }));
+      
+      setMentors(mentorsWithRating);
+      setFilteredMentors(mentorsWithRating);
+      setProgress(100);
+    } catch (error) {
+      console.error(error);
+      setError('فشل في جلب قائمة الموجهين. يرجى المحاولة مرة أخرى لاحقاً.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMentors();
+  }, []);
+
+  useEffect(() => {
+    // Filter mentors based on search term
+    const filtered = mentors.filter(mentor => 
+      mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      mentor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      mentor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredMentors(filtered);
+  }, [searchTerm, mentors]);
+
+  const fetchMentorAvailability = async (mentorId: string) => {
+    try {
+      const response = await fetch(`/api/admin/mentors/${mentorId}/availability`);
+      if (response.ok) {
+        const data = await response.json();
+        const formattedEvents = data.map((avail: any) => ({
+          id: avail.id,
+          start: new Date(avail.startTime),
+          end: new Date(avail.endTime),
+          title: 'متاح',
+        }));
+        setAvailabilityEvents(formattedEvents);
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل في جلب مواعيد الموجه.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء جلب المواعيد.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openAvailabilityDialog = (mentor: Mentor) => {
+    setSelectedMentor(mentor);
+    fetchMentorAvailability(mentor.id);
+    setAvailabilityDialogOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4 p-8">
+        <Progress value={progress} className="w-full h-2" />
+        <p className="text-center text-muted-foreground">جاري تحميل قائمة الموجهين...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="p-8" dir="rtl">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-blue-800">الموجهون المتاحون</h1>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-blue-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              إجمالي الموجهين
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{mentors.length}</div>
+            <p className="text-xs text-muted-foreground">
+              موجه نشط متاح للمساعدة
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-green-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-5 w-5 text-green-500" />
+              متاحون الآن
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">
+              {mentors.filter(m => m.isAvailableNow).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              موجه متاح حالياً للمساعدة
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-yellow-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Award className="h-5 w-5 text-yellow-500" />
+              متوسط التقييم
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-600">
+              {(mentors.reduce((total, mentor) => total + (mentor.rating || 0), 0) / (mentors.length || 1)).toFixed(1)}/5
+            </div>
+            <p className="text-xs text-muted-foreground">
+              بناءً على تقييمات المشاركين
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card className="mb-8 border-0 shadow-sm overflow-hidden">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-4 w-4" />
+                <Input
+                  placeholder="البحث بالاسم، البريد الإلكتروني، أو التخصص..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10 border-blue-100 focus:border-blue-300 rounded-full"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mentors Table */}
+      <Card className="border-0 shadow-sm overflow-hidden">
+        <CardContent className="p-0">
+          <Table className="border-collapse">
+            <TableHeader>
+              <TableRow className="bg-blue-50 hover:bg-blue-50">
+                <TableHead>الاسم</TableHead>
+                <TableHead>التخصص</TableHead>
+                <TableHead>التقييم</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead className="text-left">المواعيد</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMentors.length > 0 ? (
+                filteredMentors.map((mentor) => (
+                  <TableRow key={mentor.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <TableCell className="font-medium">
+                      <div>{mentor.name}</div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> {mentor.email}
+                      </div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> {mentor.phone}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-gray-500" />
+                        <span>{mentor.specialty}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {mentor.rating && mentor.rating > 0 ? (
+                        <div className="flex items-center gap-1">
+                          <Award className="h-4 w-4 text-yellow-500" />
+                          <span>{mentor.rating}/5</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {mentor.isAvailableNow ? (
+                        <Badge className="bg-green-100 text-green-800">متاح الآن</Badge>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800">غير متاح حالياً</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1"
+                          onClick={() => openAvailabilityDialog(mentor)}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          <span>عرض المواعيد</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    لا يوجد موجهين متطابقين مع البحث
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Availability Dialog */}
+      <Dialog open={isAvailabilityDialogOpen} onOpenChange={setAvailabilityDialogOpen}>
+        <DialogContent className="max-w-6xl rounded-lg border-0 shadow-lg">
+          <DialogHeader>
+            <DialogTitle>مواعيد توفر الموجه: {selectedMentor?.name}</DialogTitle>
+            <DialogDescription>
+              المواعيد المتاحة للموجه خلال الأسبوع الحالي
+            </DialogDescription>
+          </DialogHeader>
+          <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
+            {availabilityEvents.length > 0 ? (
+              <BigCalendar
+                localizer={localizer}
+                events={availabilityEvents}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: '100%' }}
+                view="week"
+                views={['week']}
+                toolbar={true}
+                rtl={true}
+                messages={messages}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                <Calendar className="h-16 w-16 text-gray-300 mb-4" />
+                <p className="text-gray-500 text-lg">لا توجد مواعيد متاحة حالياً</p>
+                <p className="text-gray-400 text-sm mt-2">يرجى التحقق لاحقاً أو التواصل مع الموجه مباشرة</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
