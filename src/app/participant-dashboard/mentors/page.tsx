@@ -79,6 +79,30 @@ interface Booking {
   createdAt: string;
 }
 
+// Define the MentorBooking type for all bookings of a mentor
+interface MentorBooking {
+  id: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  availability: {
+    id: string;
+    startTime: string;
+    endTime: string;
+  };
+  participant: {
+    id: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+  };
+  mentor: {
+    id: string;
+    name: string;
+    specialty: string;
+  };
+}
+
 // Define the Mentor type
 interface Mentor {
   id: string;
@@ -108,6 +132,9 @@ export default function MentorsPage() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [mentorBookings, setMentorBookings] = useState<MentorBooking[]>([]);
+  const [mentorBookingsLoading, setMentorBookingsLoading] = useState(false);
+  const [isMentorBookingsDialogOpen, setMentorBookingsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchMyBookings = async () => {
@@ -130,6 +157,30 @@ export default function MentorsPage() {
       });
     } finally {
       setBookingsLoading(false);
+    }
+  };
+
+  const fetchMentorBookings = async (mentorId: string) => {
+    try {
+      setMentorBookingsLoading(true);
+      const response = await fetch(`/api/mentor/bookings?mentorId=${mentorId}`);
+      
+      if (!response.ok) {
+        throw new Error('فشل في جلب حجوزات الموجه');
+      }
+      
+      const data = await response.json();
+      setMentorBookings(data);
+      setMentorBookingsDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching mentor bookings:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في جلب حجوزات الموجه",
+        variant: "destructive",
+      });
+    } finally {
+      setMentorBookingsLoading(false);
     }
   };
 
@@ -545,6 +596,14 @@ export default function MentorsPage() {
                           <Calendar className="h-4 w-4" />
                           <span>عرض المواعيد</span>
                         </Button>
+                        <Button 
+                          variant="outline" 
+                          className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200 flex items-center gap-1"
+                          onClick={() => fetchMentorBookings(mentor.id)}
+                        >
+                          <Users className="h-4 w-4" />
+                          <span>الحجوزات</span>
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -642,6 +701,107 @@ export default function MentorsPage() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mentor Bookings Dialog */}
+      <Dialog open={isMentorBookingsDialogOpen} onOpenChange={setMentorBookingsDialogOpen}>
+        <DialogContent className="max-w-4xl rounded-lg border-0 shadow-lg">
+          <DialogHeader>
+            <DialogTitle>الجلسات المحجوزة مع الموجه</DialogTitle>
+            <DialogDescription>
+              جميع الجلسات المحجوزة مع هذا الموجه
+            </DialogDescription>
+          </DialogHeader>
+          
+          {mentorBookingsLoading ? (
+            <div className="py-8 text-center">
+              <Progress value={70} className="w-full h-2 mb-4" />
+              <p className="text-muted-foreground">جاري تحميل الحجوزات...</p>
+            </div>
+          ) : mentorBookings.length > 0 ? (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto p-2">
+              {mentorBookings.map((booking) => {
+                // Format dates
+                const startDate = new Date(booking.availability.startTime);
+                const endDate = new Date(booking.availability.endTime);
+                const formattedDate = startDate.toLocaleDateString('ar-SA', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                });
+                const formattedStartTime = startDate.toLocaleTimeString('ar-SA', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                const formattedEndTime = endDate.toLocaleTimeString('ar-SA', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+                // Check if this booking belongs to the current participant
+                const isCurrentParticipantBooking = myBookings.some(myBooking => myBooking.id === booking.id);
+
+                return (
+                  <div 
+                    key={booking.id} 
+                    className={`flex items-center p-4 rounded-lg shadow-sm border ${
+                      isCurrentParticipantBooking 
+                        ? 'bg-blue-50 border-blue-200' 
+                        : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <div className={`mr-4 p-2 rounded-full ${
+                      isCurrentParticipantBooking 
+                        ? 'bg-blue-100' 
+                        : 'bg-gray-100'
+                    }`}>
+                      <Users className={`h-6 w-6 ${
+                        isCurrentParticipantBooking 
+                          ? 'text-blue-600' 
+                          : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {booking.participant.name}
+                        {isCurrentParticipantBooking && (
+                          <Badge className="mr-2 bg-blue-100 text-blue-800">أنت</Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <Mail className="h-3 w-3" /> {booking.participant.email}
+                      </div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <Phone className="h-3 w-3" /> {booking.participant.phoneNumber}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-2">
+                        {formattedDate} • {formattedStartTime} - {formattedEndTime}
+                      </div>
+                    </div>
+                    <Badge className={`ml-2 ${
+                      booking.status === 'booked' 
+                        ? 'bg-green-100 text-green-800' 
+                        : booking.status === 'cancelled' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {booking.status === 'booked' ? 'محجوز' : 
+                       booking.status === 'cancelled' ? 'ملغي' : 
+                       booking.status === 'completed' ? 'مكتمل' : booking.status}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">لا توجد حجوزات لهذا الموجه</p>
+              <p className="text-gray-400 text-sm mt-2">يمكنك حجز موعد مع هذا الموجه من خلال زر "عرض المواعيد"</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

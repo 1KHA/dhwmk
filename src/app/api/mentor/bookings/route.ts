@@ -1,0 +1,121 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const mentorId = searchParams.get('mentorId');
+    
+    // If mentorId is provided, use it directly
+    // Otherwise, try to get the logged-in mentor's ID from JWT
+    let targetMentorId = mentorId;
+    
+    if (!targetMentorId) {
+      // Check if this is a mentor requesting their own bookings
+      const cookieStore = cookies();
+      const token = cookieStore.get('auth-token')?.value;
+      
+      if (!token) {
+        return NextResponse.json(
+          { error: 'غير مصرح. يرجى تسجيل الدخول.' },
+          { status: 401 }
+        );
+      }
+      
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string, role: string };
+        
+        if (decoded.role !== 'mentor') {
+          return NextResponse.json(
+            { error: 'غير مصرح. هذه الخدمة متاحة للموجهين فقط.' },
+            { status: 403 }
+          );
+        }
+        
+        targetMentorId = decoded.id;
+      } catch (error) {
+        return NextResponse.json(
+          { error: 'رمز المصادقة غير صالح.' },
+          { status: 401 }
+        );
+      }
+    }
+    
+    if (!targetMentorId) {
+      return NextResponse.json(
+        { error: 'يجب توفير معرف الموجه.' },
+        { status: 400 }
+      );
+    }
+    
+    // First, get all availability slots for the mentor
+    const availabilities = await (prisma as any).mentorAvailability.findMany({
+      where: {
+        mentorId: targetMentorId,
+      },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            specialty: true,
+          },
+        },
+        bookings: {
+          include: {
+            participant: {
+              select: {
+                id: true,
+                firstName: true,
+                secondName: true,
+                familyName: true,
+                email: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    });
+    
+    // Format the response to include all bookings with availability and participant details
+    const bookings = availabilities.flatMap((availability: any) => 
+      availability.bookings.map((booking: any) => ({
+        id: booking.id,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        availability: {
+          id: availability.id,
+          startTime: availability.startTime,
+          endTime: availability.endTime,
+        },
+        participant: {
+          id: booking.participant.id,
+          name: `${booking.participant.firstName} ${booking.participant.secondName} ${booking.participant.familyName}`,
+          email: booking.participant.email,
+          phoneNumber: booking.participant.phoneNumber,
+        },
+        mentor: {
+          id: availability.mentor.id,
+          name: availability.mentor.name,
+          specialty: availability.mentor.specialty,
+        },
+      }))
+    );
+    
+    return NextResponse.json(bookings);
+  } catch (error) {
+    console.error('Error fetching mentor bookings:', error);
+    return NextResponse.json(
+      { error: 'حدث خطأ أثناء جلب الحجوزات.' },
+      { status: 500 }
+    );
+  }
+}
