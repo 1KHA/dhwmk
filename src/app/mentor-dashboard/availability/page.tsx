@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import 'moment/locale/ar'; // Import Arabic locale
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Button } from '../../../../components/ui/button';
 import { useToast } from "../../../../components/ui/use-toast"
 
+moment.locale('ar'); // Set moment to use Arabic
 const localizer = momentLocalizer(moment);
 
 interface Availability {
@@ -31,27 +33,27 @@ const AvailabilityPage = () => {
           id: avail.id,
           start: new Date(avail.startTime),
           end: new Date(avail.endTime),
-          title: 'Available',
+          title: 'متاح',
         }));
         setEvents(formattedEvents);
       } else if (response.status === 401) {
         toast({
-          title: "Unauthorized",
-          description: "You must be logged in to view this page. Redirecting...",
+          title: "غير مصرح",
+          description: "يجب تسجيل الدخول لعرض هذه الصفحة. جاري التحويل...",
           variant: "destructive",
         });
         router.push('/login');
       } else {
         toast({
-          title: "Error",
-          description: "Failed to fetch availabilities.",
+          title: "خطأ",
+          description: "فشل في جلب أوقات التوافر.",
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An error occurred while fetching availabilities.",
+        title: "خطأ",
+        description: "حدث خطأ أثناء جلب أوقات التوافر.",
         variant: "destructive",
       })
     }
@@ -73,27 +75,27 @@ const AvailabilityPage = () => {
       if (response.ok) {
         fetchAvailabilities();
         toast({
-          title: "Success",
-          description: "Availability added successfully.",
+          title: "تم بنجاح",
+          description: "تمت إضافة وقت التوافر بنجاح.",
         })
       } else {
         toast({
-          title: "Error",
-          description: "Failed to add availability.",
+          title: "خطأ",
+          description: "فشل في إضافة وقت التوافر.",
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An error occurred while adding availability.",
+        title: "خطأ",
+        description: "حدث خطأ أثناء إضافة وقت التوافر.",
         variant: "destructive",
       })
     }
   };
 
   const handleSelectEvent = async (event: Availability) => {
-    if (window.confirm('Are you sure you want to delete this availability?')) {
+    if (window.confirm('هل أنت متأكد أنك تريد حذف وقت التوافر هذا؟')) {
       try {
         const response = await fetch(`/api/mentor/availability/${event.id}`, {
           method: 'DELETE',
@@ -103,20 +105,20 @@ const AvailabilityPage = () => {
         if (response.ok) {
           fetchAvailabilities();
           toast({
-            title: "Success",
-            description: "Availability deleted successfully.",
+            title: "تم بنجاح",
+            description: "تم حذف وقت التوافر بنجاح.",
           })
         } else {
           toast({
-            title: "Error",
-            description: "Failed to delete availability.",
+            title: "خطأ",
+            description: "فشل في حذف وقت التوافر.",
             variant: "destructive",
           })
         }
       } catch (error) {
         toast({
-          title: "Error",
-          description: "An error occurred while deleting availability.",
+          title: "خطأ",
+          description: "حدث خطأ أثناء حذف وقت التوافر.",
           variant: "destructive",
         })
       }
@@ -125,8 +127,8 @@ const AvailabilityPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Manage Your Availability</h1>
-      <p className="mb-4">Click and drag on the calendar to create new availability slots. Click on an existing slot to delete it.</p>
+      <h1 className="text-2xl font-bold mb-4">إدارة أوقات التوافر الخاصة بك</h1>
+      <p className="mb-4">انقر واسحب على التقويم لإنشاء فترات توافر جديدة. انقر على فترة موجودة لحذفها.</p>
       <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
         <Calendar
           localizer={localizer}
