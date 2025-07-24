@@ -882,8 +882,16 @@ export default function MentorsPage() {
 
       {/* --- Admin Mentor Bookings Management Box --- */}
       <Card className="border-0 shadow-sm overflow-hidden mt-12">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl font-bold text-blue-800">جميع حجوزات الموجهين</CardTitle>
+          <Button 
+            variant="outline" 
+            className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+            onClick={fetchBookings}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 21h5v-5"></path></svg>
+            تحديث
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           {bookingsLoading ? (
@@ -904,7 +912,7 @@ export default function MentorsPage() {
                   <TableHead>تاريخ الجلسة</TableHead>
                   <TableHead>الوقت</TableHead>
                   <TableHead>الحالة</TableHead>
-                  <TableHead className="text-left">الإجراءات</TableHead>
+                  <TableHead className="text-center">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -940,22 +948,24 @@ export default function MentorsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex items-center gap-2 justify-center">
                         <Button
                           variant="outline"
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1"
+                          size="sm"
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1 px-3 py-1 h-8"
                           onClick={() => openEditBookingDialog(booking)}
                         >
                           <Edit className="h-4 w-4" />
-                          تعديل
+                          <span className="mr-1">تعديل</span>
                         </Button>
                         <Button
                           variant="outline"
-                          className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200 flex items-center gap-1"
+                          size="sm"
+                          className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200 flex items-center gap-1 px-3 py-1 h-8"
                           onClick={() => openDeleteBookingDialog(booking)}
                         >
                           <Trash2 className="h-4 w-4" />
-                          حذف
+                          <span className="mr-1">حذف</span>
                         </Button>
                       </div>
                     </TableCell>
