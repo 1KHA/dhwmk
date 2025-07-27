@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import TopBar from "@/components/admin/TopBar";
 import { AdminToaster } from "@/components/admin/admin-toaster";
+import AdminRouteGuard from "@/components/auth/AdminRouteGuard";
 
 export default function AdminDashboardLayout({
   children,
@@ -21,15 +22,17 @@ export default function AdminDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 mr-64">
-          {children}
-        </main>
+    <AdminRouteGuard>
+      <div className="min-h-screen bg-background">
+        <TopBar />
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 p-6 mr-64">
+            {children}
+          </main>
+        </div>
+        <AdminToaster />
       </div>
-      <AdminToaster />
-    </div>
+    </AdminRouteGuard>
   );
 }

@@ -423,66 +423,29 @@ export default function MentorsPage() {
     setBookingsLoading(true);
     setBookingsError(null);
     try {
-      // First try to fetch from the participant API to see if we can get bookings
-      const participantRes = await fetch('/api/participant/my-bookings');
-      if (participantRes.ok) {
-        const participantData = await participantRes.json();
-        
-        // If we have participant bookings, let's fetch all mentor bookings
-        // We'll fetch bookings for each mentor the participant has booked with
-        const allBookings: Booking[] = [];
-        const mentorIds = new Set<string>();
-        
-        // Get unique mentor IDs from participant bookings
-        for (const booking of participantData) {
-          const mentorRes = await fetch(`/api/mentor/bookings?mentorId=${booking.mentorId}`);
-          if (mentorRes.ok) {
-            const mentorBookings = await mentorRes.json();
-            allBookings.push(...mentorBookings);
-          }
+      // Always use the admin API endpoint first for admin dashboard
+      const res = await fetch('/api/admin/mentor-bookings');
+      
+      if (!res.ok) {
+        // Check if it's an authentication/authorization error
+        if (res.status === 401 || res.status === 403) {
+          throw new Error('غير مصرح. هذه الخدمة متاحة للمسؤولين فقط. يرجى إعادة تسجيل الدخول كمسؤول.');
         }
-        
-        // If we have bookings from the participant approach, use those
-        if (allBookings.length > 0) {
-          setBookings(allBookings);
-          setBookingsError(null);
-          setBookingsLoading(false);
-          return;
-        }
+        throw new Error('فشل في جلب الحجوزات');
       }
       
-      // If the participant approach didn't work, try the admin API
-      const res = await fetch('/api/admin/mentor-bookings');
-      if (!res.ok) throw new Error('فشل في جلب الحجوزات');
       const data = await res.json();
       setBookings(data);
     } catch (err: any) {
       console.error('Error fetching bookings:', err);
       setBookingsError(err.message || 'حدث خطأ أثناء جلب الحجوزات');
       
-      // If we failed to get bookings, try to fetch mentors and then get bookings for each mentor
-      try {
-        const mentorsRes = await fetch('/api/admin/mentors');
-        if (mentorsRes.ok) {
-          const mentorsData = await mentorsRes.json();
-          const allBookings: Booking[] = [];
-          
-          for (const mentor of mentorsData) {
-            const mentorRes = await fetch(`/api/mentor/bookings?mentorId=${mentor.id}`);
-            if (mentorRes.ok) {
-              const mentorBookings = await mentorRes.json();
-              allBookings.push(...mentorBookings);
-            }
-          }
-          
-          if (allBookings.length > 0) {
-            setBookings(allBookings);
-            setBookingsError(null);
-          }
-        }
-      } catch (fallbackErr) {
-        console.error('Fallback error:', fallbackErr);
-      }
+      // Show a toast with the error message
+      toast({
+        title: 'خطأ',
+        description: err.message || 'حدث خطأ أثناء جلب الحجوزات',
+        variant: 'destructive',
+      });
     } finally {
       setBookingsLoading(false);
     }
