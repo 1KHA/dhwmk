@@ -16,15 +16,15 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { name: "لوحة التحكم", href: "/hackathon-admin-dashboard", icon: Home },
-  { name: "المشاركون", href: "/hackathon-admin-dashboard/participants", icon: Users },
-  { name: "الفرق", href: "/hackathon-admin-dashboard/teams", icon: UserCheck },
-  { name: "الحكام", href: "/hackathon-admin-dashboard/judges", icon: Trophy },
-  { name: "الموجهون", href: "/hackathon-admin-dashboard/mentors", icon: BookOpen },
-  { name: "المشاريع المقدمة", href: "/hackathon-admin-dashboard/submissions", icon: FileText },
-  { name: "الفعاليات", href: "/hackathon-admin-dashboard/events", icon: Calendar },
-  { name: "التحليلات", href: "/hackathon-admin-dashboard/analytics", icon: BarChart3 },
-  { name: "الإشعارات", href: "/hackathon-admin-dashboard/notifications", icon: Bell },
+  { name: "لوحة التحكم", href: "/admin-hackton-dashboard", icon: Home },
+  { name: "المشاركون", href: "/admin-hackton-dashboard/participants", icon: Users },
+  { name: "الفرق", href: "/admin-hackton-dashboard/teams", icon: UserCheck },
+  { name: "الحكام", href: "/admin-hackton-dashboard/judges", icon: Trophy },
+  { name: "الموجهون", href: "/admin-hackton-dashboard/mentors", icon: BookOpen },
+  { name: "المشاريع المقدمة", href: "/admin-hackton-dashboard/submissions", icon: FileText },
+  { name: "الفعاليات", href: "/admin-hackton-dashboard/events", icon: Calendar },
+  { name: "التحليلات", href: "/admin-hackton-dashboard/analytics", icon: BarChart3 },
+  { name: "الإشعارات", href: "/admin-hackton-dashboard/notifications", icon: Bell },
   { name: "التسليمات", href: "/admin-hackton-dashboard/milestones", icon: Flag },
 ];
 

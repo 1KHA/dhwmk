@@ -19,7 +19,8 @@ import {
   Plug,
   CreditCard,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Flag
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -123,57 +124,63 @@ const adminNavItems: NavItem[] = [
 const hackathonAdminNavItems: NavItem[] = [
   {
     name: "لوحة التحكم",
-    href: "/hackathon-admin-dashboard",
+    href: "/admin-hackton-dashboard",
     icon: Home,
     permission: { category: "dashboard", action: "view" },
   },
   {
     name: "الفعاليات",
-    href: "/hackathon-admin-dashboard/events",
+    href: "/admin-hackton-dashboard/events",
     icon: Calendar,
     permission: { category: "hackathons", action: "view" },
   },
   {
     name: "المشاركات",
-    href: "/hackathon-admin-dashboard/submissions",
+    href: "/admin-hackton-dashboard/submissions",
     icon: FileText,
     permission: { category: "submissions", action: "view" },
   },
   {
     name: "المشاركون",
-    href: "/hackathon-admin-dashboard/participants",
+    href: "/admin-hackton-dashboard/participants",
     icon: Users,
     permission: { category: "users", action: "view" },
   },
   {
     name: "الفرق",
-    href: "/hackathon-admin-dashboard/teams",
+    href: "/admin-hackton-dashboard/teams",
     icon: Users,
     permission: { category: "users", action: "view" },
   },
   {
     name: "المحكمون",
-    href: "/hackathon-admin-dashboard/judges",
+    href: "/admin-hackton-dashboard/judges",
     icon: Users,
     permission: { category: "users", action: "view" },
   },
   {
     name: "المرشدون",
-    href: "/hackathon-admin-dashboard/mentors",
+    href: "/admin-hackton-dashboard/mentors",
     icon: Users,
     permission: { category: "users", action: "view" },
   },
   {
     name: "التحليلات",
-    href: "/hackathon-admin-dashboard/analytics",
+    href: "/admin-hackton-dashboard/analytics",
     icon: BarChart,
     permission: { category: "analytics", action: "view" },
   },
   {
     name: "الإشعارات",
-    href: "/hackathon-admin-dashboard/notifications",
+    href: "/admin-hackton-dashboard/notifications",
     icon: Bell,
     permission: { category: "notifications", action: "view" },
+  },
+  {
+    name: "التسليمات",
+    href: "/admin-hackton-dashboard/milestones",
+    icon: Flag,
+    permission: { category: "submissions", action: "view" },
   },
 ];
 
@@ -186,8 +193,9 @@ export default function Sidebar({ role }: { role?: string }) {
   const filteredNavItems = useMemo(() => {
     if (loading) return [];
 
-    const navItems =
-      role === "HACKATHON_ADMIN" ? hackathonAdminNavItems : adminNavItems;
+    // Check if the current path includes admin-hackton-dashboard
+    const isHackathonAdmin = pathname.includes('admin-hackton-dashboard');
+    const navItems = isHackathonAdmin ? hackathonAdminNavItems : adminNavItems;
 
     return navItems.filter((item) => {
       // If no permission is specified, show the item
@@ -196,7 +204,7 @@ export default function Sidebar({ role }: { role?: string }) {
       // Check if user has the required permission
       return hasPermission(item.permission)
     })
-  }, [hasPermission, loading])
+  }, [hasPermission, loading, pathname])
 
   return (
     <motion.aside
