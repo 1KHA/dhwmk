@@ -23,8 +23,8 @@ const navItems = [
     permission: { category: 'users', action: 'view' }
   },
   { 
-    name: "المشاريع", 
-    href: "/participant-dashboard/projects", 
+    name: "التسليمات", 
+    href: "/participant-dashboard/milestones", 
     icon: Star,
     permission: { category: 'startups', action: 'view' }
   },
