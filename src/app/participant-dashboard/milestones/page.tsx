@@ -2,11 +2,14 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Clock, FileText, CheckCircle, AlertCircle, Loader2, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 // Define the Milestone type
 type Milestone = {
@@ -20,12 +23,27 @@ type Milestone = {
   submissionLink?: string | null;
   createdAt: string;
   updatedAt: string;
+  hasSubmitted?: boolean; // Track if the current participant has submitted
+};
+
+// Define the submission response type
+type SubmissionResponse = {
+  success: boolean;
+  message: string;
+  error?: string;
+  submission?: any;
 };
 
 export default function ParticipantMilestonesPage() {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Fetch milestones from API
   useEffect(() => {
@@ -100,10 +118,78 @@ export default function ParticipantMilestonesPage() {
     }
   };
 
+  // Open the submission dialog
+  const openSubmissionDialog = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    setSelectedFile(null);
+    setSubmissionStatus(null);
+    setIsDialogOpen(true);
+  };
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   // Submit a milestone
-  const submitMilestone = (id: string) => {
-    // This would be implemented with an API call in a real application
-    alert(`سيتم تنفيذ تسليم المشروع للتسليم رقم ${id}`);
+  const submitMilestone = async () => {
+    if (!selectedMilestone || !selectedFile) {
+      setSubmissionStatus({
+        success: false,
+        message: "يرجى اختيار ملف للتسليم"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionStatus(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("milestoneId", selectedMilestone.id);
+      formData.append("file", selectedFile);
+
+      const response = await fetch("/api/participant/submit-milestone", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result: SubmissionResponse = await response.json();
+
+      if (response.ok) {
+        setSubmissionStatus({
+          success: true,
+          message: result.message || "تم تسليم المشروع بنجاح"
+        });
+
+        // Update the milestone status in the UI
+        setMilestones(milestones.map(m => 
+          m.id === selectedMilestone.id 
+            ? { ...m, hasSubmitted: true, submissionCount: m.submissionCount + 1 } 
+            : m
+        ));
+
+        // Close the dialog after a delay
+        setTimeout(() => {
+          setIsDialogOpen(false);
+        }, 2000);
+      } else {
+        setSubmissionStatus({
+          success: false,
+          message: result.error || "حدث خطأ أثناء تسليم المشروع"
+        });
+      }
+    } catch (err) {
+      console.error("Error submitting milestone:", err);
+      setSubmissionStatus({
+        success: false,
+        message: "حدث خطأ أثناء الاتصال بالخادم"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -153,7 +239,7 @@ export default function ParticipantMilestonesPage() {
                   </div>
                   
                   <div className="mt-6 flex justify-end">
-                    {milestone.status === "completed" ? (
+                    {milestone.hasSubmitted || milestone.status === "completed" ? (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle className="h-5 w-5" />
                         <span>تم التسليم</span>
@@ -161,7 +247,7 @@ export default function ParticipantMilestonesPage() {
                     ) : (
                       <Button 
                         className="gap-2"
-                        onClick={() => submitMilestone(milestone.id)}
+                        onClick={() => openSubmissionDialog(milestone)}
                       >
                         <FileText className="h-4 w-4" />
                         تسليم المشروع
@@ -180,6 +266,90 @@ export default function ParticipantMilestonesPage() {
           )}
         </div>
       )}
+
+      {/* File Upload Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تسليم المشروع</DialogTitle>
+            <DialogDescription>
+              {selectedMilestone && (
+                <span>تسليم مشروع لـ: {selectedMilestone.title}</span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="file">اختر ملف المشروع</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="file"
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                الملفات المدعومة: PDF, Word, ZIP, RAR, JPEG, PNG (الحد الأقصى: 10 ميجابايت)
+              </p>
+            </div>
+
+            {selectedFile && (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedFile(null)}
+                  className="h-6 w-6"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {submissionStatus && (
+              <div className={`p-3 rounded-md ${
+                submissionStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+              }`}>
+                <p className="text-sm">{submissionStatus.message}</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="sm:justify-start">
+            <Button
+              type="submit"
+              onClick={submitMilestone}
+              disabled={!selectedFile || isSubmitting}
+              className="gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري التسليم...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  تأكيد التسليم
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              إلغاء
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

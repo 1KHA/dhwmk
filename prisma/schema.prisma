@@ -31,13 +31,13 @@ model Team {
 }
 
 model Participant {
-  id               String          @id @default(cuid())
+  id               String                @id @default(cuid())
   firstName        String
   secondName       String
   familyName       String
   nationalId       String
   dob              String
-  email            String          @unique
+  email            String                @unique
   phoneNumber      String
   education        String
   university       String
@@ -46,13 +46,14 @@ model Participant {
   nationality      String
   residence        String
   canAttend        Boolean
-  isLeader         Boolean         @default(false)
+  isLeader         Boolean               @default(false)
   passwordHash     String?
   teamId           String
-  team             Team            @relation(fields: [teamId], references: [id])
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  team             Team                  @relation(fields: [teamId], references: [id])
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
   bookings         MentorBooking[]
+  submissions      MilestoneSubmission[]
 }
 
 model Admin {
@@ -98,14 +99,29 @@ model MentorBooking {
 }
 
 model Milestone {
-  id              String   @id @default(cuid())
+  id              String                @id @default(cuid())
   title           String
   description     String
   dueDate         DateTime
-  status          String   @default("upcoming") // upcoming, active, completed, overdue
-  requirements    String   // JSON string of requirements array
-  submissionCount Int      @default(0)
+  status          String                @default("upcoming") // upcoming, active, completed, overdue
+  requirements    String                // JSON string of requirements array
+  submissionCount Int                   @default(0)
   submissionLink  String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  submissions     MilestoneSubmission[]
+}
+
+model MilestoneSubmission {
+  id            String      @id @default(cuid())
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  milestone     Milestone   @relation(fields: [milestoneId], references: [id])
+  milestoneId   String
+  filePath      String
+  fileName      String
+  submittedAt   DateTime    @default(now())
+  reviewStatus  String?     // accepted, rejected, pending
+  reviewComment String?     // Admin's comment on the submission
+  reviewedAt    DateTime?   // When the submission was reviewed
 }

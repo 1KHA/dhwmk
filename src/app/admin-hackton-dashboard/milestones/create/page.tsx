@@ -43,9 +43,19 @@ export default function CreateMilestonePage() {
     setIsSubmitting(true);
     setError(null);
     
+    // Check if the due date is in the past
+    const selectedDate = new Date(milestone.dueDate);
+    const currentDate = new Date();
+    
+    if (selectedDate < currentDate) {
+      setError("لا يمكن اختيار موعد نهائي في الماضي");
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       // Format the date to ISO string if it's not already
-      const formattedDate = new Date(milestone.dueDate).toISOString();
+      const formattedDate = selectedDate.toISOString();
       
       // Create the new milestone via API
       const response = await fetch('/api/admin/milestones', {

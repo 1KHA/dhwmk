@@ -29,6 +29,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Validate that the due date is not in the past
+    const selectedDueDate = new Date(dueDate);
+    const currentDate = new Date();
+    
+    if (selectedDueDate < currentDate) {
+      return NextResponse.json(
+        { error: "لا يمكن اختيار موعد نهائي في الماضي" },
+        { status: 400 }
+      );
+    }
 
     // Convert requirements array to JSON string for storage
     const requirementsJson = JSON.stringify(requirements);

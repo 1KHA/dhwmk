@@ -2,11 +2,22 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Flag, Clock, Loader2 } from "lucide-react";
+import { Plus, Calendar, Flag, Clock, Loader2, Save, X } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useEffect, useState } from "react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 // Define the Milestone type
 type Milestone = {
@@ -22,10 +33,26 @@ type Milestone = {
   updatedAt: string;
 };
 
+// Dialog types
+type DialogType = "details" | "edit" | "delete" | null;
+
 export default function MilestonesPage() {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Dialog state
+  const [dialogType, setDialogType] = useState<DialogType>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+    requirements: [] as string[],
+  });
+  const [newRequirement, setNewRequirement] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Fetch milestones from API
   useEffect(() => {
@@ -56,11 +83,117 @@ export default function MilestonesPage() {
     return format(date, "d MMMM yyyy", { locale: ar });
   };
 
-  // Delete a milestone
-  const deleteMilestone = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا التسليم؟')) {
-      return;
+  // Open dialog handlers
+  const openDetailsDialog = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    setDialogType("details");
+  };
+  
+  const openEditDialog = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    // Convert ISO date string to local datetime format for input
+    const date = new Date(milestone.dueDate);
+    const localDatetime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+      .toISOString()
+      .slice(0, 16); // Format: "YYYY-MM-DDTHH:MM"
+    
+    setEditForm({
+      title: milestone.title,
+      description: milestone.description,
+      dueDate: localDatetime,
+      requirements: [...milestone.requirements],
+    });
+    setDialogType("edit");
+  };
+  
+  const openDeleteDialog = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    setDialogType("delete");
+  };
+  
+  const closeDialog = () => {
+    setDialogType(null);
+    setSelectedMilestone(null);
+    setFormError(null);
+  };
+  
+  // Add/remove requirements in edit form
+  const addRequirement = () => {
+    if (newRequirement.trim()) {
+      setEditForm({
+        ...editForm,
+        requirements: [...editForm.requirements, newRequirement.trim()]
+      });
+      setNewRequirement("");
     }
+  };
+  
+  const removeRequirement = (index: number) => {
+    setEditForm({
+      ...editForm,
+      requirements: editForm.requirements.filter((_, i) => i !== index)
+    });
+  };
+  
+  // Update milestone
+  const updateMilestone = async () => {
+    if (!selectedMilestone) return;
+    
+    setIsSubmitting(true);
+    setFormError(null);
+    
+    try {
+      // Check if due date is in the past
+      const selectedDate = new Date(editForm.dueDate);
+      const currentDate = new Date();
+      
+      if (selectedDate < currentDate) {
+        setFormError("لا يمكن اختيار موعد نهائي في الماضي");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await fetch('/api/admin/milestones', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: selectedMilestone.id,
+          title: editForm.title,
+          description: editForm.description,
+          dueDate: new Date(editForm.dueDate).toISOString(),
+          requirements: editForm.requirements,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update milestone');
+      }
+      
+      const updatedMilestone = await response.json();
+      
+      // Update the milestones state with the updated milestone
+      setMilestones(milestones.map(m => 
+        m.id === updatedMilestone.id ? updatedMilestone : m
+      ));
+      
+      closeDialog();
+      alert("تم تحديث التسليم بنجاح!");
+    } catch (err) {
+      console.error('Error updating milestone:', err);
+      setFormError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Delete a milestone
+  const deleteMilestone = async () => {
+    if (!selectedMilestone) return;
+    
+    setIsSubmitting(true);
     
     try {
       const response = await fetch('/api/admin/milestones', {
@@ -68,7 +201,7 @@ export default function MilestonesPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id: selectedMilestone.id }),
       });
       
       if (!response.ok) {
@@ -76,12 +209,15 @@ export default function MilestonesPage() {
       }
       
       // Remove the deleted milestone from the state
-      setMilestones(milestones.filter(milestone => milestone.id !== id));
+      setMilestones(milestones.filter(milestone => milestone.id !== selectedMilestone.id));
       
+      closeDialog();
       alert('تم حذف التسليم بنجاح');
     } catch (err) {
       console.error('Error deleting milestone:', err);
       alert('حدث خطأ أثناء حذف التسليم');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -198,12 +334,32 @@ export default function MilestonesPage() {
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => deleteMilestone(milestone.id)}
+                        onClick={() => openDeleteDialog(milestone)}
                       >
                         حذف
                       </Button>
-                      <Button variant="outline" size="sm">تعديل</Button>
-                      <Button variant="default" size="sm">عرض التفاصيل</Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openEditDialog(milestone)}
+                      >
+                        تعديل
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => openDetailsDialog(milestone)}
+                      >
+                        عرض التفاصيل
+                      </Button>
+                      <Link href={`/admin-hackton-dashboard/milestones/submissions?milestoneId=${milestone.id}`}>
+                        <Button 
+                          variant="secondary" 
+                          size="sm"
+                        >
+                          عرض التسليمات
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -216,6 +372,226 @@ export default function MilestonesPage() {
           </p>
         )}
       </div>
+      
+      {/* Details Dialog */}
+      <Dialog open={dialogType === "details"} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-3xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">تفاصيل التسليم</DialogTitle>
+          </DialogHeader>
+          
+          {selectedMilestone && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">{selectedMilestone.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{selectedMilestone.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-1">الموعد النهائي</h4>
+                  <p className="text-sm">{formatDate(selectedMilestone.dueDate)}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-1">الحالة</h4>
+                  <p className="text-sm">{selectedMilestone.status}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-1">عدد التسليمات</h4>
+                  <p className="text-sm">{selectedMilestone.submissionCount || 0}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-1">تاريخ الإنشاء</h4>
+                  <p className="text-sm">{formatDate(selectedMilestone.createdAt)}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-2">المتطلبات:</h4>
+                <ul className="text-sm space-y-1 bg-muted p-3 rounded-md">
+                  {selectedMilestone.requirements.map((req, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <span>{req}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button onClick={closeDialog}>إغلاق</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Dialog */}
+      <Dialog open={dialogType === "edit"} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-3xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">تعديل التسليم</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">عنوان التسليم</Label>
+              <Input
+                id="title"
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                placeholder="مثال: تسليم النموذج الأولي"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">وصف التسليم</Label>
+              <Textarea
+                id="description"
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                placeholder="اشرح ما هو مطلوب من المشاركين في هذا التسليم"
+                rows={4}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">الموعد النهائي</Label>
+              <div className="flex items-center">
+                <Calendar className="ml-2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="dueDate"
+                  type="datetime-local"
+                  value={editForm.dueDate}
+                  onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="requirements">متطلبات التسليم</Label>
+              
+              <div className="space-y-4">
+                {/* List of current requirements */}
+                {editForm.requirements.length > 0 && (
+                  <div className="space-y-2 bg-muted p-3 rounded-md">
+                    {editForm.requirements.map((req, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>{req}</span>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => removeRequirement(index)}
+                        >
+                          <X className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add new requirement */}
+                <div className="flex gap-2">
+                  <Input
+                    id="newRequirement"
+                    value={newRequirement}
+                    onChange={(e) => setNewRequirement(e.target.value)}
+                    placeholder="أضف متطلب جديد"
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={addRequirement}
+                  >
+                    <Plus className="h-4 w-4 ml-1" />
+                    إضافة
+                  </Button>
+                </div>
+                
+                {editForm.requirements.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    أضف متطلبات التسليم واحدًا تلو الآخر. يجب إضافة متطلب واحد على الأقل.
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {formError && (
+              <div className="bg-red-50 p-4 rounded-md text-red-600 mb-4">
+                <p>{formError}</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>إلغاء</Button>
+            <Button 
+              onClick={updateMilestone} 
+              disabled={isSubmitting || editForm.requirements.length === 0 || !editForm.title || !editForm.description || !editForm.dueDate}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Save className="ml-2 h-4 w-4" />
+                  حفظ التغييرات
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={dialogType === "delete"} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">تأكيد الحذف</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من حذف هذا التسليم؟ هذا الإجراء لا يمكن التراجع عنه.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedMilestone && (
+            <div className="py-4">
+              <h3 className="font-medium">{selectedMilestone.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{selectedMilestone.description}</p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>إلغاء</Button>
+            <Button 
+              variant="destructive" 
+              onClick={deleteMilestone}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري الحذف...
+                </>
+              ) : (
+                'تأكيد الحذف'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
