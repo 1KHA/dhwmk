@@ -8,6 +8,7 @@ import {
   Loader2, CheckCircle, X, Search, Filter, Clock 
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -78,6 +79,10 @@ export default function AllMilestoneSubmissionsPage() {
     { value: 'pending', label: 'قيد المراجعة' },
     { value: null, label: 'بانتظار المراجعة' }
   ]);
+  
+  // Get milestone from URL query parameter
+  const searchParams = useSearchParams();
+  const milestoneParam = searchParams.get('milestone');
 
   // Fetch all submissions
   useEffect(() => {
@@ -103,6 +108,11 @@ export default function AllMilestoneSubmissionsPage() {
         });
         
         setMilestones(uniqueMilestones);
+        
+        // Set selected milestone from URL parameter if it exists
+        if (milestoneParam) {
+          setSelectedMilestone(milestoneParam);
+        }
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'حدث خطأ أثناء جلب البيانات');
@@ -112,7 +122,7 @@ export default function AllMilestoneSubmissionsPage() {
     };
 
     fetchSubmissions();
-  }, []);
+  }, [milestoneParam]);
 
   // Filter submissions when filter criteria change
   useEffect(() => {

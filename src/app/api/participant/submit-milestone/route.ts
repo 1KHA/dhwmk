@@ -4,6 +4,17 @@ import { writeFile } from "fs/promises";
 import { join } from "path";
 import { mkdir } from "fs/promises";
 import crypto from "crypto";
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+interface JwtPayload {
+  id: string;
+  email: string;
+  teamId: string;
+  isLeader: boolean;
+}
 
 // Maximum file size (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
@@ -67,9 +78,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the participant ID from the session (assuming authentication is implemented)
-    // For now, we'll use a placeholder to get the first participant
-    const participant = await prisma.participant.findFirst();
+    // Get the participant ID from the JWT token
+    const cookieStore = cookies();
+    const tokenCookie = cookieStore.get('auth-token');
+
+    if (!tokenCookie) {
+      return NextResponse.json(
+        { error: "يرجى تسجيل الدخول للتسليم" },
+        { status: 401 }
+      );
+    }
+
+    const token = tokenCookie.value;
+    let decoded: JwtPayload;
+
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    } catch (err) {
+      return NextResponse.json(
+        { error: "جلسة غير صالحة، يرجى تسجيل الدخول مرة أخرى" },
+        { status: 401 }
+      );
+    }
+
+    const { id: participantId } = decoded;
+
+    // Get the participant from the database
+    const participant = await prisma.participant.findUnique({
+      where: { id: participantId },
+    });
+    
     if (!participant) {
       return NextResponse.json(
         { error: "لم يتم العثور على المشارك" },

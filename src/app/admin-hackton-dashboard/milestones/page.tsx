@@ -279,14 +279,9 @@ export default function MilestonesPage() {
             <p className="text-sm text-muted-foreground mb-4">
               عرض ومراجعة التسليمات المقدمة من المشاركين.
             </p>
-            <div className="space-y-2">
-              <Link href="/admin-hackton-dashboard/milestones/submissions/all">
-                <Button variant="outline" className="w-full">عرض جميع التسليمات</Button>
-              </Link>
-              <Link href="/admin-hackton-dashboard/milestones/submissions">
-                <Button variant="outline" className="w-full">عرض التسليمات حسب المرحلة</Button>
-              </Link>
-            </div>
+            <Link href="/admin-hackton-dashboard/milestones/submissions/all">
+              <Button variant="outline" className="w-full">عرض جميع التسليمات</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -357,7 +352,7 @@ export default function MilestonesPage() {
                       >
                         عرض التفاصيل
                       </Button>
-                      <Link href={`/admin-hackton-dashboard/milestones/submissions?milestoneId=${milestone.id}`}>
+                      <Link href={`/admin-hackton-dashboard/milestones/submissions/all?milestone=${milestone.id}`}>
                         <Button 
                           variant="secondary" 
                           size="sm"
