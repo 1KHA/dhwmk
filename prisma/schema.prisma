@@ -124,4 +124,6 @@ model MilestoneSubmission {
   reviewStatus  String?     // accepted, rejected, pending
   reviewComment String?     // Admin's comment on the submission
   reviewedAt    DateTime?   // When the submission was reviewed
+
+  @@unique([participantId, milestoneId])
 }

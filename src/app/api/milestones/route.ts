@@ -21,10 +21,40 @@ export async function GET() {
     // Check if the Milestone model exists in the Prisma client
     const milestones = await prisma.$queryRaw`SELECT * FROM Milestone ORDER BY dueDate ASC`;
 
-    // Parse the requirements JSON string for each milestone
+    // Get the current participant (assuming authentication is implemented)
+    // For now, we'll use a placeholder to get the first participant
+    const participant = await prisma.participant.findFirst();
+    
+    // If no participant is found, return milestones without hasSubmitted
+    if (!participant) {
+      // Parse the requirements JSON string for each milestone
+      const formattedMilestones = (milestones as MilestoneFromDB[]).map((milestone) => ({
+        ...milestone,
+        requirements: JSON.parse(milestone.requirements),
+        hasSubmitted: false,
+      }));
+
+      return NextResponse.json(formattedMilestones);
+    }
+
+    // Get all submissions for the current participant
+    const submissions = await prisma.$queryRaw`
+      SELECT milestoneId FROM MilestoneSubmission 
+      WHERE participantId = ${participant.id}
+    `;
+
+    // Create a set of milestone IDs that the participant has submitted
+    const submittedMilestoneIds = new Set(
+      Array.isArray(submissions) 
+        ? submissions.map((sub: any) => sub.milestoneId) 
+        : []
+    );
+
+    // Parse the requirements JSON string for each milestone and add hasSubmitted
     const formattedMilestones = (milestones as MilestoneFromDB[]).map((milestone) => ({
       ...milestone,
       requirements: JSON.parse(milestone.requirements),
+      hasSubmitted: submittedMilestoneIds.has(milestone.id),
     }));
 
     return NextResponse.json(formattedMilestones);

@@ -88,6 +88,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if the participant has already submitted for this milestone
+    const existingSubmission = await prisma.$queryRaw`
+      SELECT * FROM MilestoneSubmission 
+      WHERE participantId = ${participant.id} AND milestoneId = ${milestoneId}
+    `;
+    
+    if (existingSubmission && Array.isArray(existingSubmission) && existingSubmission.length > 0) {
+      return NextResponse.json(
+        { error: "لقد قمت بتسليم هذا المشروع بالفعل ولا يمكنك التسليم مرة أخرى" },
+        { status: 400 }
+      );
+    }
+
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), "public", "uploads");
     await mkdir(uploadsDir, { recursive: true });

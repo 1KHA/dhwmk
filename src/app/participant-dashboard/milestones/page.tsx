@@ -176,9 +176,22 @@ export default function ParticipantMilestonesPage() {
           setIsDialogOpen(false);
         }, 2000);
       } else {
+        // Handle specific error for duplicate submission
+        const errorMessage = result.error || "حدث خطأ أثناء تسليم المشروع";
+        
+        // If this is a duplicate submission error, update the UI to reflect that
+        if (errorMessage.includes("لقد قمت بتسليم هذا المشروع بالفعل")) {
+          // Update the milestone status in the UI to prevent further attempts
+          setMilestones(milestones.map(m => 
+            m.id === selectedMilestone.id 
+              ? { ...m, hasSubmitted: true } 
+              : m
+          ));
+        }
+        
         setSubmissionStatus({
           success: false,
-          message: result.error || "حدث خطأ أثناء تسليم المشروع"
+          message: errorMessage
         });
       }
     } catch (err) {
