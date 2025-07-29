@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,94 +63,82 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-// Mock data for events
-const mockEvents = [
-  {
-    id: 1,
-    name: "ورشة عمل: أساسيات البرمجة",
-    nameEn: "Workshop: Programming Basics",
-    type: "workshop",
-    description: "ورشة تدريبية للمبتدئين في البرمجة",
-    date: "2024-01-20",
-    startTime: "10:00",
-    endTime: "12:00",
-    location: "قاعة A - المبنى الرئيسي",
-    locationType: "physical",
-    facilitator: "د. أحمد السالم",
-    maxAttendees: 50,
-    registeredAttendees: 45,
-    status: "upcoming",
-    attendanceMarked: false,
-  },
-  {
-    id: 2,
-    name: "حفل الافتتاح",
-    nameEn: "Opening Ceremony",
-    type: "ceremony",
-    description: "حفل افتتاح الهاكاثون والترحيب بالمشاركين",
-    date: "2024-01-19",
-    startTime: "09:00",
-    endTime: "10:00",
-    location: "القاعة الكبرى",
-    locationType: "physical",
-    facilitator: "إدارة الهاكاثون",
-    maxAttendees: 200,
-    registeredAttendees: 180,
-    status: "completed",
-    attendanceMarked: true,
-  },
-  {
-    id: 3,
-    name: "جلسة إرشادية: كيفية العرض التقديمي",
-    nameEn: "Mentoring Session: How to Pitch",
-    type: "mentoring",
-    description: "نصائح وإرشادات لتقديم عرض مميز أمام لجنة التحكيم",
-    date: "2024-01-21",
-    startTime: "14:00",
-    endTime: "15:30",
-    location: "https://zoom.us/j/123456789",
-    locationType: "virtual",
-    facilitator: "م. سارة الخالد",
-    maxAttendees: 100,
-    registeredAttendees: 78,
-    status: "upcoming",
-    attendanceMarked: false,
-  },
-  {
-    id: 4,
-    name: "موعد نهائي: تسليم المشاريع",
-    nameEn: "Deadline: Project Submission",
-    type: "deadline",
-    description: "آخر موعد لتسليم المشاريع النهائية",
-    date: "2024-01-22",
-    startTime: "23:59",
-    endTime: "23:59",
-    location: "منصة التسليم الإلكترونية",
-    locationType: "online",
-    facilitator: "-",
-    maxAttendees: 0,
-    registeredAttendees: 0,
-    status: "upcoming",
-    attendanceMarked: false,
-  },
-  {
-    id: 5,
-    name: "محاضرة: الذكاء الاصطناعي في الأعمال",
-    nameEn: "Talk: AI in Business",
-    type: "talk",
-    description: "محاضرة عن تطبيقات الذكاء الاصطناعي في عالم الأعمال",
-    date: "2024-01-20",
-    startTime: "16:00",
-    endTime: "17:00",
-    location: "قاعة المحاضرات",
-    locationType: "physical",
-    facilitator: "د. محمد العتيبي",
-    maxAttendees: 80,
-    registeredAttendees: 72,
-    status: "ongoing",
-    attendanceMarked: false,
-  },
-];
+// Define the Event type from API
+type EventFromAPI = {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  capacity: number;
+  type: string;
+  plan: string;
+  presenter: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Define the Event type for UI display
+type EventForDisplay = {
+  id: string;
+  name: string;
+  nameEn?: string;
+  type: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  locationType: string;
+  facilitator: string;
+  maxAttendees: number;
+  registeredAttendees: number;
+  status: string;
+  attendanceMarked: boolean;
+  plan: string;
+};
+
+// Function to convert API event to display event
+const convertEventForDisplay = (event: EventFromAPI): EventForDisplay => {
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+  
+  // Format date as YYYY-MM-DD
+  const date = startDate.toISOString().split('T')[0];
+  
+  // Format times as HH:MM
+  const startTime = startDate.toTimeString().substring(0, 5);
+  const endTime = endDate.toTimeString().substring(0, 5);
+  
+  // Determine location type based on location string
+  let locationType = "physical";
+  if (event.location.includes("http") || event.location.includes("zoom") || event.location.includes("meet")) {
+    locationType = "virtual";
+  } else if (event.location.includes("online") || event.location.includes("إلكترون")) {
+    locationType = "online";
+  }
+  
+  return {
+    id: event.id,
+    name: event.title,
+    nameEn: "", // No English name in the API data
+    type: event.type,
+    description: event.description,
+    date,
+    startTime,
+    endTime,
+    location: event.location,
+    locationType,
+    facilitator: event.presenter,
+    maxAttendees: event.capacity,
+    registeredAttendees: 0, // No registered attendees count in the API data
+    status: event.status,
+    attendanceMarked: false, // No attendance marking in the API data
+    plan: event.plan
+  };
+};
 
 const eventTypes = [
   { value: "all", label: "جميع الأنواع" },
@@ -174,9 +162,265 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventForDisplay | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("list");
+  
+  // State for real events from API
+  const [events, setEvents] = useState<EventForDisplay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // State for edit dialog
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<EventForDisplay | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState("");
+  
+  // Function to fetch events from API
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/admin/events');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch events');
+      }
+      
+      const data = await response.json() as EventFromAPI[];
+      const displayEvents = data.map(convertEventForDisplay);
+      setEvents(displayEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch events on component mount
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+  
+  // Handle event deletion
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      setIsDeleting(true);
+      setDeleteError("");
+      
+      const response = await fetch('/api/admin/events', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: eventId }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء حذف الفعالية');
+      }
+      
+      // Remove the deleted event from the state
+      setEvents(prev => prev.filter(event => event.id !== eventId));
+      
+      // Close the event details dialog if it's open
+      if (selectedEvent && selectedEvent.id === eventId) {
+        setSelectedEvent(null);
+      }
+      
+    } catch (err: any) {
+      setDeleteError(err.message || 'حدث خطأ أثناء حذف الفعالية');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  
+  // Handle opening edit dialog
+  const handleEditEvent = (event: EventForDisplay) => {
+    setEventToEdit(event);
+    setIsEditDialogOpen(true);
+    // Close the event details dialog if it's open
+    if (selectedEvent) {
+      setSelectedEvent(null);
+    }
+  };
+  
+  // Handle event update
+  const handleUpdateEvent = async () => {
+    if (!eventToEdit) return;
+    
+    setIsUpdating(true);
+    setUpdateError("");
+    
+    try {
+      // Prepare the event data for API
+      const eventData = {
+        id: eventToEdit.id,
+        title: eventToEdit.name,
+        description: eventToEdit.description,
+        startDate: new Date(`${eventToEdit.date}T${eventToEdit.startTime || '00:00'}`).toISOString(),
+        endDate: new Date(`${eventToEdit.date}T${eventToEdit.endTime || '23:59'}`).toISOString(),
+        location: eventToEdit.location,
+        capacity: eventToEdit.maxAttendees,
+        type: eventToEdit.type,
+        plan: eventToEdit.plan || "لا توجد خطة محددة",
+        presenter: eventToEdit.facilitator,
+        status: eventToEdit.status
+      };
+      
+      // Call the API
+      const response = await fetch('/api/admin/events', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء تحديث الفعالية');
+      }
+      
+      // Reset form and close dialog on success
+      setEventToEdit(null);
+      setIsEditDialogOpen(false);
+      
+      // Refresh events list
+      fetchEvents();
+      
+    } catch (err: any) {
+      setUpdateError(err.message || 'حدث خطأ أثناء تحديث الفعالية');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
+  // Handle edit form input changes
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setEventToEdit(prev => {
+      if (!prev) return prev;
+      
+      // Handle different field mappings between form and display model
+      if (id === "title") {
+        return { ...prev, name: value };
+      } else if (id === "presenter") {
+        return { ...prev, facilitator: value };
+      } else if (id === "capacity") {
+        return { ...prev, maxAttendees: parseInt(value) || 0 };
+      } else {
+        return { ...prev, [id]: value };
+      }
+    });
+  };
+  
+  // Handle edit form select changes
+  const handleEditSelectChange = (id: string, value: string) => {
+    setEventToEdit(prev => {
+      if (!prev) return prev;
+      return { ...prev, [id]: value };
+    });
+  };
+  
+  // Form state for new event
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    startDate: "",
+    startTime: "",
+    endDate: "",
+    endTime: "",
+    location: "",
+    capacity: 0,
+    type: "",
+    plan: "",
+    presenter: "",
+    status: "upcoming"
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setNewEvent(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+  
+  // Handle select changes
+  const handleSelectChange = (id: string, value: string) => {
+    setNewEvent(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+  
+  // Handle form submission
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError("");
+    
+    try {
+      // Prepare the event data
+      const eventData = {
+        title: newEvent.title,
+        description: newEvent.description,
+        startDate: new Date(`${newEvent.startDate}T${newEvent.startTime || '00:00'}`).toISOString(),
+        endDate: new Date(`${newEvent.endDate || newEvent.startDate}T${newEvent.endTime || '23:59'}`).toISOString(),
+        location: newEvent.location,
+        capacity: parseInt(newEvent.capacity.toString()) || 0,
+        type: newEvent.type,
+        plan: newEvent.plan || "لا توجد خطة محددة",
+        presenter: newEvent.presenter,
+        status: newEvent.status
+      };
+      
+      // Call the API
+      const response = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء إضافة الفعالية');
+      }
+      
+      // Reset form and close dialog on success
+      setNewEvent({
+        title: "",
+        description: "",
+        startDate: "",
+        startTime: "",
+        endDate: "",
+        endTime: "",
+        location: "",
+        capacity: 0,
+        type: "",
+        plan: "",
+        presenter: "",
+        status: "upcoming"
+      });
+      setIsCreateDialogOpen(false);
+      
+      // Reload events (in a real app, you would update the state with the new event)
+      // For now, we'll just reload the page to show the updated data
+      window.location.reload();
+      
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ أثناء إضافة الفعالية');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -233,10 +477,10 @@ export default function EventsPage() {
     }
   };
 
-  const filteredEvents = mockEvents.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     const matchesSearch =
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (event.nameEn?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
       event.facilitator.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === "all" || event.type === selectedType;
     const matchesStatus = selectedStatus === "all" || event.status === selectedStatus;
@@ -258,41 +502,47 @@ export default function EventsPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">عبر 5 أيام</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">فعاليات اليوم</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">1 جارية، 2 قادمة</p>
+            <div className="text-2xl font-bold">{events.length}</div>
+            <p className="text-xs text-muted-foreground">في قاعدة البيانات</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">فعاليات قادمة</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">خلال الأيام القادمة</p>
+            <div className="text-2xl font-bold">
+              {events.filter(e => e.status === "upcoming").length}
+            </div>
+            <p className="text-xs text-muted-foreground">بانتظار التنفيذ</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">معدل الحضور</CardTitle>
+            <CardTitle className="text-sm font-medium">فعاليات جارية</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {events.filter(e => e.status === "ongoing").length}
+            </div>
+            <p className="text-xs text-muted-foreground">قيد التنفيذ حالياً</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">فعاليات مكتملة</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">89%</div>
-            <p className="text-xs text-muted-foreground">للفعاليات المكتملة</p>
+            <div className="text-2xl font-bold">
+              {events.filter(e => e.status === "completed").length}
+            </div>
+            <p className="text-xs text-muted-foreground">تم تنفيذها بنجاح</p>
           </CardContent>
         </Card>
       </div>
@@ -370,21 +620,33 @@ export default function EventsPage() {
       {viewMode === "list" ? (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الفعالية</TableHead>
-                  <TableHead className="text-right">النوع</TableHead>
-                  <TableHead className="text-right">التاريخ والوقت</TableHead>
-                  <TableHead className="text-right">المكان</TableHead>
-                  <TableHead className="text-right">المسؤول</TableHead>
-                  <TableHead className="text-right">الحضور</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEvents.map((event) => (
+            {isLoading ? (
+              <div className="flex justify-center items-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <span className="mr-2">جاري تحميل الفعاليات...</span>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg">لا توجد فعاليات</p>
+                <p className="text-sm mt-2">قم بإضافة فعالية جديدة باستخدام الزر أعلاه</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">الفعالية</TableHead>
+                    <TableHead className="text-right">النوع</TableHead>
+                    <TableHead className="text-right">التاريخ والوقت</TableHead>
+                    <TableHead className="text-right">المكان</TableHead>
+                    <TableHead className="text-right">المسؤول</TableHead>
+                    <TableHead className="text-right">السعة</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredEvents.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell>
                       <div>
@@ -420,7 +682,7 @@ export default function EventsPage() {
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-gray-500" />
                           <span className="text-sm">
-                            {event.registeredAttendees}/{event.maxAttendees}
+                            {event.maxAttendees}
                           </span>
                         </div>
                       ) : (
@@ -446,7 +708,7 @@ export default function EventsPage() {
                             <Eye className="ml-2 h-4 w-4" />
                             عرض التفاصيل
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditEvent(event)}>
                             <Edit className="ml-2 h-4 w-4" />
                             تعديل
                           </DropdownMenuItem>
@@ -461,17 +723,21 @@ export default function EventsPage() {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => handleDeleteEvent(event.id)}
+                          >
                             <Trash className="ml-2 h-4 w-4" />
-                            إلغاء الفعالية
+                            حذف الفعالية
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -487,7 +753,12 @@ export default function EventsPage() {
       )}
 
       {/* Event Details Dialog */}
-      <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+      <Dialog 
+        open={!!selectedEvent} 
+        onOpenChange={(open) => {
+          if (!open) setSelectedEvent(null);
+        }}
+      >
         <DialogContent className="max-w-3xl" dir="rtl">
           <DialogHeader>
             <DialogTitle>تفاصيل الفعالية</DialogTitle>
@@ -584,7 +855,7 @@ export default function EventsPage() {
               )}
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}>
                   <Edit className="ml-2 h-4 w-4" />
                   تعديل
                 </Button>
@@ -598,12 +869,200 @@ export default function EventsPage() {
                     تسجيل الحضور
                   </Button>
                 )}
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleDeleteEvent(selectedEvent.id)}
+                  disabled={isDeleting}
+                >
+                  <Trash className="ml-2 h-4 w-4" />
+                  {isDeleting ? 'جاري الحذف...' : 'حذف الفعالية'}
+                </Button>
               </div>
+              
+              {deleteError && (
+                <div className="mt-4 bg-red-50 text-red-600 p-3 rounded-md">
+                  {deleteError}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setEventToEdit(null);
+          setUpdateError("");
+        }
+        setIsEditDialogOpen(open);
+      }}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تعديل الفعالية</DialogTitle>
+            <DialogDescription>تعديل تفاصيل الفعالية</DialogDescription>
+          </DialogHeader>
+          
+          {updateError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+              {updateError}
+            </div>
+          )}
+          
+          {eventToEdit && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">اسم الفعالية</Label>
+                  <Input 
+                    id="title" 
+                    placeholder="أدخل اسم الفعالية" 
+                    value={eventToEdit.name}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="presenter">المسؤول عن الفعالية</Label>
+                  <Input 
+                    id="presenter" 
+                    placeholder="اسم المتحدث أو المسؤول" 
+                    value={eventToEdit.facilitator}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="type">نوع الفعالية</Label>
+                  <Select 
+                    value={eventToEdit.type} 
+                    onValueChange={(value) => handleEditSelectChange("type", value)}
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue placeholder="اختر نوع الفعالية" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventTypes.slice(1).map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="plan">خطة الفعالية</Label>
+                  <Input 
+                    id="plan" 
+                    placeholder="خطة الفعالية" 
+                    value={eventToEdit.plan}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">وصف الفعالية</Label>
+                <Textarea
+                  id="description"
+                  placeholder="أدخل وصف مختصر للفعالية"
+                  rows={3}
+                  value={eventToEdit.description}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">تاريخ الفعالية</Label>
+                  <Input 
+                    id="date" 
+                    type="date" 
+                    value={eventToEdit.date}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="startTime">وقت البداية</Label>
+                  <Input 
+                    id="startTime" 
+                    type="time" 
+                    value={eventToEdit.startTime}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">وقت النهاية</Label>
+                  <Input 
+                    id="endTime" 
+                    type="time" 
+                    value={eventToEdit.endTime}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="location">المكان</Label>
+                  <Input 
+                    id="location" 
+                    placeholder="القاعة أو رابط الاجتماع" 
+                    value={eventToEdit.location}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">سعة الحضور</Label>
+                  <Input
+                    id="capacity"
+                    type="number"
+                    placeholder="أدخل سعة الحضور"
+                    value={eventToEdit.maxAttendees}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">حالة الفعالية</Label>
+                <Select 
+                  value={eventToEdit.status} 
+                  onValueChange={(value) => handleEditSelectChange("status", value)}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="اختر حالة الفعالية" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.slice(1).map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button 
+              onClick={handleUpdateEvent} 
+              disabled={isUpdating}
+            >
+              {isUpdating ? 'جاري التحديث...' : 'تحديث الفعالية'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Create Event Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-2xl" dir="rtl">
@@ -611,21 +1070,40 @@ export default function EventsPage() {
             <DialogTitle>إضافة فعالية جديدة</DialogTitle>
             <DialogDescription>أدخل تفاصيل الفعالية الجديدة</DialogDescription>
           </DialogHeader>
+          
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+              {error}
+            </div>
+          )}
+          
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name-ar">اسم الفعالية (عربي)</Label>
-                <Input id="name-ar" placeholder="أدخل اسم الفعالية بالعربية" />
+                <Label htmlFor="title">اسم الفعالية</Label>
+                <Input 
+                  id="title" 
+                  placeholder="أدخل اسم الفعالية" 
+                  value={newEvent.title}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name-en">اسم الفعالية (إنجليزي)</Label>
-                <Input id="name-en" placeholder="Enter event name in English" dir="ltr" />
+                <Label htmlFor="presenter">المسؤول عن الفعالية</Label>
+                <Input 
+                  id="presenter" 
+                  placeholder="اسم المتحدث أو المسؤول" 
+                  value={newEvent.presenter}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="type">نوع الفعالية</Label>
-                <Select>
+                <Select onValueChange={(value) => handleSelectChange("type", value)}>
                   <SelectTrigger id="type">
                     <SelectValue placeholder="اختر نوع الفعالية" />
                   </SelectTrigger>
@@ -639,8 +1117,14 @@ export default function EventsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="facilitator">المسؤول عن الفعالية</Label>
-                <Input id="facilitator" placeholder="اسم المتحدث أو المسؤول" />
+                <Label htmlFor="plan">خطة الفعالية</Label>
+                <Input 
+                  id="plan" 
+                  placeholder="خطة الفعالية" 
+                  value={newEvent.plan}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -649,47 +1133,70 @@ export default function EventsPage() {
                 id="description"
                 placeholder="أدخل وصف مختصر للفعالية"
                 rows={3}
+                value={newEvent.description}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">التاريخ</Label>
-                <Input id="date" type="date" />
+                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Input 
+                  id="startDate" 
+                  type="date" 
+                  value={newEvent.startDate}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="start-time">وقت البداية</Label>
-                <Input id="start-time" type="time" />
+                <Label htmlFor="startTime">وقت البداية</Label>
+                <Input 
+                  id="startTime" 
+                  type="time" 
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end-time">وقت النهاية</Label>
-                <Input id="end-time" type="time" />
+                <Label htmlFor="endDate">تاريخ النهاية</Label>
+                <Input 
+                  id="endDate" 
+                  type="date" 
+                  value={newEvent.endDate}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="location-type">نوع المكان</Label>
-                <Select>
-                  <SelectTrigger id="location-type">
-                    <SelectValue placeholder="اختر نوع المكان" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="physical">حضوري</SelectItem>
-                    <SelectItem value="virtual">افتراضي</SelectItem>
-                    <SelectItem value="hybrid">مختلط</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="endTime">وقت النهاية</Label>
+                <Input 
+                  id="endTime" 
+                  type="time" 
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="location">المكان</Label>
-                <Input id="location" placeholder="القاعة أو رابط الاجتماع" />
+                <Input 
+                  id="location" 
+                  placeholder="القاعة أو رابط الاجتماع" 
+                  value={newEvent.location}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max-attendees">الحد الأقصى للحضور (اختياري)</Label>
+              <Label htmlFor="capacity">سعة الحضور</Label>
               <Input
-                id="max-attendees"
+                id="capacity"
                 type="number"
-                placeholder="اتركه فارغاً إذا لم يكن هناك حد"
+                placeholder="أدخل سعة الحضور"
+                value={newEvent.capacity || ""}
+                onChange={handleInputChange}
+                required
               />
             </div>
           </div>
@@ -697,7 +1204,12 @@ export default function EventsPage() {
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               إلغاء
             </Button>
-            <Button onClick={() => setIsCreateDialogOpen(false)}>حفظ الفعالية</Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'جاري الحفظ...' : 'حفظ الفعالية'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
