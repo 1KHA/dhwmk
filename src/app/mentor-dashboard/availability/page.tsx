@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -23,6 +23,27 @@ const AvailabilityPage = () => {
   const [events, setEvents] = useState<Availability[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  const calendarRef = useRef<any>(null);
+  
+  // State for date selection
+  const [selectedDate, setSelectedDate] = useState(moment());
+  const [selectedYear, setSelectedYear] = useState(moment().year());
+  const [selectedMonth, setSelectedMonth] = useState(moment().month());
+  const [selectedDay, setSelectedDay] = useState(moment().date());
+  
+  // Generate years (current year - 5 to current year + 5)
+  const currentYear = moment().year();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  
+  // Generate months (Arabic names)
+  const months = moment.months();
+  
+  // Generate days based on selected year and month
+  const getDaysInMonth = (year: number, month: number) => {
+    const daysInMonth = moment(`${year}-${month + 1}`, 'YYYY-MM').daysInMonth();
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  };
+  const days = getDaysInMonth(selectedYear, selectedMonth);
 
   const fetchAvailabilities = async () => {
     try {
@@ -62,6 +83,29 @@ const AvailabilityPage = () => {
   useEffect(() => {
     fetchAvailabilities();
   }, []);
+  
+  // Update days when year or month changes
+  useEffect(() => {
+    const newDays = getDaysInMonth(selectedYear, selectedMonth);
+    // If the selected day is not valid in the new month, adjust it
+    if (selectedDay > newDays.length) {
+      setSelectedDay(newDays.length);
+    }
+  }, [selectedYear, selectedMonth]);
+  
+  // Handle date selection
+  const handleDateChange = () => {
+    const newDate = moment().year(selectedYear).month(selectedMonth).date(selectedDay);
+    setSelectedDate(newDate);
+    
+    // Update calendar view to the selected date
+    if (calendarRef.current && calendarRef.current.getApi) {
+      calendarRef.current.getApi().gotoDate(newDate.toDate());
+    } else {
+      // For react-big-calendar, we'll update the date prop
+      // This will be handled by the date prop in the Calendar component
+    }
+  };
 
   const handleSelectSlot = async ({ start, end }: { start: Date; end: Date }) => {
     try {
@@ -129,6 +173,77 @@ const AvailabilityPage = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">إدارة أوقات التوافر الخاصة بك</h1>
       <p className="mb-4">انقر واسحب على التقويم لإنشاء فترات توافر جديدة. انقر على فترة موجودة لحذفها.</p>
+      
+      {/* Date Selection UI */}
+      <div className="mb-4 flex flex-wrap gap-2 items-center bg-white p-4 rounded-lg">
+        <div className="flex items-center">
+          <label htmlFor="year-select" className="ml-2 font-medium">السنة:</label>
+          <select
+            id="year-select"
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(parseInt(e.target.value));
+              setTimeout(handleDateChange, 0);
+            }}
+            className="p-2 border rounded-md bg-white text-right"
+            dir="rtl"
+          >
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="flex items-center">
+          <label htmlFor="month-select" className="ml-2 font-medium">الشهر:</label>
+          <select
+            id="month-select"
+            value={selectedMonth}
+            onChange={(e) => {
+              setSelectedMonth(parseInt(e.target.value));
+              setTimeout(handleDateChange, 0);
+            }}
+            className="p-2 border rounded-md bg-white text-right"
+            dir="rtl"
+          >
+            {months.map((month, index) => (
+              <option key={index} value={index}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="flex items-center">
+          <label htmlFor="day-select" className="ml-2 font-medium">اليوم:</label>
+          <select
+            id="day-select"
+            value={selectedDay}
+            onChange={(e) => {
+              setSelectedDay(parseInt(e.target.value));
+              setTimeout(handleDateChange, 0);
+            }}
+            className="p-2 border rounded-md bg-white text-right"
+            dir="rtl"
+          >
+            {days.map((day) => (
+              <option key={day} value={day}>
+                {day}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <Button 
+          onClick={handleDateChange}
+          className="mr-auto"
+        >
+          انتقال للتاريخ
+        </Button>
+      </div>
+      
       <div style={{ height: '70vh', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
         <Calendar
           localizer={localizer}
@@ -141,6 +256,15 @@ const AvailabilityPage = () => {
           onSelectEvent={handleSelectEvent}
           defaultView="week"
           views={['day', 'week', 'agenda']}
+          date={selectedDate.toDate()}
+          onNavigate={(date) => {
+            const newDate = moment(date);
+            setSelectedYear(newDate.year());
+            setSelectedMonth(newDate.month());
+            setSelectedDay(newDate.date());
+            setSelectedDate(newDate);
+          }}
+          ref={calendarRef}
         />
       </div>
     </div>
