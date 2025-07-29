@@ -175,6 +175,10 @@ export default function EventsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // State for delete confirmation dialog
+  const [isDeleteConfirmDialogOpen, setIsDeleteConfirmDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  
   // State for edit dialog
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<EventForDisplay | null>(null);
@@ -202,7 +206,28 @@ export default function EventsPage() {
       
       const data = await response.json() as EventFromAPI[];
       const displayEvents = data.map(convertEventForDisplay);
-      setEvents(displayEvents);
+      
+      // Fetch registration counts for each event
+      const eventsWithRegistrations = await Promise.all(
+        displayEvents.map(async (event) => {
+          try {
+            const regResponse = await fetch(`/api/admin/event-registrations/${event.id}`);
+            if (regResponse.ok) {
+              const regData = await regResponse.json();
+              return {
+                ...event,
+                registeredAttendees: regData.registrations.length
+              };
+            }
+            return event;
+          } catch (err) {
+            console.error(`Error fetching registrations for event ${event.id}:`, err);
+            return event;
+          }
+        })
+      );
+      
+      setEvents(eventsWithRegistrations);
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -214,6 +239,12 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, []);
+  
+  // Open delete confirmation dialog
+  const openDeleteConfirmDialog = (eventId: string) => {
+    setEventToDelete(eventId);
+    setIsDeleteConfirmDialogOpen(true);
+  };
   
   // Handle event deletion
   const handleDeleteEvent = async (eventId: string) => {
@@ -241,6 +272,10 @@ export default function EventsPage() {
       if (selectedEvent && selectedEvent.id === eventId) {
         setSelectedEvent(null);
       }
+      
+      // Close the delete confirmation dialog
+      setIsDeleteConfirmDialogOpen(false);
+      setEventToDelete(null);
       
     } catch (err: any) {
       setDeleteError(err.message || 'حدث خطأ أثناء حذف الفعالية');
@@ -811,7 +846,7 @@ export default function EventsPage() {
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-gray-500" />
                           <span className="text-sm">
-                            {event.maxAttendees}
+                            {event.registeredAttendees}/{event.maxAttendees}
                           </span>
                         </div>
                       ) : (
@@ -858,7 +893,7 @@ export default function EventsPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             className="text-red-600"
-                            onClick={() => handleDeleteEvent(event.id)}
+                            onClick={() => openDeleteConfirmDialog(event.id)}
                           >
                             <Trash className="ml-2 h-4 w-4" />
                             حذف الفعالية
@@ -960,7 +995,7 @@ export default function EventsPage() {
                     <p className="text-sm text-gray-500">الحضور</p>
                     {selectedEvent.maxAttendees > 0 ? (
                       <p className="font-medium">
-                        {selectedEvent.registeredAttendees} من {selectedEvent.maxAttendees}
+                        {selectedEvent.registeredAttendees}/{selectedEvent.maxAttendees}
                       </p>
                     ) : (
                       <p className="font-medium">غير محدود</p>
@@ -1008,7 +1043,7 @@ export default function EventsPage() {
                 )}
                 <Button 
                   variant="destructive" 
-                  onClick={() => handleDeleteEvent(selectedEvent.id)}
+                  onClick={() => openDeleteConfirmDialog(selectedEvent.id)}
                   disabled={isDeleting}
                 >
                   <Trash className="ml-2 h-4 w-4" />
@@ -1524,6 +1559,63 @@ export default function EventsPage() {
               </Table>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={isDeleteConfirmDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDeleteConfirmDialogOpen(false);
+            setEventToDelete(null);
+            setDeleteError("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تأكيد حذف الفعالية</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من رغبتك في حذف هذه الفعالية؟ هذا الإجراء لا يمكن التراجع عنه.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {deleteError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+              {deleteError}
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2 sm:justify-center sm:space-x-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteConfirmDialogOpen(false);
+                setEventToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => eventToDelete && handleDeleteEvent(eventToDelete)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري الحذف...
+                </>
+              ) : (
+                <>
+                  <Trash className="ml-2 h-4 w-4" />
+                  تأكيد الحذف
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
