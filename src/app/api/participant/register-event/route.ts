@@ -1,0 +1,268 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+interface JwtPayload {
+  id: string;
+  email: string;
+  teamId: string;
+  isLeader: boolean;
+}
+
+// Helper function to get the current participant from the session
+async function getCurrentParticipant(request: NextRequest) {
+  const cookieStore = cookies();
+  const tokenCookie = cookieStore.get('auth-token');
+  
+  if (!tokenCookie) {
+    return null;
+  }
+
+  try {
+    const token = tokenCookie.value;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    
+    const participant = await prisma.participant.findUnique({
+      where: { id: decoded.id },
+    });
+
+    return participant;
+  } catch (error) {
+    return null;
+  }
+}
+
+// POST /api/participant/register-event - Register for an event
+export async function POST(request: NextRequest) {
+  try {
+    // Get the current participant
+    const participant = await getCurrentParticipant(request);
+    
+    if (!participant) {
+      return NextResponse.json(
+        { message: 'يجب تسجيل الدخول كمشارك للتسجيل في الفعالية' },
+        { status: 401 }
+      );
+    }
+
+    // Get the event ID from the request body
+    const { eventId } = await request.json();
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { message: 'معرف الفعالية مطلوب' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        registrations: true,
+      },
+    });
+
+    if (!event) {
+      return NextResponse.json(
+        { message: 'الفعالية غير موجودة' },
+        { status: 404 }
+      );
+    }
+
+    // Check if the event is upcoming or active
+    if (event.status !== 'upcoming' && event.status !== 'active') {
+      return NextResponse.json(
+        { message: 'لا يمكن التسجيل في فعالية منتهية أو ملغاة' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the event is in the past
+    if (new Date(event.startDate) < new Date()) {
+      return NextResponse.json(
+        { message: 'لا يمكن التسجيل في فعالية بدأت بالفعل' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the event has reached capacity
+    if (event.registrations.length >= event.capacity) {
+      return NextResponse.json(
+        { message: 'الفعالية ممتلئة، لا يمكن التسجيل' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the participant is already registered for this event
+    const existingRegistration = await prisma.eventRegistration.findFirst({
+      where: {
+        participantId: participant.id,
+        eventId: eventId,
+      },
+    });
+
+    if (existingRegistration) {
+      return NextResponse.json(
+        { message: 'أنت مسجل بالفعل في هذه الفعالية' },
+        { status: 400 }
+      );
+    }
+
+    // Create the registration
+    const registration = await prisma.eventRegistration.create({
+      data: {
+        participantId: participant.id,
+        eventId: eventId,
+        status: 'registered',
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    return NextResponse.json({
+      message: 'تم التسجيل في الفعالية بنجاح',
+      registration: {
+        id: registration.id,
+        status: registration.status,
+        eventTitle: registration.event.title,
+        eventDate: registration.event.startDate,
+      },
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    return NextResponse.json(
+      { message: 'حدث خطأ أثناء التسجيل في الفعالية' },
+      { status: 500 }
+    );
+  }
+}
+
+// GET /api/participant/register-event?eventId=xxx - Check if a participant is registered for an event
+export async function GET(request: NextRequest) {
+  try {
+    // Get the current participant
+    const participant = await getCurrentParticipant(request);
+    
+    if (!participant) {
+      return NextResponse.json(
+        { message: 'يجب تسجيل الدخول كمشارك للتحقق من التسجيل' },
+        { status: 401 }
+      );
+    }
+
+    // Get the event ID from the query parameters
+    const eventId = request.nextUrl.searchParams.get('eventId');
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { message: 'معرف الفعالية مطلوب' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the registration exists
+    const registration = await prisma.eventRegistration.findFirst({
+      where: {
+        participantId: participant.id,
+        eventId: eventId,
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    if (!registration) {
+      return NextResponse.json({ isRegistered: false });
+    }
+
+    return NextResponse.json({
+      isRegistered: true,
+      registration: {
+        id: registration.id,
+        status: registration.status,
+        eventTitle: registration.event.title,
+        eventDate: registration.event.startDate,
+        registeredAt: registration.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error checking registration:', error);
+    return NextResponse.json(
+      { message: 'حدث خطأ أثناء التحقق من التسجيل' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/participant/register-event - Cancel registration for an event
+export async function DELETE(request: NextRequest) {
+  try {
+    // Get the current participant
+    const participant = await getCurrentParticipant(request);
+    
+    if (!participant) {
+      return NextResponse.json(
+        { message: 'يجب تسجيل الدخول كمشارك لإلغاء التسجيل' },
+        { status: 401 }
+      );
+    }
+
+    // Get the event ID from the request body
+    const { eventId } = await request.json();
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { message: 'معرف الفعالية مطلوب' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the registration exists
+    const registration = await prisma.eventRegistration.findFirst({
+      where: {
+        participantId: participant.id,
+        eventId: eventId,
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    if (!registration) {
+      return NextResponse.json(
+        { message: 'أنت غير مسجل في هذه الفعالية' },
+        { status: 404 }
+      );
+    }
+
+    // Check if the event has already started
+    if (new Date(registration.event.startDate) < new Date()) {
+      return NextResponse.json(
+        { message: 'لا يمكن إلغاء التسجيل في فعالية بدأت بالفعل' },
+        { status: 400 }
+      );
+    }
+
+    // Delete the registration
+    await prisma.eventRegistration.delete({
+      where: {
+        id: registration.id,
+      },
+    });
+
+    return NextResponse.json({
+      message: 'تم إلغاء التسجيل بنجاح',
+    });
+  } catch (error) {
+    console.error('Error cancelling registration:', error);
+    return NextResponse.json(
+      { message: 'حدث خطأ أثناء إلغاء التسجيل' },
+      { status: 500 }
+    );
+  }
+}

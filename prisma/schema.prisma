@@ -54,6 +54,7 @@ model Participant {
   updatedAt        DateTime              @updatedAt
   bookings         MentorBooking[]
   submissions      MilestoneSubmission[]
+  eventRegistrations EventRegistration[]
 }
 
 model Admin {
@@ -129,17 +130,31 @@ model MilestoneSubmission {
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  startDate   DateTime
-  endDate     DateTime
-  location    String
-  capacity    Int
-  type        String
-  plan        String
-  presenter   String
-  status      String   @default("upcoming") // upcoming, active, completed, cancelled
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String             @id @default(cuid())
+  title        String
+  description  String
+  startDate    DateTime
+  endDate      DateTime
+  location     String
+  capacity     Int
+  type         String
+  plan         String
+  presenter    String
+  status       String             @default("upcoming") // upcoming, active, completed, cancelled
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  eventId       String
+  event         Event       @relation(fields: [eventId], references: [id])
+  status        String      @default("registered") // registered, cancelled, attended
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([participantId, eventId])
 }
