@@ -61,6 +61,9 @@ import {
   UserCheck,
   AlertCircle,
   CheckCircle,
+  X,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 
 // Define the Event type from API
@@ -178,6 +181,15 @@ export default function EventsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
   
+  // State for registrations dialog
+  const [isRegistrationsDialogOpen, setIsRegistrationsDialogOpen] = useState(false);
+  const [selectedEventForRegistrations, setSelectedEventForRegistrations] = useState<EventForDisplay | null>(null);
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [isLoadingRegistrations, setIsLoadingRegistrations] = useState(false);
+  const [registrationsError, setRegistrationsError] = useState("");
+  const [searchRegistrationTerm, setSearchRegistrationTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  
   // Function to fetch events from API
   const fetchEvents = async () => {
     try {
@@ -245,6 +257,123 @@ export default function EventsPage() {
     if (selectedEvent) {
       setSelectedEvent(null);
     }
+  };
+  
+  // Handle viewing registrations
+  const handleViewRegistrations = async (event: EventForDisplay) => {
+    try {
+      setIsLoadingRegistrations(true);
+      setRegistrationsError("");
+      setSelectedEventForRegistrations(event);
+      setIsRegistrationsDialogOpen(true);
+      
+      const response = await fetch(`/api/admin/event-registrations/${event.id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء جلب المشاركين');
+      }
+      
+      const data = await response.json();
+      setRegistrations(data.registrations);
+    } catch (err: any) {
+      setRegistrationsError(err.message || 'حدث خطأ أثناء جلب المشاركين');
+    } finally {
+      setIsLoadingRegistrations(false);
+    }
+  };
+  
+  // Handle marking attendance
+  const handleMarkAttendance = async (registrationId: string) => {
+    try {
+      if (!selectedEventForRegistrations) return;
+      
+      const response = await fetch(`/api/admin/event-registrations/${selectedEventForRegistrations.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registrationId,
+          status: 'attended',
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء تسجيل الحضور');
+      }
+      
+      // Update the registrations list
+      setRegistrations(registrations.map(reg => 
+        reg.id === registrationId 
+          ? { ...reg, status: 'attended' } 
+          : reg
+      ));
+      
+    } catch (err: any) {
+      console.error("خطأ في تسجيل الحضور:", err.message);
+    }
+  };
+  
+  // Handle cancelling registration
+  const handleCancelRegistration = async (registrationId: string) => {
+    try {
+      if (!selectedEventForRegistrations) return;
+      
+      const response = await fetch(`/api/admin/event-registrations/${selectedEventForRegistrations.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registrationId,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء إلغاء التسجيل');
+      }
+      
+      // Update the registrations list
+      setRegistrations(registrations.filter(reg => reg.id !== registrationId));
+      
+    } catch (err: any) {
+      console.error("خطأ في إلغاء التسجيل:", err.message);
+    }
+  };
+  
+  // Handle exporting registrations
+  const handleExportRegistrations = () => {
+    if (!registrations.length || !selectedEventForRegistrations) return;
+    
+    // Create CSV content
+    const headers = ["الاسم", "البريد الإلكتروني", "رقم الهاتف", "قائد الفريق", "حالة التسجيل", "تاريخ التسجيل"];
+    const rows = registrations.map(reg => [
+      reg.participant.name,
+      reg.participant.email,
+      reg.participant.phone,
+      reg.participant.isLeader ? "نعم" : "لا",
+      reg.status === "registered" ? "مسجل" : reg.status === "attended" ? "حضر" : "ملغي",
+      new Date(reg.registeredAt).toLocaleDateString("ar-SA")
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+    
+    // Create a download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `مشاركو-${selectedEventForRegistrations.name}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   // Handle event update
@@ -708,6 +837,10 @@ export default function EventsPage() {
                             <Eye className="ml-2 h-4 w-4" />
                             عرض التفاصيل
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewRegistrations(event)}>
+                            <Users className="ml-2 h-4 w-4" />
+                            عرض المشاركين
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEditEvent(event)}>
                             <Edit className="ml-2 h-4 w-4" />
                             تعديل
@@ -855,6 +988,10 @@ export default function EventsPage() {
               )}
 
               <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => handleViewRegistrations(selectedEvent)}>
+                  <Users className="ml-2 h-4 w-4" />
+                  عرض المشاركين
+                </Button>
                 <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}>
                   <Edit className="ml-2 h-4 w-4" />
                   تعديل
@@ -1211,6 +1348,182 @@ export default function EventsPage() {
               {isSubmitting ? 'جاري الحفظ...' : 'حفظ الفعالية'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Registrations Dialog */}
+      <Dialog 
+        open={isRegistrationsDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsRegistrationsDialogOpen(false);
+            setSelectedEventForRegistrations(null);
+            setRegistrations([]);
+            setSearchRegistrationTerm("");
+            setStatusFilter("all");
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>
+              المشاركون المسجلون في الفعالية
+              {selectedEventForRegistrations && (
+                <span className="text-primary"> - {selectedEventForRegistrations.name}</span>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              قائمة المشاركين المسجلين في هذه الفعالية
+            </DialogDescription>
+          </DialogHeader>
+          
+          {registrationsError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+              {registrationsError}
+            </div>
+          )}
+          
+          {isLoadingRegistrations ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : registrations.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg">لا يوجد مشاركون مسجلون</p>
+              <p className="text-sm mt-2">لم يقم أي مشارك بالتسجيل في هذه الفعالية بعد</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <span className="text-sm text-gray-500">إجمالي المسجلين:</span>
+                  <span className="font-bold mr-1">{registrations.length}</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleExportRegistrations}>
+                  <Download className="ml-2 h-4 w-4" />
+                  تصدير القائمة
+                </Button>
+              </div>
+              
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="البحث عن مشارك..."
+                      value={searchRegistrationTerm}
+                      onChange={(e) => setSearchRegistrationTerm(e.target.value)}
+                      className="pr-10"
+                    />
+                  </div>
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="حالة التسجيل" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
+                    <SelectItem value="registered">مسجل</SelectItem>
+                    <SelectItem value="attended">حضر</SelectItem>
+                    <SelectItem value="cancelled">ملغي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">اسم المشارك</TableHead>
+                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                    <TableHead className="text-right">رقم الهاتف</TableHead>
+                    <TableHead className="text-right">قائد الفريق</TableHead>
+                    <TableHead className="text-right">حالة التسجيل</TableHead>
+                    <TableHead className="text-right">تاريخ التسجيل</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registrations
+                    .filter(reg => {
+                      const matchesSearch = 
+                        reg.participant.name.toLowerCase().includes(searchRegistrationTerm.toLowerCase()) ||
+                        reg.participant.email.toLowerCase().includes(searchRegistrationTerm.toLowerCase());
+                      
+                      const matchesStatus = 
+                        statusFilter === "all" || 
+                        reg.status === statusFilter;
+                      
+                      return matchesSearch && matchesStatus;
+                    })
+                    .map((registration) => (
+                    <TableRow key={registration.id}>
+                      <TableCell className="font-medium">
+                        {registration.participant.name}
+                      </TableCell>
+                      <TableCell>{registration.participant.email}</TableCell>
+                      <TableCell>{registration.participant.phone}</TableCell>
+                      <TableCell>
+                        {registration.participant.isLeader ? (
+                          <Badge className="bg-green-100 text-green-800">نعم</Badge>
+                        ) : (
+                          <span className="text-gray-500">لا</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          className={
+                            registration.status === "registered" 
+                              ? "bg-blue-100 text-blue-800" 
+                              : registration.status === "attended" 
+                              ? "bg-green-100 text-green-800" 
+                              : "bg-red-100 text-red-800"
+                          }
+                        >
+                          {registration.status === "registered" 
+                            ? "مسجل" 
+                            : registration.status === "attended" 
+                            ? "حضر" 
+                            : "ملغي"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(registration.registeredAt).toLocaleDateString("ar-SA")}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {registration.status === "registered" && (
+                              <DropdownMenuItem onClick={() => handleMarkAttendance(registration.id)}>
+                                <CheckCircle2 className="ml-2 h-4 w-4" />
+                                تسجيل الحضور
+                              </DropdownMenuItem>
+                            )}
+                            {registration.status !== "cancelled" && (
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => handleCancelRegistration(registration.id)}
+                              >
+                                <X className="ml-2 h-4 w-4" />
+                                إلغاء التسجيل
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
