@@ -152,7 +152,7 @@ model EventRegistration {
   participant   Participant @relation(fields: [participantId], references: [id])
   eventId       String
   event         Event       @relation(fields: [eventId], references: [id])
-  status        String      @default("registered") // registered, cancelled, attended
+  status        String      @default("registered") // registered, cancelled, attended, absent
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 

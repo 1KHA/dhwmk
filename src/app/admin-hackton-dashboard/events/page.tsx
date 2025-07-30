@@ -175,6 +175,9 @@ export default function EventsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // State for global export
+  const [isExportingAll, setIsExportingAll] = useState(false);
+  
   // State for delete confirmation dialog
   const [isDeleteConfirmDialogOpen, setIsDeleteConfirmDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
@@ -351,6 +354,39 @@ export default function EventsPage() {
     }
   };
   
+  // Handle marking as absent
+  const handleMarkAbsent = async (registrationId: string) => {
+    try {
+      if (!selectedEventForRegistrations) return;
+      
+      const response = await fetch(`/api/admin/event-registrations/${selectedEventForRegistrations.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registrationId,
+          status: 'absent',
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'حدث خطأ أثناء تسجيل عدم الحضور');
+      }
+      
+      // Update the registrations list
+      setRegistrations(registrations.map(reg => 
+        reg.id === registrationId 
+          ? { ...reg, status: 'absent' } 
+          : reg
+      ));
+      
+    } catch (err: any) {
+      console.error("خطأ في تسجيل عدم الحضور:", err.message);
+    }
+  };
+  
   // Handle cancelling registration
   const handleCancelRegistration = async (registrationId: string) => {
     try {
@@ -379,7 +415,7 @@ export default function EventsPage() {
     }
   };
   
-  // Handle exporting registrations
+  // Handle exporting registrations for a single event
   const handleExportRegistrations = () => {
     if (!registrations.length || !selectedEventForRegistrations) return;
     
@@ -390,11 +426,13 @@ export default function EventsPage() {
       reg.participant.email,
       reg.participant.phone,
       reg.participant.isLeader ? "نعم" : "لا",
-      reg.status === "registered" ? "مسجل" : reg.status === "attended" ? "حضر" : "ملغي",
+      reg.status === "registered" ? "مسجل" : reg.status === "attended" ? "حضر" : reg.status === "absent" ? "لم يحضر" : "ملغي",
       new Date(reg.registeredAt).toLocaleDateString("ar-SA")
     ]);
     
-    const csvContent = [
+    // Add UTF-8 BOM to ensure Excel correctly displays Arabic text
+    const BOM = "\uFEFF";
+    const csvContent = BOM + [
       headers.join(","),
       ...rows.map(row => row.join(","))
     ].join("\n");
@@ -409,6 +447,135 @@ export default function EventsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  // Handle exporting all events and participants
+  const handleExportAllEvents = async () => {
+    try {
+      setIsExportingAll(true);
+      
+      // Fetch all events if not already loaded
+      if (events.length === 0) {
+        await fetchEvents();
+      }
+      
+      // Create headers for the CSV
+      const headers = [
+        "اسم الفعالية", 
+        "نوع الفعالية", 
+        "وصف الفعالية", 
+        "تاريخ الفعالية", 
+        "وقت البداية", 
+        "وقت النهاية", 
+        "المكان", 
+        "الحالة", 
+        "الخطة", 
+        "المسؤول", 
+        "السعة", 
+        "اسم المشارك", 
+        "البريد الإلكتروني", 
+        "رقم الهاتف", 
+        "معرف الفريق", 
+        "قائد الفريق", 
+        "حالة التسجيل", 
+        "تاريخ التسجيل"
+      ];
+      
+      // Array to store all rows
+      const allRows: string[][] = [];
+      
+      // Process each event
+      for (const event of events) {
+        // Fetch registrations for this event
+        const response = await fetch(`/api/admin/event-registrations/${event.id}`);
+        
+        if (!response.ok) {
+          console.error(`Failed to fetch registrations for event ${event.id}`);
+          continue;
+        }
+        
+        const data = await response.json();
+        const eventRegistrations = data.registrations;
+        
+        // If no registrations, add a row with just event details
+        if (eventRegistrations.length === 0) {
+          allRows.push([
+            event.name,
+            getEventTypeLabel(event.type),
+            event.description,
+            event.date,
+            event.startTime,
+            event.endTime,
+            event.location,
+            getStatusLabel(event.status),
+            event.plan || "",
+            event.facilitator,
+            event.maxAttendees.toString(),
+            "", // No participant
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]);
+        } else {
+          // Add a row for each registration
+          for (const reg of eventRegistrations) {
+            allRows.push([
+              event.name,
+              getEventTypeLabel(event.type),
+              event.description,
+              event.date,
+              event.startTime,
+              event.endTime,
+              event.location,
+              getStatusLabel(event.status),
+              event.plan || "",
+              event.facilitator,
+              event.maxAttendees.toString(),
+              reg.participant.name,
+              reg.participant.email,
+              reg.participant.phone,
+              reg.participant.teamId || "",
+              reg.participant.isLeader ? "نعم" : "لا",
+              reg.status === "registered" ? "مسجل" : 
+                reg.status === "attended" ? "حضر" : 
+                reg.status === "absent" ? "لم يحضر" : "ملغي",
+              new Date(reg.registeredAt).toLocaleDateString("ar-SA")
+            ]);
+          }
+        }
+      }
+      
+      // Add UTF-8 BOM to ensure Excel correctly displays Arabic text
+      const BOM = "\uFEFF";
+      const csvContent = BOM + [
+        headers.join(","),
+        ...allRows.map(row => row.map(cell => 
+          // Escape cells that contain commas, quotes, or newlines
+          cell.includes(",") || cell.includes("\"") || cell.includes("\n") 
+            ? `"${cell.replace(/"/g, '""')}"` 
+            : cell
+        ).join(","))
+      ].join("\n");
+      
+      // Create a download link
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `جميع-الفعاليات-والمشاركين.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error("Error exporting all events:", error);
+    } finally {
+      setIsExportingAll(false);
+    }
   };
   
   // Handle event update
@@ -713,14 +880,26 @@ export default function EventsPage() {
 
       {/* Actions and View Toggle */}
       <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-2">
+      <div className="flex gap-2">
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="ml-2 h-4 w-4" />
             إضافة فعالية جديدة
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            onClick={handleExportAllEvents}
+            disabled={isExportingAll}
+            title="تصدير جميع الفعاليات وجميع المشاركين في ملف واحد متوافق مع Excel"
+          >
             <Download className="ml-2 h-4 w-4" />
-            تصدير الجدول
+            {isExportingAll ? (
+              <>
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                جاري التصدير...
+              </>
+            ) : (
+              "تصدير جميع الفعاليات والمشاركين (Excel)"
+            )}
           </Button>
         </div>
         <Tabs value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
@@ -1461,6 +1640,7 @@ export default function EventsPage() {
                     <SelectItem value="all">جميع الحالات</SelectItem>
                     <SelectItem value="registered">مسجل</SelectItem>
                     <SelectItem value="attended">حضر</SelectItem>
+                    <SelectItem value="absent">لم يحضر</SelectItem>
                     <SelectItem value="cancelled">ملغي</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1512,6 +1692,8 @@ export default function EventsPage() {
                               ? "bg-blue-100 text-blue-800" 
                               : registration.status === "attended" 
                               ? "bg-green-100 text-green-800" 
+                              : registration.status === "absent"
+                              ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
                           }
                         >
@@ -1519,6 +1701,8 @@ export default function EventsPage() {
                             ? "مسجل" 
                             : registration.status === "attended" 
                             ? "حضر" 
+                            : registration.status === "absent"
+                            ? "لم يحضر"
                             : "ملغي"}
                         </Badge>
                       </TableCell>
@@ -1539,6 +1723,12 @@ export default function EventsPage() {
                               <DropdownMenuItem onClick={() => handleMarkAttendance(registration.id)}>
                                 <CheckCircle2 className="ml-2 h-4 w-4" />
                                 تسجيل الحضور
+                              </DropdownMenuItem>
+                            )}
+                            {(registration.status === "registered" || registration.status === "attended") && (
+                              <DropdownMenuItem onClick={() => handleMarkAbsent(registration.id)}>
+                                <AlertCircle className="ml-2 h-4 w-4" />
+                                عدم الحضور
                               </DropdownMenuItem>
                             )}
                             {registration.status !== "cancelled" && (
