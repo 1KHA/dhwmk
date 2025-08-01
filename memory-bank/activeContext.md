@@ -1,24 +1,38 @@
-# Active Context: Participant Dashboard Refinement
+# Active Context: Global Event Export Enhancement
 
 ## 1. Current Work Focus
-The current focus is on implementing a time management and availability feature for mentors.
+The current focus is on enhancing the event management system, specifically adding a global export feature that allows administrators to export all events and all participants to a single UTF-8 Excel-compatible CSV file.
 
 ## 2. Recent Changes
-- **Database Schema:** Added a `MentorAvailability` model to the Prisma schema to store mentor availability slots.
-- **API Endpoints:**
-  - Created endpoints for mentors to `GET`, `POST`, and `DELETE` their availability (`/api/mentor/availability`).
-  - Created an endpoint for admins to `GET` a specific mentor's availability (`/api/admin/mentors/[mentorId]/availability`).
-- **Mentor Dashboard:**
-  - Created a new page at `/mentor-dashboard/availability` with an interactive calendar (`react-big-calendar`) for mentors to manage their schedules.
-  - Added a link to the new page in the mentor's sidebar.
-- **Admin Dashboard:**
-  - Added a "Manage Time" button to the mentors' table in the admin dashboard.
-  - This button opens a dialog with a read-only calendar view of the selected mentor's availability.
+- **Global Export Functionality:** 
+  - Implemented a new `handleExportAllEvents` function in the admin events page that:
+    - Fetches all events and their registrations
+    - Combines the data into a comprehensive CSV with 18 columns covering all event and participant details
+    - Adds UTF-8 BOM (`\uFEFF`) for proper Arabic text display in Excel
+    - Properly escapes cells containing commas, quotes, or newlines
+    - Downloads the file as "جميع-الفعاليات-والمشاركين.csv"
+- **Admin Events Page Updates:**
+  - Added a new button labeled "تصدير جميع الفعاليات والمشاركين (Excel)" in the main actions area
+  - Implemented loading state for the export button that shows "جاري التصدير..." with a spinner
+  - Added tooltip explaining the purpose of the button
+- **CSV Structure and Content:**
+  - Included comprehensive event details: name, type, description, date, start/end times, location, status, plan, facilitator, capacity
+  - Included complete participant details: name, email, phone, team ID, leader status, registration status, registration date
+  - For events with no participants, included a row with just event details
+  - For events with participants, included a row for each participant with both event and participant details
+  - Ensured all statuses are properly localized (including the "absent" status)
 
 ## 3. Next Steps
-All requested features for the mentor availability management are now complete. The system is stable. Future work could involve integrating this availability with a booking system for participants.
+All requested features for the global event export are now complete. The system is stable. Future work could involve:
+- Adding email notifications for registration status changes
+- Implementing a waitlist feature for events that reach capacity
+- Adding a bulk registration management feature for admins
+- Enhancing the export feature to include filtering options (by date range, event type, etc.)
+- Adding the ability to export in different formats (e.g., Excel XLSX)
 
 ## 4. Key Learnings & Patterns
-- **Iterative Design:** The participant dashboard's evolution highlights the importance of building features based on a tight feedback loop with the user. The requirements changed significantly, demonstrating the need for flexible and adaptable code.
-- **Secure, Role-Based APIs:** The creation of specific API endpoints for participants (`/api/participant/*`) that check JWTs and user roles (`isLeader`) is a robust pattern for securing data and actions.
-- **Data Display Density:** The final iteration of the team management page required displaying a large amount of data in a single table. Using `overflow-x-auto` is a simple but effective solution for handling wide tables on smaller screens without breaking the layout.
+- **Raw SQL vs. Prisma Client:** When working with the event registrations API, we encountered TypeScript issues with the Prisma client not recognizing the model names. We resolved this by using Prisma's raw SQL query methods (`$queryRaw` and `$executeRaw`) instead of the model methods. This approach provided more flexibility but required careful handling of the returned data types.
+- **Dialog-Based UI for Complex Operations:** The registrations management dialog demonstrates an effective pattern for handling complex operations in a modal context. It includes search, filtering, and action capabilities all within a single dialog, providing a focused interface for managing registrations.
+- **Dynamic Data Fetching:** The admin events page now fetches registration counts for each event after loading the events list. This two-step data fetching pattern allows us to display additional information without modifying the existing API endpoints.
+- **Batch Processing for Global Export:** The global export feature demonstrates an effective pattern for batch processing data from multiple API endpoints. It fetches all events first, then iteratively fetches registrations for each event, combining the data into a single comprehensive export. This approach is scalable and can handle large datasets efficiently.
+- **CSV Generation with Special Character Handling:** The implementation includes proper handling of special characters in CSV generation, including escaping cells with commas, quotes, or newlines. This ensures the exported data is correctly formatted and can be opened in Excel without issues.
