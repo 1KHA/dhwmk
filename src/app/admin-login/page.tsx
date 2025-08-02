@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { useToast } from '../../../components/ui/use-toast'
+import { showAdminToast } from '@/components/admin/admin-toaster'
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     username: '',
@@ -33,20 +32,20 @@ export default function AdminLoginPage() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({
+        showAdminToast({
           title: "نجح",
           description: "تم تسجيل الدخول كمسؤول بنجاح!",
         });
         router.push('/admin-hackton-dashboard');
       } else {
-        toast({
+        showAdminToast({
           title: "خطأ",
           description: data.error || "فشل تسجيل الدخول",
           variant: "destructive",
         })
       }
     } catch (error) {
-      toast({
+      showAdminToast({
         title: "خطأ",
         description: "حدث خطأ أثناء تسجيل الدخول",
         variant: "destructive",

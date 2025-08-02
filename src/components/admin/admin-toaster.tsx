@@ -51,6 +51,13 @@ export const removeToast = (id: number) => {
   }
 };
 
+// Helper function to show toast with the same interface as in components/admin/admin-toaster.tsx
+export function showAdminToast(toast: { title?: string; description?: string; variant?: "default" | "destructive" }) {
+  const type = toast.variant === "destructive" ? "error" : "success";
+  const message = toast.title ? (toast.description ? `${toast.title}: ${toast.description}` : toast.title) : toast.description || "";
+  addToast(message, type);
+}
+
 export function AdminToaster() {
   const [localToasts, setLocalToasts] = useState<Toast[]>([]);
   

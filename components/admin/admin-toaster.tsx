@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { X } from "lucide-react"
 
 interface ToastProps {
@@ -39,43 +39,49 @@ const Toast: React.FC<ToastProps> = ({
   )
 }
 
+interface AdminToastState extends Omit<ToastProps, 'onClose'> {
+  timeoutId?: ReturnType<typeof setTimeout>;
+}
+
 export function AdminToaster() {
-  const [toasts, setToasts] = useState<ToastProps[]>([])
+  const [toasts, setToasts] = useState<AdminToastState[]>([])
   
-  // Listen for toast events
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }, [])
+
   useEffect(() => {
     const handleToast = (event: CustomEvent) => {
-      const toast = event.detail
-      const id = Math.random().toString(36).substring(2, 9)
+      const { title, description, variant } = event.detail;
+      const id = Math.random().toString(36).substring(2, 9);
       
-      setToasts(prev => [...prev, { ...toast, id, onClose: removeToast }])
+      const newToast: AdminToastState = { id, title, description, variant };
       
-      // Auto-dismiss after 3 seconds
-      setTimeout(() => {
-        removeToast(id)
-      }, 3000)
+      setToasts(prev => [...prev, newToast]);
+      
+      const timeoutId = setTimeout(() => {
+        removeToast(id);
+      }, 3000); // Auto-dismiss after 3 seconds
+
+      setToasts(prev => prev.map(t => t.id === id ? { ...t, timeoutId } : t));
     }
     
-    // Add event listener
-    window.addEventListener('admin-toast' as any, handleToast as EventListener)
+    window.addEventListener('admin-toast' as any, handleToast as EventListener);
     
-    // Clean up
     return () => {
-      window.removeEventListener('admin-toast' as any, handleToast as EventListener)
+      window.removeEventListener('admin-toast' as any, handleToast as EventListener);
+      toasts.forEach(toast => {
+        if (toast.timeoutId) clearTimeout(toast.timeoutId);
+      });
     }
-  }, [])
-  
-  // Remove toast
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
-  }
-  
+  }, [removeToast, toasts]); // Add toasts to dependency array to clear timeouts on unmount
+
   if (toasts.length === 0) return null
   
   return (
     <div className="fixed top-4 right-4 z-50 w-72">
       {toasts.map(toast => (
-        <Toast key={toast.id} {...toast} />
+        <Toast key={toast.id} {...toast} onClose={removeToast} />
       ))}
     </div>
   )

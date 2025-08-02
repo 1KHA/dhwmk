@@ -13,14 +13,18 @@ import {
   Bell,
   Award,
 } from "lucide-react";
-import { addToast } from "@/components/admin/admin-toaster";
+import { showAdminToast } from "@/components/admin/admin-toaster";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    addToast(`تم التبديل إلى تبويب ${value === "overview" ? "النظرة العامة" : "الإحصائيات"}`, "info");
+    showAdminToast({
+      title: "تبديل التبويب",
+      description: `تم التبديل إلى تبويب ${value === "overview" ? "النظرة العامة" : "الإحصائيات"}`,
+      variant: "default",
+    });
   };
 
   return (
