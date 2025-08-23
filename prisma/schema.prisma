@@ -158,3 +158,18 @@ model EventRegistration {
 
   @@unique([participantId, eventId])
 }
+
+model Notification {
+  id                String    @id @default(cuid())
+  title             String    // Short notification title
+  message           String    // Detailed notification message
+  type              String    // success, info, warning, error
+  isRead            Boolean   @default(false)
+  recipientType     String    // admin, participant, mentor
+  recipientId       String    // ID of the recipient
+  relatedEntityType String?   // team, event, milestone, mentor, participant
+  relatedEntityId   String?   // ID of related entity
+  actionUrl         String?   // Optional URL for clickable notifications
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { PrismaClient } from '@prisma/client'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -106,8 +107,26 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return { teamId };
+      return { teamId, teamName };
     })
+
+    // Create notification for admins about new team registration
+    try {
+      const template = NotificationTemplates.newTeamRegistration(result.teamName);
+      await notifyAllAdmins(
+        template.title,
+        template.message,
+        template.type,
+        {
+          relatedEntityType: 'team',
+          relatedEntityId: result.teamId,
+          actionUrl: template.actionUrl,
+        }
+      );
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't fail the registration if notification fails
+    }
 
     return NextResponse.json(
       {
