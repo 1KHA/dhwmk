@@ -6,6 +6,7 @@ import { mkdir } from "fs/promises";
 import crypto from "crypto";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -103,9 +104,10 @@ export async function POST(request: NextRequest) {
 
     const { id: participantId } = decoded;
 
-    // Get the participant from the database
+    // Get the participant with team information
     const participant = await prisma.participant.findUnique({
       where: { id: participantId },
+      include: { team: true },
     });
     
     if (!participant) {
@@ -165,6 +167,28 @@ export async function POST(request: NextRequest) {
       SET submissionCount = submissionCount + 1
       WHERE id = ${milestoneId}
     `;
+
+    // Create notification for admins about new milestone submission
+    try {
+      const milestoneData = Array.isArray(milestone) ? milestone[0] : milestone;
+      const template = NotificationTemplates.newMilestoneSubmission(
+        participant.team?.teamName || 'فريق غير محدد',
+        milestoneData?.title || 'مرحلة غير محددة'
+      );
+      await notifyAllAdmins(
+        template.title,
+        template.message,
+        template.type,
+        {
+          relatedEntityType: 'milestone',
+          relatedEntityId: milestoneId,
+          actionUrl: template.actionUrl,
+        }
+      );
+    } catch (notificationError) {
+      console.error('Error creating milestone submission notification:', notificationError);
+      // Don't fail the submission if notification fails
+    }
 
     return NextResponse.json({
       success: true,

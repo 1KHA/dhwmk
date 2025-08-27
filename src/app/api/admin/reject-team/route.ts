@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { notifyTeamMembers, NotificationTemplates } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,24 @@ export async function POST(request: NextRequest) {
       where: { id: teamId },
       data: { status: 'rejected' }
     })
+
+    // Create notification for team members about rejection
+    try {
+      const template = NotificationTemplates.teamRejection(team.teamName);
+      await notifyTeamMembers(
+        teamId,
+        template.title,
+        template.message,
+        template.type,
+        {
+          relatedEntityType: 'team',
+          relatedEntityId: teamId,
+        }
+      );
+    } catch (notificationError) {
+      console.error('Error creating rejection notification:', notificationError);
+      // Don't fail the rejection if notification fails
+    }
 
     return NextResponse.json({
       success: true,

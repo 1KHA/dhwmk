@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyTeamMembers, NotificationTemplates } from "@/lib/notifications";
 
 // POST /api/admin/milestones/[milestoneId]/submissions/[submissionId]/review
 // Updates the review status and comment for a submission
@@ -31,13 +32,23 @@ export async function POST(
       );
     }
 
-    // Check if the submission exists
-    const submission = await prisma.$queryRaw`
-      SELECT * FROM MilestoneSubmission 
-      WHERE id = ${submissionId} AND milestoneId = ${milestoneId}
-    `;
+    // Get submission details with participant, team, and milestone information
+    const submissionDetails = await prisma.milestoneSubmission.findFirst({
+      where: {
+        id: submissionId,
+        milestoneId: milestoneId,
+      },
+      include: {
+        participant: {
+          include: {
+            team: true,
+          },
+        },
+        milestone: true,
+      },
+    });
 
-    if (!submission || (Array.isArray(submission) && submission.length === 0)) {
+    if (!submissionDetails) {
       return NextResponse.json(
         { error: "لم يتم العثور على التسليم" },
         { status: 404 }
@@ -45,14 +56,37 @@ export async function POST(
     }
 
     // Update the submission with the review
-    await prisma.$executeRaw`
-      UPDATE MilestoneSubmission
-      SET 
-        reviewStatus = ${reviewStatus},
-        reviewComment = ${reviewComment || null},
-        reviewedAt = ${new Date().toISOString()}
-      WHERE id = ${submissionId}
-    `;
+    await prisma.milestoneSubmission.update({
+      where: { id: submissionId },
+      data: {
+        reviewStatus: reviewStatus,
+        reviewComment: reviewComment || null,
+        reviewedAt: new Date(),
+      },
+    });
+
+    // Create notifications for team members about the review result
+    try {
+      const template = NotificationTemplates.milestoneReviewResult(
+        submissionDetails.milestone.title,
+        reviewStatus as 'accepted' | 'rejected'
+      );
+      
+      await notifyTeamMembers(
+        submissionDetails.participant.teamId,
+        template.title,
+        template.message,
+        template.type,
+        {
+          relatedEntityType: 'milestone_submission',
+          relatedEntityId: submissionId,
+          actionUrl: template.actionUrl,
+        }
+      );
+    } catch (notificationError) {
+      console.error('Error creating milestone review notifications:', notificationError);
+      // Don't fail the review if notification fails
+    }
 
     return NextResponse.json({
       success: true,

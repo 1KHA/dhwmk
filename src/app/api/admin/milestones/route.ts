@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "crypto";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
 // Define the Milestone type
 type MilestoneFromDB = {
@@ -58,6 +59,33 @@ export async function POST(request: NextRequest) {
     const newMilestone = await prisma.$queryRaw<MilestoneFromDB[]>`
       SELECT * FROM Milestone WHERE id = ${id}
     `;
+
+    // Create notifications for all participants about the new milestone
+    try {
+      const template = NotificationTemplates.newMilestoneAvailable(title);
+      
+      // Get all participants to notify them
+      const participants = await prisma.participant.findMany({
+        select: { id: true },
+      });
+
+      // Create notifications for all participants
+      for (const participant of participants) {
+        await createNotification({
+          title: template.title,
+          message: template.message,
+          type: template.type,
+          recipientType: "participant",
+          recipientId: participant.id,
+          relatedEntityType: 'milestone',
+          relatedEntityId: id,
+          actionUrl: template.actionUrl,
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating milestone creation notifications:', notificationError);
+      // Don't fail the milestone creation if notification fails
+    }
 
     return NextResponse.json(
       {

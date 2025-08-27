@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { createNotification, notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -123,6 +124,53 @@ export async function POST(request: NextRequest) {
         event: true,
       },
     });
+
+    // Create notifications after successful registration
+    try {
+      // Notify participant with confirmation
+      const confirmationTemplate = NotificationTemplates.eventRegistrationConfirmation(event.title);
+      await createNotification({
+        ...confirmationTemplate,
+        recipientType: 'participant',
+        recipientId: participant.id,
+        relatedEntityType: 'event',
+        relatedEntityId: eventId,
+      });
+
+      // Notify admins about new registration
+      const participantName = `${participant.firstName} ${participant.familyName}`;
+      const adminTemplate = NotificationTemplates.newEventRegistration(participantName, event.title);
+      await notifyAllAdmins(
+        adminTemplate.title,
+        adminTemplate.message,
+        adminTemplate.type,
+        {
+          relatedEntityType: 'event',
+          relatedEntityId: eventId,
+        }
+      );
+
+      // Check if event is approaching capacity (80% full) and warn admins
+      const currentRegistrations = event.registrations.length + 1; // +1 for the new registration
+      const capacityPercentage = (currentRegistrations / event.capacity) * 100;
+      
+      if (capacityPercentage >= 80) {
+        const warningTemplate = NotificationTemplates.eventCapacityWarning(event.title);
+        await notifyAllAdmins(
+          warningTemplate.title,
+          warningTemplate.message,
+          warningTemplate.type,
+          {
+            relatedEntityType: 'event',
+            relatedEntityId: eventId,
+            actionUrl: warningTemplate.actionUrl,
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error('Error creating event registration notifications:', notificationError);
+      // Don't fail the registration if notification fails
+    }
 
     return NextResponse.json({
       message: 'تم التسجيل في الفعالية بنجاح',
