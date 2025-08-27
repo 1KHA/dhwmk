@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 
 const CountdownTimer = dynamic(() => import("@/components/ui/countdown-timer"), { ssr: false });
+const ImageCarousel = dynamic(() => import("@/components/ui/image-carousel"), { ssr: false });
 
 export default function HomePage() {
   return (
@@ -33,6 +34,8 @@ export default function HomePage() {
           display: "block",
         }}
       />
+      {/* Image Carousel below the background */}
+      <ImageCarousel />
     </div>
   );
 }
