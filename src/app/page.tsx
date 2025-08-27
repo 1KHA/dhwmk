@@ -1,10 +1,38 @@
+"use client";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const CountdownTimer = dynamic(() => import("@/components/ui/countdown-timer"), { ssr: false });
 const ImageCarousel = dynamic(() => import("@/components/ui/image-carousel"), { ssr: false });
 const FAQSection = dynamic(() => import("@/components/ui/faq-section"), { ssr: false });
 
 export default function HomePage() {
+  const router = useRouter();
+  const [topPosition, setTopPosition] = useState("20%");
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1125) {
+        setTopPosition("9%");
+      } else {
+        setTopPosition("15%");
+      }
+    };
+
+    // Set initial position
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleYellowBoxClick = () => {
+    router.push('/register-team');
+  };
   return (
     <div style={{ width: "100%", minHeight: "100vh", position: "relative", margin: 0, padding: 0 }}>
       {/* Countdown overlay at top center */}
@@ -24,6 +52,29 @@ export default function HomePage() {
           <CountdownTimer />
         </div>
       </div>
+      {/* Clickable transparent box over yellow box */}
+      <div
+        onClick={handleYellowBoxClick}
+        style={{
+          position: "absolute",
+          top: topPosition,
+          right: "1%",
+          width: "500px",
+          height: "500px",
+          zIndex: 5,
+          cursor: "pointer",
+          backgroundColor: "transparent",
+        }}
+        aria-label="Navigate to register team page"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleYellowBoxClick();
+          }
+        }}
+      />
       {/* Full background image */}
       <img
         src="/dh04.png"
