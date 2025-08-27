@@ -11,7 +11,7 @@ export default function HomePage() {
       <div
         style={{
           position: "absolute",
-          top: "19%",
+          top: "12%",
           left: 0,
           width: "100%",
           display: "flex",
