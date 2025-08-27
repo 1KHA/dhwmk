@@ -15,24 +15,43 @@ export default function ImageCarousel({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
+  const [fadePhase, setFadePhase] = useState<'idle' | 'fadeOut' | 'fadeIn'>('idle');
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const handleNext = useCallback(() => {
     if (isTransitioning || isDragging) return;
     setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setFadePhase('fadeOut');
     
-    // Reset transition flag after animation completes
-    setTimeout(() => setIsTransitioning(false), 800);
+    // Phase 1: Fade out current images
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+      setFadePhase('fadeIn');
+    }, 300);
+    
+    // Phase 2: Complete fade in and reset
+    setTimeout(() => {
+      setIsTransitioning(false);
+      setFadePhase('idle');
+    }, 700);
   }, [isTransitioning, isDragging, images.length]);
 
   const handlePrevious = useCallback(() => {
     if (isTransitioning || isDragging) return;
     setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setFadePhase('fadeOut');
     
-    // Reset transition flag after animation completes
-    setTimeout(() => setIsTransitioning(false), 800);
+    // Phase 1: Fade out current images
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      setFadePhase('fadeIn');
+    }, 300);
+    
+    // Phase 2: Complete fade in and reset
+    setTimeout(() => {
+      setIsTransitioning(false);
+      setFadePhase('idle');
+    }, 700);
   }, [isTransitioning, isDragging, images.length]);
 
   // Auto-rotation effect (pause when dragging)
@@ -199,8 +218,8 @@ export default function ImageCarousel({
 
         .carousel-image {
           position: relative;
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          border-radius: 20px;
+          transition: all 0.4s ease-in-out;
+          border-radius: 8px;
           overflow: hidden;
           box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
           flex-shrink: 0;
@@ -211,8 +230,26 @@ export default function ImageCarousel({
           height: 100%;
           object-fit: cover;
           display: block;
-          border-radius: 20px;
+          border-radius: 8px;
           pointer-events: none;
+          transition: opacity 0.4s ease-in-out;
+        }
+
+        /* Smooth fade animation phases */
+        .carousel-image {
+          opacity: ${fadePhase === 'fadeOut' ? '0' : fadePhase === 'fadeIn' ? '1' : '1'};
+          transform: ${fadePhase === 'fadeOut' ? 'scale(0.95)' : fadePhase === 'fadeIn' ? 'scale(1)' : 'scale(1)'};
+        }
+
+        /* Override opacity for side images during normal state */
+        .left-image,
+        .right-image {
+          opacity: ${fadePhase === 'fadeOut' ? '0' : fadePhase === 'fadeIn' ? '0.8' : '0.8'} !important;
+        }
+
+        /* Center image maintains full opacity when not transitioning */
+        .center-image {
+          opacity: ${fadePhase === 'fadeOut' ? '0' : fadePhase === 'fadeIn' ? '1' : '1'} !important;
         }
 
         /* Left Image Styles - 90% of main image size, half visible */
