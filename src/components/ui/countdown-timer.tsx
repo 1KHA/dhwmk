@@ -183,22 +183,30 @@ export default function CountdownTimer({
         }
         @media (max-width: 640px) {
           .countdown-grid {
-            gap: 1rem;
+            gap: 0.5rem;
           }
           .time-unit {
-            min-width: 100px;
-            padding: 1rem 0.5rem;
+            min-width: 70px;
+            padding: 0.5rem 0.25rem;
+            border-radius: 10px;
+          }
+          .digits-container {
+            gap: 0px;
           }
           .digit-wrapper {
-            width: 28px;
-            height: 42px;
+            width: 18px;
+            height: 28px;
+            border-radius: 4px;
           }
           .digit {
-            height: 42px;
-            font-size: 1.5rem;
+            height: 28px;
+            font-size: 1.1rem;
+          }
+          .time-label {
+            font-size: 0.7rem;
           }
           .countdown-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
           }
         }
         .expired-message {
