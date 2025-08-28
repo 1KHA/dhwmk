@@ -37,3 +37,11 @@
 - **API Refinements:** API routes were continuously updated to support new features and fix bugs related to data model mismatches. Secure, role-based endpoints were created for participant-specific actions.
 - **Event Registration System:** The event registration system was enhanced to provide administrators with better visibility and control over participant registrations. This included adding a feature to display registration counts alongside event capacity and implementing a comprehensive registration management interface.
 - **Prisma Client Workaround:** When implementing the event registrations API, we encountered TypeScript issues with the Prisma client not recognizing the model names. We resolved this by using Prisma's raw SQL query methods instead of the model methods, which provided more flexibility but required careful handling of the returned data types.
+- **Registration Form Enhancement (August 2025):** Updated the registration form to use new Arabic questions from `signup.csv`, requiring database schema updates and field mapping to maintain backward compatibility.
+- **Vercel Deployment Issues (August 2025):** Resolved critical build errors preventing Vercel deployment by adding `export const dynamic = 'force-dynamic';` to API routes that use database connections or cookies. This prevents Next.js from attempting static generation during build time.
+
+## 5. Recent Fixes & Improvements
+- **Database Schema Updates:** Added new fields to Participant model to accommodate CSV-based questions while maintaining backward compatibility
+- **Build Configuration:** Enhanced Prisma client configuration with better error handling and graceful disconnection
+- **Deployment Configuration:** Created `vercel.json` with proper function timeout settings and Prisma-specific environment variables
+- **API Route Optimization:** Fixed multiple API routes to prevent static generation issues during build process
