@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { teamId } = await req.json();
+    // Ensure we're in a runtime environment, not build time
+    if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+
+    const { teamId } = await request.json();
 
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
@@ -29,3 +34,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to delete team' }, { status: 500 });
   }
 }
+
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
