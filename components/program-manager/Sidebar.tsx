@@ -20,7 +20,7 @@ import {
   BookOpen,
   BarChart,
   Briefcase,
-  Handshake
+  Users2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -66,7 +66,7 @@ const navItems = [
   { 
     name: "جدولة الجلسات", 
     href: "/program-manager-dashboard/sessions", 
-    icon: Handshake,
+    icon: Users2,
     permission: { category: 'mentorship', action: 'view' }
   },
   { 

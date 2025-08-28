@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Create notification for team members about rejection
     try {
-      const template = NotificationTemplates.teamRejection(team.teamName);
+      const template = NotificationTemplates.teamRejection(team.teamName || 'فريقك');
       await notifyTeamMembers(
         teamId,
         template.title,

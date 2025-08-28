@@ -28,7 +28,7 @@ export async function GET() {
     console.log('Token decoded successfully:', decoded);
     const mentorId = decoded.id;
 
-    const availabilities = await prisma.MentorAvailability.findMany({
+    const availabilities = await prisma.mentorAvailability.findMany({
       where: { mentorId },
       orderBy: { startTime: 'asc' },
     });
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Start time and end time are required' }, { status: 400 });
     }
 
-    const newAvailability = await prisma.MentorAvailability.create({
+    const newAvailability = await prisma.mentorAvailability.create({
       data: {
         startTime: new Date(startTime),
         endTime: new Date(endTime),

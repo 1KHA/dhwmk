@@ -16,7 +16,7 @@ import {
 import { useTheme } from "next-themes"
 
 export default function Header() {
-  const { user, signOut } = useAuth()
+  const { user, logout } = useAuth()
   const router = useRouter()
   const { setTheme, theme } = useTheme()
 
@@ -54,7 +54,7 @@ export default function Header() {
                 تبديل المظهر
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>
+              <DropdownMenuItem onClick={logout}>
                 تسجيل الخروج
               </DropdownMenuItem>
             </DropdownMenuContent>

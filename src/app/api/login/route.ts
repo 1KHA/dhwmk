@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if team is approved
-      if (participant.team.status !== 'approved') {
+      if (!participant.team || participant.team.status !== 'approved') {
         return NextResponse.json(
           { error: 'Your team is not yet approved' },
           { status: 401 }
-        );
+        )
       }
 
       // Generate JWT token for participant

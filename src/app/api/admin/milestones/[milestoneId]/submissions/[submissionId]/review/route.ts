@@ -72,17 +72,19 @@ export async function POST(
         reviewStatus as 'accepted' | 'rejected'
       );
       
-      await notifyTeamMembers(
-        submissionDetails.participant.teamId,
-        template.title,
-        template.message,
-        template.type,
-        {
-          relatedEntityType: 'milestone_submission',
-          relatedEntityId: submissionId,
-          actionUrl: template.actionUrl,
-        }
-      );
+      if (submissionDetails.participant.teamId) {
+        await notifyTeamMembers(
+          submissionDetails.participant.teamId,
+          template.title,
+          template.message,
+          template.type,
+          {
+            relatedEntityType: 'milestone_submission',
+            relatedEntityId: submissionId,
+            actionUrl: template.actionUrl,
+          }
+        );
+      }
     } catch (notificationError) {
       console.error('Error creating milestone review notifications:', notificationError);
       // Don't fail the review if notification fails

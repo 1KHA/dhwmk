@@ -46,8 +46,9 @@ export async function POST(request: NextRequest) {
 
       // Create passwords for all participants
       for (const participant of team.participants) {
-        // Get last 4 digits of phone number
-        const lastFourDigits = participant.phoneNumber.slice(-4)
+        // Get last 4 digits of phone number, fallback to default if null
+        const phoneNumber = participant.phoneNumber || '0000'
+        const lastFourDigits = phoneNumber.slice(-4)
         const hashedPassword = await bcrypt.hash(lastFourDigits, 10)
 
         // Update participant with password
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Create notification for team members about approval
     try {
-      const template = NotificationTemplates.teamApproval(team.teamName);
+      const template = NotificationTemplates.teamApproval(team.teamName || 'فريقك');
       await notifyTeamMembers(
         teamId,
         template.title,
