@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
 import { notifyTeamMembers, NotificationTemplates } from '@/lib/notifications'
 
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

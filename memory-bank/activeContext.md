@@ -1,38 +1,54 @@
-# Active Context: Global Event Export Enhancement
+# Active Context: Registration Form Update & Vercel Deployment Fixes
 
 ## 1. Current Work Focus
-The current focus is on enhancing the event management system, specifically adding a global export feature that allows administrators to export all events and all participants to a single UTF-8 Excel-compatible CSV file.
+The current focus is on two main areas:
+1. **Registration Form Enhancement:** Updating the team registration form to use new CSV-based questions from `signup.csv`
+2. **Vercel Deployment Fixes:** Resolving build errors that prevent successful deployment to Vercel
 
 ## 2. Recent Changes
-- **Global Export Functionality:** 
-  - Implemented a new `handleExportAllEvents` function in the admin events page that:
-    - Fetches all events and their registrations
-    - Combines the data into a comprehensive CSV with 18 columns covering all event and participant details
-    - Adds UTF-8 BOM (`\uFEFF`) for proper Arabic text display in Excel
-    - Properly escapes cells containing commas, quotes, or newlines
-    - Downloads the file as "جميع-الفعاليات-والمشاركين.csv"
-- **Admin Events Page Updates:**
-  - Added a new button labeled "تصدير جميع الفعاليات والمشاركين (Excel)" in the main actions area
-  - Implemented loading state for the export button that shows "جاري التصدير..." with a spinner
-  - Added tooltip explaining the purpose of the button
-- **CSV Structure and Content:**
-  - Included comprehensive event details: name, type, description, date, start/end times, location, status, plan, facilitator, capacity
-  - Included complete participant details: name, email, phone, team ID, leader status, registration status, registration date
-  - For events with no participants, included a row with just event details
-  - For events with participants, included a row for each participant with both event and participant details
-  - Ensured all statuses are properly localized (including the "absent" status)
+
+### Registration Form Updates
+- **CSV Integration:** Successfully integrated new Arabic questions from `signup.csv` into the registration form
+- **Database Schema Updates:** Added new fields to the Participant model to accommodate CSV questions:
+  - `fullName`, `contactNumber`, `gender`, `isUniversityStudent`, `universityMajor`, `university`, `professionalField`, `city`, `canAttendHackathon`, `hackathonTrack`, `participateAsTeam`, `ideaDescription`, `hearAboutUs`
+- **Form Field Mapping:** Updated registration form to map new CSV fields to database structure
+- **Prisma Migration:** Created and applied migration `20250828105113_add_csv_fields` to update database schema
+
+### Vercel Deployment Fixes
+- **API Route Dynamic Configuration:** Added `export const dynamic = 'force-dynamic';` to multiple API routes to prevent static generation during build:
+  - `/api/admin/delete-team/route.ts`
+  - `/api/admin/approve-team/route.ts` 
+  - `/api/admin/reject-team/route.ts`
+  - `/api/register-team/route.ts`
+- **Prisma Configuration Enhancement:** Updated `src/lib/prisma.ts` with better logging and graceful disconnection handling
+- **Vercel Configuration:** Created `vercel.json` with proper function timeout settings and Prisma-specific environment variables
+- **Build Error Resolution:** Fixed TypeScript compilation errors related to null checks in notification systems
 
 ## 3. Next Steps
-All requested features for the global event export are now complete. The system is stable. Future work could involve:
-- Adding email notifications for registration status changes
-- Implementing a waitlist feature for events that reach capacity
-- Adding a bulk registration management feature for admins
-- Enhancing the export feature to include filtering options (by date range, event type, etc.)
-- Adding the ability to export in different formats (e.g., Excel XLSX)
+- **Test Registration Form:** Verify that the updated registration form works correctly with new CSV questions
+- **Verify Vercel Deployment:** Confirm that the build fixes resolve the deployment issues
+- **Form Validation:** Ensure all new form fields have proper validation
+- **Admin Dashboard Updates:** Update admin interfaces to display new participant data fields
+- **Data Migration:** Consider migrating existing participant data to new schema format
 
 ## 4. Key Learnings & Patterns
-- **Raw SQL vs. Prisma Client:** When working with the event registrations API, we encountered TypeScript issues with the Prisma client not recognizing the model names. We resolved this by using Prisma's raw SQL query methods (`$queryRaw` and `$executeRaw`) instead of the model methods. This approach provided more flexibility but required careful handling of the returned data types.
-- **Dialog-Based UI for Complex Operations:** The registrations management dialog demonstrates an effective pattern for handling complex operations in a modal context. It includes search, filtering, and action capabilities all within a single dialog, providing a focused interface for managing registrations.
-- **Dynamic Data Fetching:** The admin events page now fetches registration counts for each event after loading the events list. This two-step data fetching pattern allows us to display additional information without modifying the existing API endpoints.
-- **Batch Processing for Global Export:** The global export feature demonstrates an effective pattern for batch processing data from multiple API endpoints. It fetches all events first, then iteratively fetches registrations for each event, combining the data into a single comprehensive export. This approach is scalable and can handle large datasets efficiently.
-- **CSV Generation with Special Character Handling:** The implementation includes proper handling of special characters in CSV generation, including escaping cells with commas, quotes, or newlines. This ensures the exported data is correctly formatted and can be opened in Excel without issues.
+
+### Vercel Build Issues Resolution
+- **Dynamic Route Configuration:** The key to resolving Vercel build errors was adding `export const dynamic = 'force-dynamic';` to API routes that use database connections or cookies. This prevents Next.js from trying to statically generate these routes during build time.
+- **Prisma Build-Time Handling:** Enhanced Prisma client configuration with proper error handling and graceful disconnection to prevent build-time database connection issues.
+- **Environment Variable Checks:** Added database availability checks in production builds to handle cases where DATABASE_URL might not be available during build time.
+
+### Database Schema Evolution
+- **Backward Compatibility:** When adding new fields to existing models, used nullable fields with default values to maintain compatibility with existing data.
+- **Field Mapping Strategy:** Implemented temporary mapping from new CSV fields to existing database structure while maintaining data integrity.
+- **Migration Best Practices:** Used descriptive migration names and ensured migrations are reversible.
+
+### Form Enhancement Patterns
+- **CSV-Driven Forms:** Demonstrated effective pattern for updating forms based on external CSV specifications while maintaining existing functionality.
+- **Progressive Enhancement:** Added new fields without breaking existing registration flow, allowing for gradual rollout of new features.
+- **Data Validation:** Maintained robust validation while accommodating new field requirements.
+
+## 5. Technical Debt & Considerations
+- **Field Mapping:** Current implementation maps new CSV fields to old database structure - consider refactoring for cleaner data model
+- **Form Complexity:** Registration form is becoming complex with multiple question sets - consider breaking into steps or sections
+- **Data Consistency:** Need to ensure all admin interfaces can handle both old and new data formats during transition period

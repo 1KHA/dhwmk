@@ -5,6 +5,9 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications'
 
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
