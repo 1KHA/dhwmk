@@ -194,140 +194,188 @@ export default function RegisterTeamPage() {
     updateFn: (field: keyof Participant, value: string | boolean) => void,
     prefix: string
   ) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <Label htmlFor={`${prefix}-fullName`}>الاسم كاملًا</Label>
+        <Label htmlFor={`${prefix}-fullName`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          الاسم كاملًا
+        </Label>
         <Input 
           id={`${prefix}-fullName`} 
           required 
           value={participant.fullName} 
-          onChange={(e) => updateFn('fullName', e.target.value)} 
+          onChange={(e) => updateFn('fullName', e.target.value)}
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-contactNumber`}>رقم التواصل</Label>
+        <Label htmlFor={`${prefix}-contactNumber`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          رقم التواصل
+        </Label>
         <Input 
           id={`${prefix}-contactNumber`} 
           type="tel" 
           required 
           value={participant.contactNumber} 
           onChange={(e) => updateFn('contactNumber', e.target.value)} 
-          dir="ltr" 
+          dir="ltr"
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-email`}>البريد الإلكتروني</Label>
+        <Label htmlFor={`${prefix}-email`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          البريد الإلكتروني
+        </Label>
         <Input 
           id={`${prefix}-email`} 
           type="email" 
           required 
           value={participant.email} 
           onChange={(e) => updateFn('email', e.target.value)} 
-          dir="ltr" 
+          dir="ltr"
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label>الجنس المتقدم: ذكر أم أنثى؟</Label>
+        <Label className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          الجنس المتقدم: ذكر أم أنثى؟
+        </Label>
         <Select required onValueChange={(value) => updateFn('gender', value)} value={participant.gender}>
-          <SelectTrigger>
+          <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
             <SelectValue placeholder="اختر الجنس..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="male">ذكر</SelectItem>
-            <SelectItem value="female">أنثى</SelectItem>
+            <SelectItem value="male" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>ذكر</SelectItem>
+            <SelectItem value="female" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>أنثى</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <Checkbox 
           id={`${prefix}-isUniversityStudent`} 
           checked={participant.isUniversityStudent} 
-          onCheckedChange={(checked: boolean | 'indeterminate') => updateFn('isUniversityStudent', !!checked)} 
+          onCheckedChange={(checked: boolean | 'indeterminate') => updateFn('isUniversityStudent', !!checked)}
+          className="border-[#620F10] data-[state=checked]:bg-[#620F10]"
         />
-        <Label htmlFor={`${prefix}-isUniversityStudent`}>هل أنت طالب في الجامعة؟</Label>
+        <Label htmlFor={`${prefix}-isUniversityStudent`} className="text-base cursor-pointer" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          هل أنت طالب في الجامعة؟
+        </Label>
       </div>
       <div>
-        <Label htmlFor={`${prefix}-universityMajor`}>اذكر تخصصك الجامعي</Label>
+        <Label htmlFor={`${prefix}-universityMajor`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          اذكر تخصصك الجامعي
+        </Label>
         <Input 
           id={`${prefix}-universityMajor`} 
           required 
           value={participant.universityMajor} 
-          onChange={(e) => updateFn('universityMajor', e.target.value)} 
+          onChange={(e) => updateFn('universityMajor', e.target.value)}
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-university`}>اذكر جامعتك</Label>
+        <Label htmlFor={`${prefix}-university`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          اذكر جامعتك
+        </Label>
         <Input 
           id={`${prefix}-university`} 
           required 
           value={participant.university} 
-          onChange={(e) => updateFn('university', e.target.value)} 
+          onChange={(e) => updateFn('university', e.target.value)}
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-professionalField`}>ماهو مجالك المهني؟</Label>
+        <Label htmlFor={`${prefix}-professionalField`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          ماهو مجالك المهني؟
+        </Label>
         <Input 
           id={`${prefix}-professionalField`} 
           required 
           value={participant.professionalField} 
-          onChange={(e) => updateFn('professionalField', e.target.value)} 
+          onChange={(e) => updateFn('professionalField', e.target.value)}
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
       <div>
-        <Label htmlFor={`${prefix}-city`}>المدينة</Label>
+        <Label htmlFor={`${prefix}-city`} className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          المدينة
+        </Label>
         <Input 
           id={`${prefix}-city`} 
           required 
           value={participant.city} 
-          onChange={(e) => updateFn('city', e.target.value)} 
+          onChange={(e) => updateFn('city', e.target.value)}
+          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <Checkbox 
           id={`${prefix}-canAttendHackathon`} 
           checked={participant.canAttendHackathon} 
-          onCheckedChange={(checked: boolean | 'indeterminate') => updateFn('canAttendHackathon', !!checked)} 
+          onCheckedChange={(checked: boolean | 'indeterminate') => updateFn('canAttendHackathon', !!checked)}
+          className="border-[#620F10] data-[state=checked]:bg-[#620F10]"
         />
-        <Label htmlFor={`${prefix}-canAttendHackathon`}>هل تستطيع التواجد خلال فترة الهاكاثون في مقر - جامعة دار الحكمة؟</Label>
+        <Label htmlFor={`${prefix}-canAttendHackathon`} className="text-base cursor-pointer" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+          هل تستطيع التواجد خلال فترة الهاكاثون في مقر - جامعة دار الحكمة؟
+        </Label>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#620F10' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
       {/* Header Image Section */}
       <div className="w-full">
         <img src="/header.png" alt="Header" className="w-full h-auto" />
       </div>
       
       {/* Form Section */}
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>نموذج تسجيل المشاركين</CardTitle>
-            <CardDescription>سجل للمشاركة في الهاكاثون</CardDescription>
+      <div className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center pb-8 pt-10">
+            <CardTitle className="text-4xl font-bold mb-4" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+              نموذج تسجيل المشاركين
+            </CardTitle>
+            <CardDescription className="text-xl" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+              سجل للمشاركة في الهاكاثون وكن جزءًا من التغيير
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-10 pb-10">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Registration Type Selection */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold border-b pb-2">نوع المشاركة</h3>
+              <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
+                <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                  نوع المشاركة
+                </h3>
                 <div>
-                  <Label>هل ستشارك كفريق؟</Label>
+                  <Label className="text-lg font-medium mb-4 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                    هل ستشارك كفريق؟
+                  </Label>
                   <RadioGroup 
                     required 
                     value={formState.registrationType} 
                     onValueChange={handleRegistrationTypeChange} 
-                    className="flex space-x-4 mt-2"
+                    className="flex flex-col sm:flex-row gap-6 mt-4"
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="individual" id="individual" />
-                      <Label htmlFor="individual">مشاركة فردية</Label>
+                    <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#620F10] transition-colors">
+                      <RadioGroupItem value="individual" id="individual" className="border-[#620F10]" />
+                      <Label htmlFor="individual" className="text-lg cursor-pointer" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                        مشاركة فردية
+                      </Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="team" id="team" />
-                      <Label htmlFor="team">مشاركة كفريق</Label>
+                    <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#620F10] transition-colors">
+                      <RadioGroupItem value="team" id="team" className="border-[#620F10]" />
+                      <Label htmlFor="team" className="text-lg cursor-pointer" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                        مشاركة كفريق
+                      </Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -335,22 +383,32 @@ export default function RegisterTeamPage() {
 
               {/* Hackathon Track Selection - Show for both individual and team */}
               {formState.registrationType && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold border-b pb-2">مسار الهاكاثون</h3>
+                <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
+                  <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                    مسار الهاكاثون
+                  </h3>
                   <div>
-                    <Label>أي مسار من مسارات الهاكاثون؟</Label>
+                    <Label className="text-lg font-medium mb-4 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      أي مسار من مسارات الهاكاثون؟
+                    </Label>
                     <Select 
                       required 
                       onValueChange={(value) => handleStateChange('hackathonTrack', value)} 
                       value={formState.hackathonTrack}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-12 text-lg border-2 border-gray-200 focus:border-[#620F10]" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                         <SelectValue placeholder="اختر المسار..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="arabic-language">إحياء اللغة العربية بحلول رقمية مبتكرة</SelectItem>
-                        <SelectItem value="elderly-blind">تحسين جودة الحياة لكبار السن والمكفوفين</SelectItem>
-                        <SelectItem value="religious-tourism">تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)</SelectItem>
+                        <SelectItem value="arabic-language" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          إحياء اللغة العربية بحلول رقمية مبتكرة
+                        </SelectItem>
+                        <SelectItem value="elderly-blind" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          تحسين جودة الحياة لكبار السن والمكفوفين
+                        </SelectItem>
+                        <SelectItem value="religious-tourism" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -359,70 +417,92 @@ export default function RegisterTeamPage() {
 
               {/* Team Information - Only show if team registration */}
               {formState.registrationType === 'team' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold border-b pb-2">معلومات الفريق</h3>
+                <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
+                  <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                    معلومات الفريق
+                  </h3>
                   
                   <div>
-                    <Label htmlFor="team-name">اسم الفريق</Label>
+                    <Label htmlFor="team-name" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      اسم الفريق
+                    </Label>
                     <Input 
                       id="team-name" 
                       required 
                       value={formState.teamName} 
-                      onChange={(e) => handleStateChange('teamName', e.target.value)} 
+                      onChange={(e) => handleStateChange('teamName', e.target.value)}
+                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="idea-description">صف الفكرة</Label>
+                    <Label htmlFor="idea-description" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      صف الفكرة
+                    </Label>
                     <Textarea 
                       id="idea-description" 
                       required 
                       value={formState.ideaDescription} 
                       onChange={(e) => handleStateChange('ideaDescription', e.target.value)} 
                       rows={4}
+                      className="border-2 border-gray-200 focus:border-[#620F10] rounded-lg resize-none"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="hear-about-us">من أين سمعت عنا</Label>
+                    <Label htmlFor="hear-about-us" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      من أين سمعت عنا
+                    </Label>
                     <Input 
                       id="hear-about-us" 
                       required 
                       value={formState.hearAboutUs} 
-                      onChange={(e) => handleStateChange('hearAboutUs', e.target.value)} 
+                      onChange={(e) => handleStateChange('hearAboutUs', e.target.value)}
+                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="member-count">عدد أعضاء الفريق (شامل القائد)</Label>
+                    <Label htmlFor="member-count" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      عدد أعضاء الفريق (شامل القائد)
+                    </Label>
                     <Select value={String(formState.memberCount)} onValueChange={handleMemberCountChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="3">3 أعضاء</SelectItem>
-                        <SelectItem value="4">4 أعضاء</SelectItem>
-                        <SelectItem value="5">5 أعضاء</SelectItem>
+                        <SelectItem value="3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>3 أعضاء</SelectItem>
+                        <SelectItem value="4" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>4 أعضاء</SelectItem>
+                        <SelectItem value="5" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>5 أعضاء</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="attachments-file">إضافة مرفقات (اختياري)</Label>
+                    <Label htmlFor="attachments-file" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      إضافة مرفقات (اختياري)
+                    </Label>
                     <Input 
                       id="attachments-file" 
                       type="file" 
-                      onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} 
+                      onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)}
+                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#620F10] file:text-white hover:file:bg-[#4a0c0d]"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">ارفاق المتوفر من شعار، ملف تعريفي، الخ.</p>
+                    <p className="text-sm mt-2" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                      ارفاق المتوفر من شعار، ملف تعريفي، الخ.
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Participant Information */}
               {formState.registrationType && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold border-b pb-2">
+                <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
+                  <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
                     {formState.registrationType === 'team' ? 'معلومات قائد الفريق' : 'معلوماتك الشخصية'}
                   </h3>
                   {renderParticipantFields(formState.leaderInfo, handleLeaderChange, 'leader')}
@@ -431,30 +511,44 @@ export default function RegisterTeamPage() {
 
               {/* Team Members Information - Only show if team registration */}
               {formState.registrationType === 'team' && formState.memberCount > 1 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold border-b pb-2">معلومات أعضاء الفريق</h3>
+                <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
+                  <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                    معلومات أعضاء الفريق
+                  </h3>
                   {formState.members.slice(0, formState.memberCount - 1).map((member: Participant, index: number) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-4">
-                      <h4 className="font-medium text-lg">العضو {index + 1}</h4>
+                    <div key={index} className="bg-white p-6 border-2 border-gray-200 rounded-xl space-y-4 shadow-sm">
+                      <h4 className="font-bold text-xl mb-4" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                        العضو {index + 1}
+                      </h4>
                       {renderParticipantFields(member, (field, value) => handleMemberChange(index, field, value), `member-${index}`)}
                     </div>
                   ))}
                 </div>
               )}
               
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="terms" 
-                  required 
-                  checked={formState.agreeToTerms} 
-                  onCheckedChange={(checked) => handleStateChange('agreeToTerms', !!checked)} 
-                />
-                <Label htmlFor="terms">أوافق على الشروط والأحكام</Label>
+              <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <Checkbox 
+                    id="terms" 
+                    required 
+                    checked={formState.agreeToTerms} 
+                    onCheckedChange={(checked) => handleStateChange('agreeToTerms', !!checked)}
+                    className="border-[#620F10] data-[state=checked]:bg-[#620F10]"
+                  />
+                  <Label htmlFor="terms" className="text-lg cursor-pointer" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                    أوافق على الشروط والأحكام
+                  </Label>
+                </div>
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full text-lg py-3" 
+                className="w-full text-xl py-4 font-bold rounded-xl transition-all duration-300 hover:shadow-lg disabled:opacity-50" 
+                style={{ 
+                  backgroundColor: '#620F10', 
+                  fontFamily: 'Somar-Bold, Arial, sans-serif',
+                  border: 'none'
+                }}
                 disabled={isSubmitting || !formState.agreeToTerms || !formState.registrationType}
               >
                 {isSubmitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
