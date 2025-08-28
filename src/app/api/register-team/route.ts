@@ -9,20 +9,18 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
-    const formState = {
-        teamName: formData.get('teamName') as string,
-        challenge: formData.get('challenge') as string,
-        challengeReason: formData.get('challengeReason') as string,
-        ideaName: formData.get('ideaName') as string,
-        ideaDescription: formData.get('ideaDescription') as string,
-        ideaSolution: formData.get('ideaSolution') as string,
-        ideaResults: formData.get('ideaResults') as string,
-        ideaStage: formData.get('ideaStage') as string,
-        hasParticipated: formData.get('hasParticipated') === 'true',
-        participationDetails: formData.get('participationDetails') as string,
-        leaderInfo: JSON.parse(formData.get('leaderInfo') as string || '{}'),
-        members: JSON.parse(formData.get('members') as string || '[]'),
-    };
+    const registrationType = formData.get('registrationType') as string;
+    const isTeamRegistration = formData.get('isTeamRegistration') === 'true';
+    
+    // Parse participant data
+    const leaderInfo = JSON.parse(formData.get('leaderInfo') as string || '{}');
+    const members = isTeamRegistration ? JSON.parse(formData.get('members') as string || '[]') : [];
+    
+    // Team-specific data
+    const teamName = isTeamRegistration ? formData.get('teamName') as string : null;
+    const hackathonTrack = isTeamRegistration ? formData.get('hackathonTrack') as string : null;
+    const ideaDescription = isTeamRegistration ? formData.get('ideaDescription') as string : null;
+    const hearAboutUs = isTeamRegistration ? formData.get('hearAboutUs') as string : null;
     
     const attachmentFile = formData.get('attachment') as File | null;
     let attachmentPath: string | null = null;
@@ -42,15 +40,19 @@ export async function POST(request: NextRequest) {
         attachmentPath = `/uploads/${filename}`;
     }
 
-    const { teamName, challenge, challengeReason, ideaName, ideaDescription, ideaSolution, ideaResults, ideaStage, hasParticipated, participationDetails, leaderInfo, members } = formState;
-
     // Basic validation
-    if (!leaderInfo || !leaderInfo.email || !teamName || !challenge || !ideaName) {
-      return NextResponse.json({ error: 'Required fields are missing from the form submission.' }, { status: 400 })
+    if (!leaderInfo || !leaderInfo.email || !leaderInfo.fullName) {
+      return NextResponse.json({ error: 'Required participant fields are missing.' }, { status: 400 })
     }
     
-    if (teamName && (!members || members.length < 2 || members.length > 5)) {
-      return NextResponse.json({ error: 'A team must have between 2 and 5 members.' }, { status: 400 })
+    if (isTeamRegistration) {
+      if (!teamName || !hackathonTrack || !ideaDescription) {
+        return NextResponse.json({ error: 'Required team fields are missing.' }, { status: 400 })
+      }
+      
+      if (!members || members.length < 2 || members.length > 4) {
+        return NextResponse.json({ error: 'A team must have between 3 and 5 members total (including leader).' }, { status: 400 })
+      }
     }
 
     // Check if any email already exists
@@ -69,37 +71,68 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
+      // Create team record (even for individual registrations)
       const team = await tx.team.create({
         data: {
-          teamName: teamName || '',
+          teamName: teamName || `Individual - ${leaderInfo.fullName}`,
           status: 'pending',
-          challenge: challenge || '',
-          challengeReason: challengeReason || '',
-          ideaName: ideaName || '',
+          challenge: hackathonTrack || '',
+          challengeReason: '',
+          ideaName: teamName || `Individual - ${leaderInfo.fullName}`,
           ideaDescription: ideaDescription || '',
-          ideaSolution: ideaSolution || '',
-          ideaResults: ideaResults || '',
-          ideaStage: ideaStage || '',
-          hasParticipated: hasParticipated || false,
-          participationDetails: participationDetails || null,
-          attachmentPath,
+          ideaSolution: '',
+          ideaResults: '',
+          ideaStage: 'idea',
+          hasParticipated: false,
+          participationDetails: hearAboutUs || '',
+          attachmentPath: attachmentPath,
         },
       });
       const teamId = team.id;
 
+      // Create leader/individual participant
       await tx.participant.create({
         data: {
-          ...leaderInfo,
-          isLeader: true,
+          // Map new CSV fields to old structure temporarily
+          firstName: leaderInfo.fullName || '',
+          secondName: '',
+          familyName: '',
+          nationalId: '',
+          dob: '',
+          email: leaderInfo.email,
+          phoneNumber: leaderInfo.contactNumber || '',
+          education: leaderInfo.universityMajor || '',
+          university: leaderInfo.university || '',
+          major: leaderInfo.universityMajor || '',
+          employmentStatus: leaderInfo.professionalField || '',
+          nationality: leaderInfo.gender || '',
+          residence: leaderInfo.city || '',
+          canAttend: leaderInfo.canAttendHackathon || false,
+          isLeader: isTeamRegistration,
           teamId: teamId,
         },
       });
 
-      if (members && members.length > 0) {
+      // Create team members if it's a team registration
+      if (isTeamRegistration && members && members.length > 0) {
         for (const member of members) {
           await tx.participant.create({
             data: {
-              ...member,
+              // Map new CSV fields to old structure temporarily
+              firstName: member.fullName || '',
+              secondName: '',
+              familyName: '',
+              nationalId: '',
+              dob: '',
+              email: member.email,
+              phoneNumber: member.contactNumber || '',
+              education: member.universityMajor || '',
+              university: member.university || '',
+              major: member.universityMajor || '',
+              employmentStatus: member.professionalField || '',
+              nationality: member.gender || '',
+              residence: member.city || '',
+              canAttend: member.canAttendHackathon || false,
               isLeader: false,
               teamId: teamId,
             },
@@ -107,10 +140,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return { teamId, teamName };
+      return { teamId, teamName: teamName || `Individual - ${leaderInfo.fullName}` };
     })
 
-    // Create notification for admins about new team registration
+    // Create notification for admins about new registration
     try {
       const template = NotificationTemplates.newTeamRegistration(result.teamName);
       await notifyAllAdmins(
@@ -131,15 +164,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Team registration submitted successfully',
+        message: `${isTeamRegistration ? 'Team' : 'Individual'} registration submitted successfully`,
         teamId: result.teamId,
       },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Error registering team:', error)
+    console.error('Error registering:', error)
     return NextResponse.json(
-      { error: 'Failed to register team' },
+      { error: 'Failed to register' },
       { status: 500 }
     )
   }

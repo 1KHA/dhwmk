@@ -12,49 +12,67 @@ datasource db {
 
 model Team {
   id                   String    @id @default(cuid())
-  teamName             String
+  teamName             String?
   status               String    @default("pending") // pending, approved, rejected
-  challenge            String
-  challengeReason      String
-  ideaName             String
-  ideaDescription      String
-  ideaSolution         String
-  ideaResults          String
-  ideaStage            String
-  attachmentsLink      String?
-  hasParticipated      Boolean
-  participationDetails String?
+  hackathonTrack       String?   // NEW: أي مسار من مسارات الهاكاثون؟
+  ideaDescription      String?   // SIMPLIFIED: صف الفكرة
+  hearAboutUs          String?   // NEW: من أين سمعت عنا
+  isTeamRegistration   Boolean   @default(true) // NEW: distinguish team vs individual
   attachmentPath       String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   participants         Participant[]
+  
+  // DEPRECATED FIELDS - Keep for backward compatibility
+  challenge            String?
+  challengeReason      String?
+  ideaName             String?
+  ideaSolution         String?
+  ideaResults          String?
+  ideaStage            String?
+  attachmentsLink      String?
+  hasParticipated      Boolean?
+  participationDetails String?
 }
 
 model Participant {
-  id               String                @id @default(cuid())
-  firstName        String
-  secondName       String
-  familyName       String
-  nationalId       String
-  dob              String
-  email            String                @unique
-  phoneNumber      String
-  education        String
-  university       String
-  major            String
-  employmentStatus String
-  nationality      String
-  residence        String
-  canAttend        Boolean
-  isLeader         Boolean               @default(false)
-  passwordHash     String?
-  teamId           String
-  team             Team                  @relation(fields: [teamId], references: [id])
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  bookings         MentorBooking[]
-  submissions      MilestoneSubmission[]
-  eventRegistrations EventRegistration[]
+  id                   String                @id @default(cuid())
+  // NEW CSV-based fields
+  fullName             String?               // الاسم كاملًا
+  contactNumber        String?               // رقم التواصل
+  gender               String?               // الجنس المتقدم: ذكر أم أنثى؟
+  isUniversityStudent  Boolean?              // هل أنت طالب في الجامعة؟
+  universityMajor      String?               // اذكر تخصصك الجامعي
+  professionalField    String?               // ماهو مجالك المهني؟
+  city                 String?               // المدينة
+  canAttendHackathon   Boolean?              // هل تستطيع التواجد خلال فترة الهاكاثون؟
+  
+  // Core fields
+  email                String                @unique
+  university           String?               // اذكر جامعتك
+  isLeader             Boolean               @default(false)
+  passwordHash         String?
+  teamId               String?               // Make optional for individual participants
+  team                 Team?                 @relation(fields: [teamId], references: [id])
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  bookings             MentorBooking[]
+  submissions          MilestoneSubmission[]
+  eventRegistrations   EventRegistration[]
+  
+  // DEPRECATED FIELDS - Keep for backward compatibility
+  firstName            String?
+  secondName           String?
+  familyName           String?
+  nationalId           String?
+  dob                  String?
+  phoneNumber          String?
+  education            String?
+  major                String?
+  employmentStatus     String?
+  nationality          String?
+  residence            String?
+  canAttend            Boolean?
 }
 
 model Admin {
