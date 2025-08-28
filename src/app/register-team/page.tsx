@@ -240,15 +240,15 @@ export default function RegisterTeamPage() {
       </div>
       <div>
         <Label className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
-          الجنس المتقدم: ذكر أم أنثى؟
+        جنس المتقدم
         </Label>
         <Select required onValueChange={(value) => updateFn('gender', value)} value={participant.gender}>
-          <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+          <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }} dir="rtl">
             <SelectValue placeholder="اختر الجنس..." />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="male" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>ذكر</SelectItem>
-            <SelectItem value="female" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>أنثى</SelectItem>
+          <SelectContent className="text-right" dir="rtl">
+            <SelectItem value="male" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>ذكر</SelectItem>
+            <SelectItem value="female" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>أنثى</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -396,17 +396,17 @@ export default function RegisterTeamPage() {
                       onValueChange={(value) => handleStateChange('hackathonTrack', value)} 
                       value={formState.hackathonTrack}
                     >
-                      <SelectTrigger className="h-12 text-lg border-2 border-gray-200 focus:border-[#620F10]" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                      <SelectTrigger className="h-12 text-lg border-2 border-gray-200 focus:border-[#620F10] text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }} dir="rtl">
                         <SelectValue placeholder="اختر المسار..." />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="arabic-language" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                      <SelectContent className="text-right" dir="rtl">
+                        <SelectItem value="arabic-language" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           إحياء اللغة العربية بحلول رقمية مبتكرة
                         </SelectItem>
-                        <SelectItem value="elderly-blind" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                        <SelectItem value="elderly-blind" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           تحسين جودة الحياة لكبار السن والمكفوفين
                         </SelectItem>
-                        <SelectItem value="religious-tourism" className="text-lg py-3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                        <SelectItem value="religious-tourism" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)
                         </SelectItem>
                       </SelectContent>
@@ -470,13 +470,13 @@ export default function RegisterTeamPage() {
                       عدد أعضاء الفريق (شامل القائد)
                     </Label>
                     <Select value={String(formState.memberCount)} onValueChange={handleMemberCountChange}>
-                      <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                      <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }} dir="rtl">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>3 أعضاء</SelectItem>
-                        <SelectItem value="4" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>4 أعضاء</SelectItem>
-                        <SelectItem value="5" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>5 أعضاء</SelectItem>
+                      <SelectContent className="text-right" dir="rtl">
+                        <SelectItem value="3" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>3 أعضاء</SelectItem>
+                        <SelectItem value="4" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>4 أعضاء</SelectItem>
+                        <SelectItem value="5" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>5 أعضاء</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
