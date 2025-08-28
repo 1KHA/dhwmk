@@ -10,13 +10,22 @@ const FAQSection = dynamic(() => import("@/components/ui/faq-section"), { ssr: f
 export default function HomePage() {
   const router = useRouter();
   const [topPosition, setTopPosition] = useState("20%");
+  const [countdownTopPosition, setCountdownTopPosition] = useState("12%");
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1125) {
+      if (window.innerWidth < 768) {
         setTopPosition("9%");
+        setCountdownTopPosition("6%");
+      } else if (window.innerWidth <= 945) {
+        setTopPosition("9%");
+        setCountdownTopPosition("11%");
+      } else if (window.innerWidth < 1125) {
+        setTopPosition("9%");
+        setCountdownTopPosition("8%");
       } else {
         setTopPosition("15%");
+        setCountdownTopPosition("12%");
       }
     };
 
@@ -39,7 +48,7 @@ export default function HomePage() {
       <div
         style={{
           position: "absolute",
-          top: "12%",
+          top: countdownTopPosition,
           left: 0,
           width: "100%",
           display: "flex",

@@ -181,32 +181,132 @@ export default function CountdownTimer({
             transform: translateY(0) scale(1);
           }
         }
-        @media (max-width: 640px) {
+        @media (max-width: 1125px) {
+          .countdown-container {
+            max-width: 600px;
+          }
           .countdown-grid {
-            gap: 0.5rem;
+            gap: 1rem;
           }
           .time-unit {
-            min-width: 70px;
-            padding: 0.5rem 0.25rem;
+            min-width: 90px;
+            padding: 1rem 0.75rem;
+            border-radius: 12px;
+          }
+          .digit-wrapper {
+            width: 24px;
+            height: 36px;
+          }
+          .digit {
+            height: 36px;
+            font-size: 1.4rem;
+          }
+          .time-label {
+            font-size: 0.8rem;
+          }
+        }
+        @media (max-width: 768px) {
+          .countdown-container {
+            max-width: 500px;
+          }
+          .countdown-grid {
+            gap: 0.75rem;
+          }
+          .time-unit {
+            min-width: 80px;
+            padding: 0.75rem 0.5rem;
             border-radius: 10px;
+          }
+          .digit-wrapper {
+            width: 20px;
+            height: 32px;
+          }
+          .digit {
+            height: 32px;
+            font-size: 1.2rem;
+          }
+          .time-label {
+            font-size: 0.75rem;
+          }
+        }
+        @media (max-width: 640px) {
+          .countdown-container {
+            max-width: 300px;
+          }
+          .countdown-grid {
+            gap: 0.3rem;
+          }
+          .time-unit {
+            min-width: 55px;
+            padding: 0.4rem 0.2rem;
+            border-radius: 6px;
           }
           .digits-container {
             gap: 0px;
+            margin-bottom: 0.3rem;
           }
           .digit-wrapper {
-            width: 18px;
-            height: 28px;
-            border-radius: 4px;
+            width: 14px;
+            height: 22px;
+            border-radius: 3px;
           }
           .digit {
-            height: 28px;
-            font-size: 1.1rem;
+            height: 22px;
+            font-size: 0.85rem;
           }
           .time-label {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
           }
           .countdown-title {
-            font-size: 1rem;
+            font-size: 0.9rem;
+          }
+        }
+        @media (max-width: 480px) {
+          .countdown-container {
+            max-width: 280px;
+          }
+          .countdown-grid {
+            gap: 0.2rem;
+          }
+          .time-unit {
+            min-width: 50px;
+            padding: 0.3rem 0.15rem;
+            border-radius: 5px;
+          }
+          .digit-wrapper {
+            width: 12px;
+            height: 18px;
+          }
+          .digit {
+            height: 18px;
+            font-size: 0.75rem;
+          }
+          .time-label {
+            font-size: 0.55rem;
+          }
+        }
+        @media (max-width: 375px) {
+          .countdown-container {
+            max-width: 250px;
+          }
+          .countdown-grid {
+            gap: 0.15rem;
+          }
+          .time-unit {
+            min-width: 45px;
+            padding: 0.25rem 0.1rem;
+            border-radius: 4px;
+          }
+          .digit-wrapper {
+            width: 10px;
+            height: 16px;
+          }
+          .digit {
+            height: 16px;
+            font-size: 0.7rem;
+          }
+          .time-label {
+            font-size: 0.5rem;
           }
         }
         .expired-message {
