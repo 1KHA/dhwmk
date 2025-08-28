@@ -241,8 +241,15 @@ export default function RegisterTeamPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen" style={{ backgroundColor: '#620F10' }}>
+      {/* Header Image Section */}
+      <div className="w-full">
+        <img src="/header.png" alt="Header" className="w-full h-auto" />
+      </div>
+      
+      {/* Form Section */}
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>نموذج تسجيل المشاركين</CardTitle>
@@ -383,6 +390,7 @@ export default function RegisterTeamPage() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   )
