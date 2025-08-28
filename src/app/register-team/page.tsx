@@ -57,23 +57,30 @@ export default function RegisterTeamPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  const [formState, setFormState] = useState(() => {
-    if (typeof window === 'undefined') {
-      return initialFormState
-    }
+  // Initialize with default state to prevent hydration issues
+  const [formState, setFormState] = useState<FormState>(initialFormState)
+
+  // Load from localStorage after component mounts
+  useEffect(() => {
+    setMounted(true)
     try {
       const savedState = localStorage.getItem('registrationForm')
-      return savedState ? JSON.parse(savedState) : initialFormState
+      if (savedState) {
+        setFormState(JSON.parse(savedState))
+      }
     } catch (error) {
       console.error('Failed to parse form state from localStorage', error)
-      return initialFormState
     }
-  })
+  }, [])
 
+  // Save to localStorage when form state changes (only after mounted)
   useEffect(() => {
-    localStorage.setItem('registrationForm', JSON.stringify(formState))
-  }, [formState])
+    if (mounted) {
+      localStorage.setItem('registrationForm', JSON.stringify(formState))
+    }
+  }, [formState, mounted])
 
   const handleStateChange = (field: keyof FormState, value: any) => {
     setFormState((prev: FormState) => ({ ...prev, [field]: value }))
@@ -114,7 +121,6 @@ export default function RegisterTeamPage() {
       ...prev,
       registrationType: value,
       teamName: value === 'individual' ? '' : prev.teamName,
-      hackathonTrack: value === 'individual' ? '' : prev.hackathonTrack,
       ideaDescription: value === 'individual' ? '' : prev.ideaDescription,
       hearAboutUs: value === 'individual' ? '' : prev.hearAboutUs,
     }))
@@ -130,9 +136,11 @@ export default function RegisterTeamPage() {
     formData.append('registrationType', formState.registrationType)
     formData.append('isTeamRegistration', formState.registrationType === 'team' ? 'true' : 'false')
     
+    // Hackathon track is required for both individual and team
+    formData.append('hackathonTrack', formState.hackathonTrack)
+    
     if (formState.registrationType === 'team') {
       formData.append('teamName', formState.teamName)
-      formData.append('hackathonTrack', formState.hackathonTrack)
       formData.append('ideaDescription', formState.ideaDescription)
       formData.append('hearAboutUs', formState.hearAboutUs)
       formData.append('memberCount', formState.memberCount.toString())
@@ -325,21 +333,10 @@ export default function RegisterTeamPage() {
                 </div>
               </div>
 
-              {/* Team Information - Only show if team registration */}
-              {formState.registrationType === 'team' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold border-b pb-2">معلومات الفريق</h3>
-                  
-                  <div>
-                    <Label htmlFor="team-name">اسم الفريق</Label>
-                    <Input 
-                      id="team-name" 
-                      required 
-                      value={formState.teamName} 
-                      onChange={(e) => handleStateChange('teamName', e.target.value)} 
-                    />
-                  </div>
-
+              {/* Hackathon Track Selection - Show for both individual and team */}
+              {formState.registrationType && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold border-b pb-2">مسار الهاكاثون</h3>
                   <div>
                     <Label>أي مسار من مسارات الهاكاثون؟</Label>
                     <Select 
@@ -356,6 +353,23 @@ export default function RegisterTeamPage() {
                         <SelectItem value="religious-tourism">تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+              )}
+
+              {/* Team Information - Only show if team registration */}
+              {formState.registrationType === 'team' && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold border-b pb-2">معلومات الفريق</h3>
+                  
+                  <div>
+                    <Label htmlFor="team-name">اسم الفريق</Label>
+                    <Input 
+                      id="team-name" 
+                      required 
+                      value={formState.teamName} 
+                      onChange={(e) => handleStateChange('teamName', e.target.value)} 
+                    />
                   </div>
 
                   <div>

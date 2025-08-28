@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     
     // Team-specific data
     const teamName = isTeamRegistration ? formData.get('teamName') as string : null;
-    const hackathonTrack = isTeamRegistration ? formData.get('hackathonTrack') as string : null;
+    const hackathonTrack = formData.get('hackathonTrack') as string; // Required for both individual and team
     const ideaDescription = isTeamRegistration ? formData.get('ideaDescription') as string : null;
     const hearAboutUs = isTeamRegistration ? formData.get('hearAboutUs') as string : null;
     
@@ -45,8 +45,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Required participant fields are missing.' }, { status: 400 })
     }
     
+    // Hackathon track is required for both individual and team registrations
+    if (!hackathonTrack) {
+      return NextResponse.json({ error: 'Hackathon track selection is required.' }, { status: 400 })
+    }
+    
     if (isTeamRegistration) {
-      if (!teamName || !hackathonTrack || !ideaDescription) {
+      if (!teamName || !ideaDescription) {
         return NextResponse.json({ error: 'Required team fields are missing.' }, { status: 400 })
       }
       
