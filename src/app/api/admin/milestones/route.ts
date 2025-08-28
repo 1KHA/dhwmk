@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { randomUUID } from "crypto";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
+
 // Define the Milestone type
 type MilestoneFromDB = {
   id: string;

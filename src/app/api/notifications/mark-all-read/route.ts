@@ -3,6 +3,9 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { markAllNotificationsAsRead } from '@/lib/notifications';
 
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 interface JWTPayload {

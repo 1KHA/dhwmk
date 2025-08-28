@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
+// Ensure this route is dynamic
+export const dynamic = 'force-dynamic';
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function GET() {
