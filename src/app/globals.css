@@ -240,3 +240,8 @@ html[dir="rtl"] .rounded-l-none {
   border-top-right-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
 }
+
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+}

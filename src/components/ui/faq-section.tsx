@@ -121,7 +121,7 @@ const defaultFAQData: FAQCategory[] = [
 
 export default function FAQSection({
   title = "الأسئلة الشائعة",
-  titleColor = "#620F10",
+  titleColor = "#3CD1EE",
   iconPath = "/Path 19188.png",
   faqData = defaultFAQData,
 }: FAQSectionProps) {
@@ -142,7 +142,7 @@ export default function FAQSection({
       {/* Main FAQ Title */}
       <div className="faq-header">
         <div className="title-with-icon">
-          <h2 className="faq-title" style={{ color: titleColor }}>
+          <h2 className="faq-title" style={{ color: "#620F10" }}>
             {title}
           </h2>
           <img
@@ -301,7 +301,7 @@ export default function FAQSection({
         }
 
         .question-text {
-          font-size: 1.1rem;
+          font-size: 1.2rem;
           font-weight: 500;
           color: #620F10;
           font-family: 'Somar-Bold', 'Arial', sans-serif;

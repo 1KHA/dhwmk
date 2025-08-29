@@ -161,7 +161,7 @@ export default function HomePage() {
       />
       {/* Full background image */}
       <img
-        src="/dh04.png"
+        src="/dhnew01.png"
         alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
         style={{
           width: "100%",
