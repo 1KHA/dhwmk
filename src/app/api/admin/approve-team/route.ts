@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { PrismaClient } from '@prisma/client'
 import { notifyTeamMembers, NotificationTemplates } from '@/lib/notifications'
 
 // Ensure this route is dynamic
@@ -40,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update team status and create passwords for participants
-    await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
+    await prisma.$transaction(async (tx) => {
       // Update team status to approved
       await tx.team.update({
         where: { id: teamId },
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
       // Create passwords for all participants
       for (const participant of team.participants) {
         // Get last 4 digits of phone number, fallback to default if null
-        const phoneNumber = participant.phoneNumber || '0000'
+        const phoneNumber = participant.phoneNumber || participant.contactNumber || '0000'
         const lastFourDigits = phoneNumber.slice(-4)
         const hashedPassword = await bcrypt.hash(lastFourDigits, 10)
 
