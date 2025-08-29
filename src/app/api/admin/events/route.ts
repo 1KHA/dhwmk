@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "crypto";
 
+export const dynamic = 'force-dynamic';
+
 // Define the Event type
 type EventFromDB = {
   id: string;
