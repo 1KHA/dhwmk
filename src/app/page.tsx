@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import Head from "next/head";
 
 const CountdownTimer = dynamic(() => import("@/components/ui/countdown-timer"), { ssr: false });
 const ImageCarousel = dynamic(() => import("@/components/ui/image-carousel"), { ssr: false });
@@ -42,8 +43,82 @@ export default function HomePage() {
   const handleYellowBoxClick = () => {
     router.push('/register-team');
   };
+
+  // Add structured data for SEO
+  useEffect(() => {
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "جائزة مايدة محي الدين ناظر للابتكار 3",
+      "description": "تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية، توفر جائزة مايـدة محي الديـــن ناظـــر للابتكــــار هاكاثون الابتكار فرصة للعمل ضمن فرق تنافسية على تطوير حلول مبتكرة تسهم في تعزيز الاستدامة وجودة الحيـاة",
+      "organizer": {
+        "@type": "Organization",
+        "name": "جامعة دار الحكمة",
+        "url": "https://dah.edu.sa"
+      },
+      "location": {
+        "@type": "Place",
+        "name": "جامعة دار الحكمة",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "جدة",
+          "addressCountry": "SA"
+        }
+      },
+      "keywords": [
+        "جائزة مايدة محي الدين ناظر للابتكار 3",
+        "جائزة مايدة محي الدين ناظر للابتكار",
+        "جائزة مايدة",
+        "هاكاثون الابتكار",
+        "دار الحكمة",
+        "جامعة دار الحكمة",
+        "تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية",
+        "الاستدامة",
+        "جودة الحياة"
+      ],
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "url": "https://dar-alhekma.dyam.dev/"
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup: remove the script when component unmounts
+      const scripts = document.head.querySelectorAll('script[type="application/ld+json"]');
+      scripts.forEach(s => {
+        if (s.textContent?.includes('جائزة مايدة محي الدين ناظر للابتكار 3')) {
+          document.head.removeChild(s);
+        }
+      });
+    };
+  }, []);
+
   return (
     <div style={{ width: "100%", minHeight: "100vh", position: "relative", margin: 0, padding: 0 }}>
+      {/* SEO Content - Hidden but readable by search engines */}
+      <div style={{ 
+        position: "absolute", 
+        left: "-9999px", 
+        width: "1px", 
+        height: "1px", 
+        overflow: "hidden" 
+      }}>
+        <h1>جائزة مايدة محي الدين ناظر للابتكار 3</h1>
+        <h2>هاكاثون الابتكار في جامعة دار الحكمة</h2>
+        <p>
+          تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية، توفر جائزة مايـدة محي الديـــن ناظـــر للابتكــــار 
+          هاكاثون الابتكار فرصة للعمل ضمن فرق تنافسية على تطوير حلول مبتكرة تسهم في تعزيز الاستدامة وجودة الحيـاة 
+          في جامعة دار الحكمة. انضم إلى هاكاثون الابتكار واكتشف قدراتك في الابتكار والتطوير.
+        </p>
+        <p>
+          دار الحكمة تستضيف جائزة مايدة محي الدين ناظر للابتكار 3، حيث يلتقي الطلاب المبدعون من مختلف الجامعات 
+          للمشاركة في تحدي الابتكار وتطوير حلول مستدامة تخدم المجتمع وتحسن جودة الحياة.
+        </p>
+      </div>
       {/* Countdown overlay at top center */}
       <div
         style={{
@@ -87,7 +162,7 @@ export default function HomePage() {
       {/* Full background image */}
       <img
         src="/dh04.png"
-        alt="Full Background Image"
+        alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
         style={{
           width: "100%",
           maxWidth: "none",

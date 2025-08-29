@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /register-team
+Allow: /login
+
+Disallow: /admin-login
+Disallow: /admin-hackton-dashboard/
+Disallow: /api/
+Disallow: /participant-dashboard/
+Disallow: /mentor-dashboard/
+
+Sitemap: https://dar-alhekma.dyam.dev/sitemap.xml

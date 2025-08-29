@@ -6,11 +6,64 @@ import { Toaster } from "@/../../components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://dar-alhekma.dyam.dev'),
   title: "جائزة مايدة محي الدين ناظر للابتكار 3",
-  description: "منصة شاملة لإدارة فعاليات الهاكاثون",
+  description: "تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية، توفر جائزة مايـدة محي الديـــن ناظـــر للابتكــــار هاكاثون الابتكار فرصة للعمل ضمن فرق تنافسية على تطوير حلول مبتكرة تسهم في تعزيز الاستدامة وجودة الحيـاة في جامعة دار الحكمة",
+  keywords: [
+    "جائزة مايدة محي الدين ناظر للابتكار 3",
+    "هاكاثون الابتكار",
+    "دار الحكمة",
+    "جامعة دار الحكمة",
+    "تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية",
+    "الاستدامة",
+    "جودة الحياة",
+    "الابتكار الجامعي",
+    "فرق تنافسية",
+    "حلول مبتكرة"
+  ],
+  authors: [{ name: "جامعة دار الحكمة" }],
+  creator: "جامعة دار الحكمة",
+  publisher: "جامعة دار الحكمة",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    title: "جائزة مايدة محي الدين ناظر للابتكار 3",
+    description: "هاكاثون الابتكار في جامعة دار الحكمة: تحدي يجمع طلبة الجامعات لاستكشاف وتوظيف الابتكارات الجامعية وتطوير حلول مبتكرة تسهم في تعزيز الاستدامة وجودة الحياة",
+    url: "https://dar-alhekma.dyam.dev/",
+    siteName: "جائزة مايدة محي الدين ناظر للابتكار 3",
+    images: [
+      {
+        url: "/main.png",
+        width: 1200,
+        height: 630,
+        alt: "جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
+      }
+    ],
+    locale: "ar_SA",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "جائزة مايدة محي الدين ناظر للابتكار 3",
+    description: "هاكاثون الابتكار في جامعة دار الحكمة",
+    images: ["/main.png"],
+    creator: "@DAHUniversity"
+  },
   icons: {
     icon: "/favicon.ico",
   },
+  alternates: {
+    canonical: "https://dar-alhekma.dyam.dev/",
+  }
 };
 
 export default function RootLayout({
