@@ -6,8 +6,11 @@ import { Toaster } from "@/../../components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "منصة إدارة الهاكاثون",
+  title: "جائزة مايدة محي الدين ناظر للابتكار 3",
   description: "منصة شاملة لإدارة فعاليات الهاكاثون",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
