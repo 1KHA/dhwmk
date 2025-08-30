@@ -243,12 +243,15 @@ export default function HomePage() {
       
       {/* Footer Image */}
       <div className="w-full">
-        <img 
-          src="/footer.png" 
-          alt="Footer" 
-          className="w-full h-auto"
-          style={{ display: "block" }}
-        />
+        <picture>
+          <source media="(max-width: 520px)" srcSet="/mobfot.png" />
+          <img 
+            src="/footer.png" 
+            alt="Footer" 
+            className="w-full h-auto"
+            style={{ display: "block" }}
+          />
+        </picture>
       </div>
       </div>
     </>
