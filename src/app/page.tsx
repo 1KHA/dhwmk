@@ -8,6 +8,7 @@ import Loader from "@/components/ui/loader";
 const CountdownTimer = dynamic(() => import("@/components/ui/countdown-timer"), { ssr: false });
 const ImageCarousel = dynamic(() => import("@/components/ui/image-carousel"), { ssr: false });
 const FAQSection = dynamic(() => import("@/components/ui/faq-section"), { ssr: false });
+const MasarMobileSection = dynamic(() => import("@/components/ui/masar-mobile-section"), { ssr: false });
 
 export default function HomePage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function HomePage() {
       if (window.innerWidth < 520) {
         // Mobile phones (320-519px)
         setTopPosition("5%");
-        setCountdownTopPosition("6%");
+        setCountdownTopPosition("19%");
       } else if (window.innerWidth < 720) {
         // Large phones / Small tablets (520-719px)
         setTopPosition("6%");
@@ -224,6 +225,8 @@ export default function HomePage() {
           }}
         />
       </picture>
+      {/* Mobile-only Masar Section */}
+      <MasarMobileSection />
       {/* Image Carousel below the background */}
       <ImageCarousel />
       {/* FAQ Section below the carousel */}
