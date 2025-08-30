@@ -75,7 +75,7 @@ export default function RegisterTeamPage() {
         setShowLoader(false);
         setContentVisible(true);
       }, 300); // Wait for loader fade out to complete
-    }, 1000); // 1 second
+    }, 1500); // 1.5 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -583,6 +583,16 @@ export default function RegisterTeamPage() {
           </CardContent>
         </Card>
         </div>
+      </div>
+      
+      {/* Footer Image */}
+      <div className="w-full">
+        <img 
+          src="/footer.png" 
+          alt="Footer" 
+          className="w-full h-auto"
+          style={{ display: "block" }}
+        />
       </div>
       </div>
     </>

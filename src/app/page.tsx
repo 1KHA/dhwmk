@@ -33,18 +33,43 @@ export default function HomePage() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setTopPosition("9%");
+      // Manual breakpoints for each 200px range from smallest to largest
+      if (window.innerWidth < 520) {
+        // Mobile phones (320-519px)
+        setTopPosition("5%");
         setCountdownTopPosition("6%");
-      } else if (window.innerWidth <= 945) {
-        setTopPosition("9%");
-        setCountdownTopPosition("11%");
-      } else if (window.innerWidth < 1125) {
+      } else if (window.innerWidth < 720) {
+        // Large phones / Small tablets (520-719px)
+        setTopPosition("6%");
+        setCountdownTopPosition("7%");
+      } else if (window.innerWidth < 920) {
+        // Tablets (720-919px)
+        setTopPosition("7%");
+        setCountdownTopPosition("7%");
+      } else if (window.innerWidth < 1120) {
+        // Small laptops (920-1119px)
+        setTopPosition("8%");
+        setCountdownTopPosition("8%");
+      } else if (window.innerWidth < 1320) {
+        // Medium laptops (1120-1319px)
         setTopPosition("9%");
         setCountdownTopPosition("8%");
+      } else if (window.innerWidth < 1520) {
+        // Large laptops (1320-1519px)
+        setTopPosition("10%");
+        setCountdownTopPosition("9%");
+      } else if (window.innerWidth < 1720) {
+        // Desktop monitors (1520-1719px)
+        setTopPosition("12%");
+        setCountdownTopPosition("10%");
+      } else if (window.innerWidth < 1920) {
+        // Large desktop monitors (1720-1919px)
+        setTopPosition("14%");
+        setCountdownTopPosition("9%");
       } else {
+        // Ultra-wide monitors (1920px+)
         setTopPosition("15%");
-        setCountdownTopPosition("12%");
+        setCountdownTopPosition("10%");
       }
     };
 
@@ -200,6 +225,16 @@ export default function HomePage() {
       <ImageCarousel />
       {/* FAQ Section below the carousel */}
       <FAQSection />
+      
+      {/* Footer Image */}
+      <div className="w-full">
+        <img 
+          src="/footer.png" 
+          alt="Footer" 
+          className="w-full h-auto"
+          style={{ display: "block" }}
+        />
+      </div>
       </div>
     </>
   );
