@@ -144,9 +144,78 @@ export default function RegisterTeamPage() {
     }))
   }
 
+  // Email validation function
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Validation function to check if all required fields are filled
+  const isFormValid = () => {
+    // Check registration type and hackathon track
+    if (!formState.registrationType || !formState.hackathonTrack || !formState.agreeToTerms) {
+      return false
+    }
+
+    // Check team fields if team registration
+    if (formState.registrationType === 'team') {
+      if (!formState.teamName.trim() || !formState.ideaDescription.trim() || !formState.hearAboutUs.trim()) {
+        return false
+      }
+    }
+
+    // Check leader info
+    const leader = formState.leaderInfo
+    if (!leader.fullName.trim() || leader.contactNumber.length !== 10 || !leader.email.trim() || 
+        !isValidEmail(leader.email) || !leader.gender || !leader.universityMajor.trim() || 
+        !leader.university.trim() || !leader.professionalField.trim() || !leader.city.trim()) {
+      return false
+    }
+
+    // Check team members if team registration
+    if (formState.registrationType === 'team') {
+      for (let i = 0; i < formState.memberCount - 1; i++) {
+        const member = formState.members[i]
+        if (!member.fullName.trim() || member.contactNumber.length !== 10 || !member.email.trim() || 
+            !isValidEmail(member.email) || !member.gender || !member.universityMajor.trim() || 
+            !member.university.trim() || !member.professionalField.trim() || !member.city.trim()) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+
+    // Validate phone numbers are exactly 10 digits
+    if (formState.leaderInfo.contactNumber.length !== 10) {
+      toast({
+        title: 'خطأ في رقم التواصل',
+        description: 'يجب أن يكون رقم التواصل مكون من 10 أرقام بالضبط',
+        variant: 'destructive',
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Validate team members' phone numbers if team registration
+    if (formState.registrationType === 'team') {
+      for (let i = 0; i < formState.memberCount - 1; i++) {
+        if (formState.members[i].contactNumber.length !== 10) {
+          toast({
+            title: 'خطأ في رقم التواصل',
+            description: `يجب أن يكون رقم التواصل للعضو ${i + 1} مكون من 10 أرقام بالضبط`,
+            variant: 'destructive',
+          })
+          setIsSubmitting(false)
+          return
+        }
+      }
+    }
 
     const formData = new FormData()
     
@@ -222,7 +291,7 @@ export default function RegisterTeamPage() {
           required 
           value={participant.fullName} 
           onChange={(e) => updateFn('fullName', e.target.value)}
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.fullName.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
@@ -235,10 +304,14 @@ export default function RegisterTeamPage() {
           type="tel" 
           required 
           value={participant.contactNumber} 
-          onChange={(e) => updateFn('contactNumber', e.target.value)} 
+          onChange={(e) => {
+            const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10)
+            updateFn('contactNumber', digitsOnly)
+          }} 
           dir="ltr"
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.contactNumber.length === 10 ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
+          placeholder="0501234567"
         />
       </div>
       <div>
@@ -252,8 +325,9 @@ export default function RegisterTeamPage() {
           value={participant.email} 
           onChange={(e) => updateFn('email', e.target.value)} 
           dir="ltr"
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.email.trim() && isValidEmail(participant.email) ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
+          placeholder="example@email.com"
         />
       </div>
       <div>
@@ -261,7 +335,7 @@ export default function RegisterTeamPage() {
         جنس المتقدم
         </Label>
         <Select required onValueChange={(value) => updateFn('gender', value)} value={participant.gender}>
-          <SelectTrigger className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }} dir="rtl">
+          <SelectTrigger className={`h-11 border-2 ${participant.gender ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg text-right`} style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }} dir="rtl">
             <SelectValue placeholder="اختر الجنس..." />
           </SelectTrigger>
           <SelectContent className="text-right" dir="rtl">
@@ -290,7 +364,7 @@ export default function RegisterTeamPage() {
           required 
           value={participant.universityMajor} 
           onChange={(e) => updateFn('universityMajor', e.target.value)}
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.universityMajor.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
@@ -303,7 +377,7 @@ export default function RegisterTeamPage() {
           required 
           value={participant.university} 
           onChange={(e) => updateFn('university', e.target.value)}
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.university.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
@@ -316,7 +390,7 @@ export default function RegisterTeamPage() {
           required 
           value={participant.professionalField} 
           onChange={(e) => updateFn('professionalField', e.target.value)}
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.professionalField.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
@@ -329,7 +403,7 @@ export default function RegisterTeamPage() {
           required 
           value={participant.city} 
           onChange={(e) => updateFn('city', e.target.value)}
-          className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+          className={`h-11 border-2 ${participant.city.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
           style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
         />
       </div>
@@ -457,7 +531,7 @@ export default function RegisterTeamPage() {
                       required 
                       value={formState.teamName} 
                       onChange={(e) => handleStateChange('teamName', e.target.value)}
-                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      className={`h-11 border-2 ${formState.teamName.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
                       style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
@@ -472,7 +546,7 @@ export default function RegisterTeamPage() {
                       value={formState.ideaDescription} 
                       onChange={(e) => handleStateChange('ideaDescription', e.target.value)} 
                       rows={4}
-                      className="border-2 border-gray-200 focus:border-[#620F10] rounded-lg resize-none"
+                      className={`border-2 ${formState.ideaDescription.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg resize-none`}
                       style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
@@ -486,7 +560,7 @@ export default function RegisterTeamPage() {
                       required 
                       value={formState.hearAboutUs} 
                       onChange={(e) => handleStateChange('hearAboutUs', e.target.value)}
-                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      className={`h-11 border-2 ${formState.hearAboutUs.trim() ? 'border-gray-200 focus:border-[#620F10]' : 'border-red-300 focus:border-red-500'} rounded-lg`}
                       style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                   </div>
@@ -575,7 +649,7 @@ export default function RegisterTeamPage() {
                   fontFamily: 'Somar-Bold, Arial, sans-serif',
                   border: 'none'
                 }}
-                disabled={isSubmitting || !formState.agreeToTerms || !formState.registrationType}
+                disabled={isSubmitting || !isFormValid()}
               >
                 {isSubmitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
               </Button>
