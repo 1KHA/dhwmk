@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Head from "next/head";
+import Loader from "@/components/ui/loader";
 
 const CountdownTimer = dynamic(() => import("@/components/ui/countdown-timer"), { ssr: false });
 const ImageCarousel = dynamic(() => import("@/components/ui/image-carousel"), { ssr: false });
@@ -12,6 +13,23 @@ export default function HomePage() {
   const router = useRouter();
   const [topPosition, setTopPosition] = useState("20%");
   const [countdownTopPosition, setCountdownTopPosition] = useState("12%");
+  const [showLoader, setShowLoader] = useState(true);
+  const [loaderVisible, setLoaderVisible] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false);
+
+  // Loader timer effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaderVisible(false);
+      // Start content fade in after loader starts fading out
+      setTimeout(() => {
+        setShowLoader(false);
+        setContentVisible(true);
+      }, 300); // Wait for loader fade out to complete
+    }, 1500); // 1.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -98,7 +116,15 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", position: "relative", margin: 0, padding: 0 }}>
+    <>
+      {/* Loader with smooth fade out */}
+      {showLoader && <Loader isVisible={loaderVisible} />}
+      
+      {/* Main content with smooth fade in */}
+      <div 
+        className={`transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'}`}
+        style={{ width: "100%", minHeight: "100vh", position: "relative", margin: 0, padding: 0 }}
+      >
       {/* SEO Content - Hidden but readable by search engines */}
       <div style={{ 
         position: "absolute", 
@@ -174,6 +200,7 @@ export default function HomePage() {
       <ImageCarousel />
       {/* FAQ Section below the carousel */}
       <FAQSection />
-    </div>
+      </div>
+    </>
   );
 }

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/../../components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useToast } from '@/../../components/ui/use-toast'
+import Loader from '@/components/ui/loader'
 
 interface Participant {
   fullName: string
@@ -58,9 +59,26 @@ export default function RegisterTeamPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [showLoader, setShowLoader] = useState(true)
+  const [loaderVisible, setLoaderVisible] = useState(true)
+  const [contentVisible, setContentVisible] = useState(false)
 
   // Initialize with default state to prevent hydration issues
   const [formState, setFormState] = useState<FormState>(initialFormState)
+
+  // Loader timer effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaderVisible(false);
+      // Start content fade in after loader starts fading out
+      setTimeout(() => {
+        setShowLoader(false);
+        setContentVisible(true);
+      }, 300); // Wait for loader fade out to complete
+    }, 1000); // 1 second
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Load from localStorage after component mounts
   useEffect(() => {
@@ -330,7 +348,15 @@ export default function RegisterTeamPage() {
   )
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+    <>
+      {/* Loader with smooth fade out */}
+      {showLoader && <Loader isVisible={loaderVisible} />}
+      
+      {/* Main content with smooth fade in */}
+      <div 
+        className={`min-h-screen transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'}`}
+        style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}
+      >
       {/* Header Image Section */}
       <div className="w-full">
         <img src="/header.png" alt="Header" className="w-full h-auto" />
@@ -558,6 +584,7 @@ export default function RegisterTeamPage() {
         </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
