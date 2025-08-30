@@ -210,17 +210,20 @@ export default function HomePage() {
           }
         }}
       />
-      {/* Full background image */}
-      <img
-        src="/dhnew01.png"
-        alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
-        style={{
-          width: "100%",
-          maxWidth: "none",
-          height: "auto",
-          display: "block",
-        }}
-      />
+      {/* Responsive background image */}
+      <picture>
+        <source media="(max-width: 520px)" srcSet="/mobtop.png" />
+        <img
+          src="/dhnew01.png"
+          alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
+          style={{
+            width: "100%",
+            maxWidth: "none",
+            height: "auto",
+            display: "block",
+          }}
+        />
+      </picture>
       {/* Image Carousel below the background */}
       <ImageCarousel />
       {/* FAQ Section below the carousel */}
