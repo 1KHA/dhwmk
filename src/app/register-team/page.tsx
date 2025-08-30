@@ -62,6 +62,7 @@ export default function RegisterTeamPage() {
   const [showLoader, setShowLoader] = useState(true)
   const [loaderVisible, setLoaderVisible] = useState(true)
   const [contentVisible, setContentVisible] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
 
   // Initialize with default state to prevent hydration issues
   const [formState, setFormState] = useState<FormState>(initialFormState)
@@ -252,12 +253,12 @@ export default function RegisterTeamPage() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({
-          title: 'نجح!',
-          description: 'تم إرسال النموذج بنجاح',
-        })
         localStorage.removeItem('registrationForm')
-        router.push('/')
+        setShowCelebration(true)
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          router.push('/')
+        }, 3000)
       } else {
         toast({
           title: 'خطأ',
@@ -423,12 +424,33 @@ export default function RegisterTeamPage() {
 
   return (
     <>
+      {/* Celebration Overlay */}
+      {showCelebration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-12 mx-4 max-w-2xl w-full text-center shadow-2xl animate-in fade-in zoom-in duration-500">
+            <div className="text-8xl mb-6">🎉</div>
+            <h1 className="text-5xl font-bold mb-6" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+              تم التسجيل في التحدي بنجاح
+            </h1>
+            <p className="text-2xl mb-8" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+              شكرًا لك على التسجيل! سيتم التواصل معك قريبًا
+            </p>
+            <div className="flex justify-center space-x-4 text-4xl">
+              <span className="animate-bounce">🎊</span>
+              <span className="animate-bounce delay-100">✨</span>
+              <span className="animate-bounce delay-200">🎉</span>
+              <span className="animate-bounce delay-300">🎈</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loader with smooth fade out */}
       {showLoader && <Loader isVisible={loaderVisible} />}
       
       {/* Main content with smooth fade in */}
       <div 
-        className={`min-h-screen transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`min-h-screen transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'} ${showCelebration ? 'pointer-events-none' : ''}`}
         style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}
       >
       {/* Header Image Section */}
