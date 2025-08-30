@@ -82,10 +82,11 @@ const MasarMobileSection = () => {
           }
           
           .masar-title {
-            width: 80%;
+            width: 60%;
             max-width: 280px;
             height: auto;
             margin: 0 auto;
+            margin-right: 20px;
             display: block;
           }
           
