@@ -37,8 +37,8 @@ export default function HomePage() {
       // Manual breakpoints for each 200px range from smallest to largest
       if (window.innerWidth < 520) {
         // Mobile phones (320-519px)
-        setTopPosition("5%");
-        setCountdownTopPosition("19%");
+        setTopPosition("15%");
+        setCountdownTopPosition("10%");
       } else if (window.innerWidth < 720) {
         // Large phones / Small tablets (520-719px)
         setTopPosition("6%");
@@ -227,6 +227,15 @@ export default function HomePage() {
       </picture>
       {/* Mobile-only Masar Section */}
       <MasarMobileSection />
+      {/* Mobile-only Bottom Image */}
+      <div className="mobile-bottom-image">
+        <img 
+          src="/mobbot.png" 
+          alt="Mobile Bottom" 
+          className="w-full h-auto"
+          style={{ display: "block" }}
+        />
+      </div>
       {/* Image Carousel below the background */}
       <ImageCarousel />
       {/* FAQ Section below the carousel */}

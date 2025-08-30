@@ -245,3 +245,15 @@ html[dir="rtl"] .rounded-l-none {
 html, body {
   overflow-x: hidden;
 }
+
+/* Mobile-only bottom image */
+.mobile-bottom-image {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .mobile-bottom-image {
+    display: block;
+    width: 100%;
+  }
+}
