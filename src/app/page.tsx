@@ -14,6 +14,7 @@ export default function HomePage() {
   const router = useRouter();
   const [topPosition, setTopPosition] = useState("20%");
   const [countdownTopPosition, setCountdownTopPosition] = useState("12%");
+  const [boxHeight, setBoxHeight] = useState("500px");
   const [showLoader, setShowLoader] = useState(true);
   const [loaderVisible, setLoaderVisible] = useState(true);
   const [contentVisible, setContentVisible] = useState(false);
@@ -39,38 +40,47 @@ export default function HomePage() {
         // Mobile phones (320-519px)
         setTopPosition("15%");
         setCountdownTopPosition("10%");
+        setBoxHeight("350px");
       } else if (window.innerWidth < 720) {
         // Large phones / Small tablets (520-719px)
         setTopPosition("6%");
         setCountdownTopPosition("7%");
+        setBoxHeight("400px");
       } else if (window.innerWidth < 920) {
         // Tablets (720-919px)
         setTopPosition("7%");
         setCountdownTopPosition("7%");
+        setBoxHeight("450px");
       } else if (window.innerWidth < 1120) {
         // Small laptops (920-1119px)
         setTopPosition("8%");
         setCountdownTopPosition("8%");
+        setBoxHeight("480px");
       } else if (window.innerWidth < 1320) {
         // Medium laptops (1120-1319px)
         setTopPosition("9%");
         setCountdownTopPosition("8.5%");
+        setBoxHeight("500px");
       } else if (window.innerWidth < 1520) {
         // Large laptops (1320-1519px)
         setTopPosition("10%");
         setCountdownTopPosition("9%");
+        setBoxHeight("500px");
       } else if (window.innerWidth < 1720) {
         // Desktop monitors (1520-1719px)
         setTopPosition("12%");
         setCountdownTopPosition("10%");
+        setBoxHeight("500px");
       } else if (window.innerWidth < 1920) {
         // Large desktop monitors (1720-1919px)
         setTopPosition("14%");
         setCountdownTopPosition("9%");
+        setBoxHeight("500px");
       } else {
         // Ultra-wide monitors (1920px+)
         setTopPosition("15%");
         setCountdownTopPosition("10%");
+        setBoxHeight("500px");
       }
     };
 
@@ -196,7 +206,7 @@ export default function HomePage() {
           top: topPosition,
           right: "1%",
           width: "500px",
-          height: "500px",
+          height: boxHeight,
           zIndex: 5,
           cursor: "pointer",
           backgroundColor: "transparent",
