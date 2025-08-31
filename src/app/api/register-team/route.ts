@@ -84,16 +84,20 @@ export async function POST(request: NextRequest) {
         data: {
           teamName: teamName || `Individual - ${leaderInfo.fullName}`,
           status: 'pending',
+          hackathonTrack: hackathonTrack || '', // Use correct field
+          ideaDescription: ideaDescription || '',
+          hearAboutUs: hearAboutUs || '', // Use correct field
+          isTeamRegistration: isTeamRegistration,
+          attachmentPath: attachmentPath,
+          // Keep deprecated fields for backward compatibility
           challenge: hackathonTrack || '',
           challengeReason: '',
           ideaName: teamName || `Individual - ${leaderInfo.fullName}`,
-          ideaDescription: ideaDescription || '',
           ideaSolution: '',
           ideaResults: '',
           ideaStage: 'idea',
           hasParticipated: false,
           participationDetails: hearAboutUs || '',
-          attachmentPath: attachmentPath,
         },
       });
       const teamId = team.id;
@@ -101,23 +105,32 @@ export async function POST(request: NextRequest) {
       // Create leader/individual participant
       await tx.participant.create({
         data: {
-          // Map new CSV fields to old structure temporarily
+          // Use NEW CSV-based fields (primary)
+          fullName: leaderInfo.fullName || '',
+          contactNumber: leaderInfo.contactNumber || '',
+          email: leaderInfo.email,
+          gender: leaderInfo.gender || '',
+          isUniversityStudent: leaderInfo.isUniversityStudent || false,
+          universityMajor: leaderInfo.universityMajor || '',
+          university: leaderInfo.university || '',
+          professionalField: leaderInfo.professionalField || '',
+          city: leaderInfo.city || '',
+          canAttendHackathon: leaderInfo.canAttendHackathon || false,
+          isLeader: isTeamRegistration,
+          teamId: teamId,
+          // Keep deprecated fields for backward compatibility
           firstName: leaderInfo.fullName || '',
           secondName: '',
           familyName: '',
           nationalId: '',
           dob: '',
-          email: leaderInfo.email,
           phoneNumber: leaderInfo.contactNumber || '',
           education: leaderInfo.universityMajor || '',
-          university: leaderInfo.university || '',
           major: leaderInfo.universityMajor || '',
           employmentStatus: leaderInfo.professionalField || '',
           nationality: leaderInfo.gender || '',
           residence: leaderInfo.city || '',
           canAttend: leaderInfo.canAttendHackathon || false,
-          isLeader: isTeamRegistration,
-          teamId: teamId,
         },
       });
 
@@ -126,23 +139,32 @@ export async function POST(request: NextRequest) {
         for (const member of members) {
           await tx.participant.create({
             data: {
-              // Map new CSV fields to old structure temporarily
+              // Use NEW CSV-based fields (primary)
+              fullName: member.fullName || '',
+              contactNumber: member.contactNumber || '',
+              email: member.email,
+              gender: member.gender || '',
+              isUniversityStudent: member.isUniversityStudent || false,
+              universityMajor: member.universityMajor || '',
+              university: member.university || '',
+              professionalField: member.professionalField || '',
+              city: member.city || '',
+              canAttendHackathon: member.canAttendHackathon || false,
+              isLeader: false,
+              teamId: teamId,
+              // Keep deprecated fields for backward compatibility
               firstName: member.fullName || '',
               secondName: '',
               familyName: '',
               nationalId: '',
               dob: '',
-              email: member.email,
               phoneNumber: member.contactNumber || '',
               education: member.universityMajor || '',
-              university: member.university || '',
               major: member.universityMajor || '',
               employmentStatus: member.professionalField || '',
               nationality: member.gender || '',
               residence: member.city || '',
               canAttend: member.canAttendHackathon || false,
-              isLeader: false,
-              teamId: teamId,
             },
           })
         }
