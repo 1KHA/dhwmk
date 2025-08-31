@@ -199,7 +199,7 @@ export default function ImageCarousel({
           display: flex;
           justify-content: center;
           align-items: center;
-          background: white;
+          background: transparent;
           min-height: 800px;
           position: relative;
           overflow: hidden;
@@ -214,25 +214,30 @@ export default function ImageCarousel({
           max-width: 100vw;
           width: 100%;
           position: relative;
+          background: transparent !important;
         }
 
         .carousel-image {
           position: relative;
           transition: all 0.4s ease-in-out;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
           flex-shrink: 0;
+          background: transparent !important;
+          border: none;
+          box-shadow: none;
+          border-radius: 0;
+          overflow: visible;
         }
 
         .carousel-img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
-          border-radius: 8px;
           pointer-events: none;
           transition: opacity 0.4s ease-in-out;
+          background: transparent !important;
+          border: none;
+          border-radius: 0;
         }
 
         /* Smooth fade animation phases */
@@ -268,7 +273,6 @@ export default function ImageCarousel({
           transform: scale(1) translateY(-40px);
           opacity: 1;
           z-index: 3;
-          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
         }
 
         /* Right Image Styles - 90% of main image size, half visible */
