@@ -120,7 +120,7 @@ export default function CountdownTimer({
           background: #fff2e9;
           backdrop-filter: blur(10px);
           border-radius: 16px;
-          padding: 1.5rem 1rem;
+          padding: 1.0rem 1rem;
           min-width: 120px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.1);
           border: 1px solid #fff2e9;
@@ -140,7 +140,7 @@ export default function CountdownTimer({
         }
         .digit-wrapper {
           position: relative;
-          width: 32px;
+          width: 24px;
           height: 48px;
           overflow: hidden;
           background: transparent;
@@ -165,7 +165,7 @@ export default function CountdownTimer({
           font-family: 'Somar-Bold', 'Arial', sans-serif;
         }
         .time-label {
-          font-size: 0.9rem;
+          font-size: 1.5rem;
           color: #666;
           font-weight: 500;
           font-family: 'Somar-Bold', 'Arial', sans-serif;
