@@ -86,18 +86,14 @@ const reducer = (state: State, action: Action): State => {
       if (toastId === undefined) {
         return {
           ...state,
-          toasts: state.toasts.map((t) => ({
-            ...t,
-          })),
+          toasts: [],
         }
       }
 
-      // Dismiss a specific toast
+      // Dismiss a specific toast by removing it from the array
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId ? { ...t } : t
-        ),
+        toasts: state.toasts.filter((t) => t.id !== toastId),
       }
     }
 
@@ -159,6 +155,11 @@ function toast({ ...props }: Toast) {
       variant: props.variant || "default",
     },
   })
+
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    dismiss()
+  }, 5000)
 
   return {
     id,

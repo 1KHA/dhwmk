@@ -15,8 +15,6 @@ const TIME_UNITS = [
   { key: "seconds", label: "ثانية" },
 ];
 
-const DIGIT_HEIGHT = 48; // px, must match CSS
-
 function getTimeLeft(target: Date) {
   const now = new Date();
   const distance = target.getTime() - now.getTime();
@@ -78,7 +76,7 @@ export default function CountdownTimer({
                         <div
                           className="digit-column"
                           style={{
-                            transform: `translateY(-${digit * DIGIT_HEIGHT}px)`,
+                            transform: `translateY(calc(-${digit} * var(--digit-height)))`,
                             transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1)",
                           }}
                         >
@@ -107,6 +105,7 @@ export default function CountdownTimer({
           width: 100%;
           margin: 0 auto;
           background: rgba(255,255,255,0.0);
+          --digit-height: 48px;
         }
         .countdown-title {
           display: none;
@@ -184,6 +183,7 @@ export default function CountdownTimer({
         @media (max-width: 1125px) {
           .countdown-container {
             max-width: 600px;
+            --digit-height: 36px;
           }
           .countdown-grid {
             gap: 1rem;
@@ -208,6 +208,7 @@ export default function CountdownTimer({
         @media (max-width: 768px) {
           .countdown-container {
             max-width: 500px;
+            --digit-height: 32px;
           }
           .countdown-grid {
             gap: 0.75rem;
@@ -232,6 +233,7 @@ export default function CountdownTimer({
         @media (max-width: 640px) {
           .countdown-container {
             max-width: 300px;
+            --digit-height: 22px;
           }
           .countdown-grid {
             gap: 0.3rem;
@@ -264,6 +266,7 @@ export default function CountdownTimer({
         @media (max-width: 480px) {
           .countdown-container {
             max-width: 280px;
+            --digit-height: 18px;
           }
           .countdown-grid {
             gap: 0.2rem;
@@ -288,6 +291,7 @@ export default function CountdownTimer({
         @media (max-width: 375px) {
           .countdown-container {
             max-width: 250px;
+            --digit-height: 16px;
           }
           .countdown-grid {
             gap: 0.15rem;

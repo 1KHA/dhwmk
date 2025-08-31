@@ -54,7 +54,7 @@ export default function HomePage() {
       } else if (window.innerWidth < 1320) {
         // Medium laptops (1120-1319px)
         setTopPosition("9%");
-        setCountdownTopPosition("8%");
+        setCountdownTopPosition("8.5%");
       } else if (window.innerWidth < 1520) {
         // Large laptops (1320-1519px)
         setTopPosition("10%");
