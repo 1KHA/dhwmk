@@ -251,7 +251,7 @@ export default function FAQSection({
         .faq-category:nth-child(5) { animation-delay: 0.7s; }
 
         .category-title {
-          font-size: 1.5rem;
+          font-size: 32px;
           font-weight: bold;
           margin: 0 0 2rem 0;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -290,7 +290,7 @@ export default function FAQSection({
         }
 
         .question-text {
-          font-size: 18px;
+          font-size: 28px;
           font-weight: 500;
           color: #620F10;
           font-family: 'Somar-Bold', 'Arial', sans-serif;
@@ -331,7 +331,7 @@ export default function FAQSection({
         }
 
         .answer-text {
-          font-size: 1rem;
+          font-size: 1.5rem;
           line-height: 1.6;
           color: #620F10;
           font-family: 'Somar-Light', 'Arial', sans-serif;

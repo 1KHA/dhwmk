@@ -158,14 +158,14 @@ export default function CountdownTimer({
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.8rem;
+          font-size: 2.5rem;
           font-weight: bold;
           color: #761814;
           text-shadow: 0 1px 2px rgba(0,0,0,0.1);
           font-family: 'Somar-Bold', 'Arial', sans-serif;
         }
         .time-label {
-          font-size: 1.5rem;
+          font-size: 1.9rem;
           color: #666;
           font-weight: 500;
           font-family: 'Somar-Bold', 'Arial', sans-serif;
