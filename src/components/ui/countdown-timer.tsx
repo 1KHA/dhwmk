@@ -162,11 +162,13 @@ export default function CountdownTimer({
           font-weight: bold;
           color: #761814;
           text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+          font-family: 'Somar-Bold', 'Arial', sans-serif;
         }
         .time-label {
           font-size: 0.9rem;
           color: #666;
           font-weight: 500;
+          font-family: 'Somar-Bold', 'Arial', sans-serif;
         }
         @keyframes fadeInUp {
           to {
@@ -202,7 +204,7 @@ export default function CountdownTimer({
             font-size: 1.4rem;
           }
           .time-label {
-            font-size: 0.8rem;
+            font-size: 1rem;
           }
         }
         @media (max-width: 768px) {
@@ -257,7 +259,7 @@ export default function CountdownTimer({
             font-size: 0.85rem;
           }
           .time-label {
-            font-size: 0.6rem;
+            font-size: 1rem;
           }
           .countdown-title {
             font-size: 0.9rem;
@@ -282,10 +284,10 @@ export default function CountdownTimer({
           }
           .digit {
             height: 18px;
-            font-size: 0.75rem;
+            font-size: 0.9rem;
           }
           .time-label {
-            font-size: 0.55rem;
+            font-size: 0.8rem;
           }
         }
         @media (max-width: 375px) {
@@ -320,6 +322,7 @@ export default function CountdownTimer({
           text-shadow: 0 2px 4px rgba(0,0,0,0.3);
           opacity: 0;
           animation: fadeInUp 1s ease-out forwards;
+          font-family: 'Somar-Bold', 'Arial', sans-serif;
         }
       `}</style>
     </div>

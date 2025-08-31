@@ -290,7 +290,7 @@ export default function FAQSection({
         }
 
         .question-text {
-          font-size: 1.2rem;
+          font-size: 18px;
           font-weight: 500;
           color: #620F10;
           font-family: 'Somar-Bold', 'Arial', sans-serif;
@@ -393,7 +393,7 @@ export default function FAQSection({
           }
 
           .question-text {
-            font-size: 1rem;
+            font-size: 18px;
           }
 
           .answer-container {
@@ -437,7 +437,7 @@ export default function FAQSection({
           }
 
           .question-text {
-            font-size: 0.95rem;
+            font-size: 18px;
           }
 
           .arrow-icon {

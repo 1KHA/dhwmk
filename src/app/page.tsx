@@ -223,7 +223,7 @@ export default function HomePage() {
       />
       {/* Responsive background image */}
       <picture>
-        <source media="(max-width: 520px)" srcSet="/mobtop.png" />
+        <source media="(max-width: 520px)" srcSet="/mobtop02.png" />
         <img
           src="/dhnew01.png"
           alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
