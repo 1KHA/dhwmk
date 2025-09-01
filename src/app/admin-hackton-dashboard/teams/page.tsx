@@ -70,8 +70,14 @@ export default function TeamsPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [editedTeam, setEditedTeam] = useState<Partial<Team> | null>(null);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+  
+  // Advanced filter states
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [trackFilter, setTrackFilter] = useState<string>("");
+  const [teamTypeFilter, setTeamTypeFilter] = useState<string>("");
 
   // Fetch teams from API
   useEffect(() => {
@@ -311,7 +317,27 @@ export default function TeamsPage() {
     }
   };
 
-  // Filter teams based on search query and selected filter
+  // Static list of Arabic tracks as requested
+  const ARABIC_TRACKS = [
+    "إحياء اللغة العربية بحلول رقمية مبتكرة",
+    "تحسين جودة الحياة لكبار السن والمكفوفين",
+    "تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)"
+  ];
+
+  // Reset all filters
+  const resetFilters = () => {
+    setStatusFilter([]);
+    setTrackFilter("");
+    setTeamTypeFilter("");
+    setIsFilterModalOpen(false);
+  };
+
+  // Apply filters
+  const applyFilters = () => {
+    setIsFilterModalOpen(false);
+  };
+
+  // Filter teams based on search query and all filters
   const filteredTeams = teams.filter((team) => {
     const leader = team.participants.find(p => p.isLeader);
     const matchesSearch =
@@ -319,13 +345,27 @@ export default function TeamsPage() {
       team.ideaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (leader && leader.fullName && leader.fullName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesFilter =
+    // Basic status filter (dropdown)
+    const matchesBasicFilter =
       selectedFilter === "all" ||
       (selectedFilter === "approved" && team.status === "approved") ||
       (selectedFilter === "pending" && team.status === "pending") ||
       (selectedFilter === "rejected" && team.status === "rejected");
 
-    return matchesSearch && matchesFilter;
+    // Advanced filters (from filter modal)
+    const matchesStatusFilter = 
+      statusFilter.length === 0 || statusFilter.includes(team.status);
+    
+    const matchesTrackFilter = 
+      trackFilter === "" || team.hackathonTrack === trackFilter;
+    
+    const matchesTeamTypeFilter = 
+      teamTypeFilter === "" || 
+      (teamTypeFilter === "team" && team.participants.length > 1) ||
+      (teamTypeFilter === "individual" && team.participants.length === 1);
+
+    return matchesSearch && matchesBasicFilter && matchesStatusFilter && 
+           matchesTrackFilter && matchesTeamTypeFilter;
   });
 
   if (loading) {
@@ -369,7 +409,11 @@ export default function TeamsPage() {
                 <option value="pending">قيد الانتظار</option>
                 <option value="rejected">المرفوضة</option>
               </select>
-              <Button variant="outline" className="gap-2">
+              <Button 
+                variant="outline" 
+                className="gap-2" 
+                onClick={() => setIsFilterModalOpen(true)}
+              >
                 <Filter className="h-4 w-4" />
                 تصفية
               </Button>
@@ -686,6 +730,110 @@ export default function TeamsPage() {
               </DialogFooter>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Filter Modal */}
+      <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تصفية الفرق</DialogTitle>
+            <DialogDescription>
+              حدد معايير التصفية لعرض الفرق المطلوبة
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <h3 className="font-medium text-right">الحالة</h3>
+              <div className="flex flex-wrap gap-2 justify-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statusFilter.includes("approved")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setStatusFilter([...statusFilter, "approved"]);
+                      } else {
+                        setStatusFilter(statusFilter.filter(s => s !== "approved"));
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span>معتمد</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statusFilter.includes("pending")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setStatusFilter([...statusFilter, "pending"]);
+                      } else {
+                        setStatusFilter(statusFilter.filter(s => s !== "pending"));
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span>قيد الانتظار</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statusFilter.includes("rejected")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setStatusFilter([...statusFilter, "rejected"]);
+                      } else {
+                        setStatusFilter(statusFilter.filter(s => s !== "rejected"));
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span>مرفوض</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Track Filter */}
+            <div className="space-y-2">
+              <h3 className="font-medium text-right">المسار</h3>
+              <select
+                value={trackFilter}
+                onChange={(e) => setTrackFilter(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-right"
+              >
+                <option value="">جميع المسارات</option>
+                {ARABIC_TRACKS.map((track) => (
+                  <option key={track} value={track}>
+                    {track}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Team Type Filter */}
+            <div className="space-y-2">
+              <h3 className="font-medium text-right">نوع المشاركة</h3>
+              <select
+                value={teamTypeFilter}
+                onChange={(e) => setTeamTypeFilter(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-right"
+              >
+                <option value="">الكل</option>
+                <option value="team">فريق</option>
+                <option value="individual">فردي</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={resetFilters}>
+              إعادة تعيين
+            </Button>
+            <Button onClick={applyFilters}>
+              تطبيق
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
