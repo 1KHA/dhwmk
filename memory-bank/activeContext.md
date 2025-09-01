@@ -1,9 +1,10 @@
-# Active Context: Registration Form Update & Vercel Deployment Fixes
+# Active Context: Object Storage Integration & Vercel Deployment Fixes
 
 ## 1. Current Work Focus
-The current focus is on two main areas:
+The current focus is on three main areas:
 1. **Registration Form Enhancement:** Updating the team registration form to use new CSV-based questions from `signup.csv`
 2. **Vercel Deployment Fixes:** Resolving build errors that prevent successful deployment to Vercel
+3. **Object Storage Integration:** Implementing Vercel Blob storage for file uploads in registration and milestone submissions
 
 ## 2. Recent Changes
 
@@ -24,12 +25,26 @@ The current focus is on two main areas:
 - **Vercel Configuration:** Created `vercel.json` with proper function timeout settings and Prisma-specific environment variables
 - **Build Error Resolution:** Fixed TypeScript compilation errors related to null checks in notification systems
 
+### Object Storage Integration
+- **Vercel Blob Storage:** Implemented Vercel Blob storage for file uploads:
+  - Added `@vercel/blob` package to the project
+  - Created `src/lib/blob-storage.ts` with three key functions:
+    - `uploadToBlob()`: Uploads files with folder organization
+    - `listBlobFiles()`: Lists files from a specific folder
+    - `deleteFromBlob()`: Removes files from storage
+  - Updated API routes to use blob storage:
+    - `/api/register-team/route.ts`: Stores team registration attachments in 'teams' folder
+    - `/api/participant/submit-milestone/route.ts`: Stores milestone submissions in 'milestones' folder
+  - Files are now stored in Vercel Blob storage with public access URLs stored in the database
+
 ## 3. Next Steps
 - **Test Registration Form:** Verify that the updated registration form works correctly with new CSV questions
 - **Deploy to Vercel:** All build issues have been resolved, ready for deployment
 - **Form Validation:** Ensure all new form fields have proper validation
 - **Admin Dashboard Updates:** Update admin interfaces to display new participant data fields
 - **Data Migration:** Consider migrating existing participant data to new schema format
+- **Object Storage Management:** Implement admin interface for managing files in blob storage
+- **File Deletion:** Add functionality to delete files from blob storage when associated records are deleted
 
 ## 4. Key Learnings & Patterns
 
@@ -48,7 +63,18 @@ The current focus is on two main areas:
 - **Progressive Enhancement:** Added new fields without breaking existing registration flow, allowing for gradual rollout of new features.
 - **Data Validation:** Maintained robust validation while accommodating new field requirements.
 
+### Object Storage Patterns
+- **Folder Organization:** Implemented a folder-based organization system in blob storage:
+  - 'teams' folder for team registration attachments
+  - 'milestones' folder for milestone submissions
+- **Unique Filenames:** Generated unique filenames with timestamps to prevent collisions
+- **Error Handling:** Implemented robust error handling for file uploads with graceful fallbacks
+- **Access Control:** Set appropriate public access for files that need to be directly accessible
+
 ## 5. Technical Debt & Considerations
 - **Field Mapping:** Current implementation maps new CSV fields to old database structure - consider refactoring for cleaner data model
 - **Form Complexity:** Registration form is becoming complex with multiple question sets - consider breaking into steps or sections
 - **Data Consistency:** Need to ensure all admin interfaces can handle both old and new data formats during transition period
+- **File Management:** Need to implement proper file lifecycle management to prevent orphaned files in blob storage
+- **Storage Costs:** Monitor blob storage usage as it's a paid service with usage-based pricing
+- **File Size Limits:** Current implementation has a 10MB file size limit for milestone submissions - may need adjustment based on user needs

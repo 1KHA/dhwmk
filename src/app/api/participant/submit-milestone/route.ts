@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { mkdir } from "fs/promises";
 import crypto from "crypto";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
+import { uploadToBlob } from '@/lib/blob-storage';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -141,24 +139,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
     // Generate a unique filename
     const timestamp = Date.now();
     const originalName = file.name;
     const fileName = `${timestamp}_${originalName}`;
-    const filePath = join(uploadsDir, fileName);
-
-    // Convert the file to a Buffer and write it to the filesystem
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, fileBuffer);
+    
+    // Upload file to blob storage in 'milestones' folder
+    const filePath = await uploadToBlob(file, fileName, 'milestones');
 
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
       INSERT INTO MilestoneSubmission (id, participantId, milestoneId, filePath, fileName, submittedAt)
-      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${`/uploads/${fileName}`}, ${originalName}, ${new Date().toISOString()})
+      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()})
     `;
 
     // Update the milestone submission count

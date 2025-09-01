@@ -98,7 +98,7 @@ export default function LoginPage() {
                 dir="ltr"
               />
               <p className="text-sm text-muted-foreground">
-                كلمة المرور الأولية هي آخر 4 أرقام من رقم هاتفك
+               
               </p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>

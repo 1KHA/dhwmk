@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { PrismaClient } from '@prisma/client'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications'
+import { uploadToBlob } from '@/lib/blob-storage'
 
 // Ensure this route is dynamic
 export const dynamic = 'force-dynamic';
@@ -29,18 +28,17 @@ export async function POST(request: NextRequest) {
     let attachmentPath: string | null = null;
 
     if (attachmentFile) {
-        const bytes = await attachmentFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        
-        const filename = `${Date.now()}_${attachmentFile.name}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        const filePath = path.join(uploadDir, filename);
-        
-        // Ensure the upload directory exists
-        await mkdir(uploadDir, { recursive: true });
-
-        await writeFile(filePath, buffer);
-        attachmentPath = `/uploads/${filename}`;
+        try {
+            const filename = `${Date.now()}_${attachmentFile.name}`;
+            // Upload file to blob storage in 'teams' folder
+            attachmentPath = await uploadToBlob(attachmentFile, filename, 'teams');
+        } catch (error) {
+            console.error('Error uploading attachment to blob storage:', error);
+            return NextResponse.json(
+                { error: 'Failed to upload attachment' },
+                { status: 500 }
+            );
+        }
     }
 
     // Basic validation

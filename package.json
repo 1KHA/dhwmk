@@ -29,6 +29,7 @@
     "@types/formidable": "^3.4.5",
     "@types/moment": "^2.11.29",
     "@types/react-big-calendar": "^1.16.2",
+    "@vercel/blob": "^1.1.1",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
