@@ -47,18 +47,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // All participants now use email+123 format
-      const emailPrefix = participant.email.split('@')[0];
-      const expectedPassword = `${emailPrefix}123`;
-      
       console.log(`🔑 Participant password check:`);
-      console.log(`   - Expected password: "${expectedPassword}"`);
       console.log(`   - Provided password: "${password}"`);
       console.log(`   - Participant type: ${participant.teamId ? 'Team Member' : 'Individual'}`);
       
-      // Try both the provided password and the expected password
-      const isValidPassword = await bcrypt.compare(password, participant.passwordHash) ||
-                             await bcrypt.compare(expectedPassword, participant.passwordHash);
+      // SECURITY FIX: Only check the provided password against the stored hash
+      const isValidPassword = await bcrypt.compare(password, participant.passwordHash);
       
       console.log(`🔑 Password verification: ${isValidPassword ? 'VALID' : 'INVALID'}`);
 
@@ -79,7 +73,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Generate JWT token for participant (consistent with other endpoints)
+      // Generate JWT token for participant (30 minutes expiration)
       const token = jwt.sign(
         {
           participantId: participant.id,
@@ -87,7 +81,7 @@ export async function POST(request: NextRequest) {
           role: 'participant',
         },
         JWT_SECRET,
-        { expiresIn: '7d' }
+        { expiresIn: '30m' }
       );
 
       console.log(`✅ JWT token created successfully for ${email}`);
@@ -109,12 +103,12 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Use consistent cookie name with improved settings
+      // Use consistent cookie name with 30-minute expiration
       response.cookies.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: 30 * 60, // 30 minutes (matches JWT expiration)
         path: '/', // Ensure cookie is available for all paths
         domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
       });
@@ -123,7 +117,7 @@ export async function POST(request: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 30 * 60, // 30 minutes
         path: '/'
       });
 

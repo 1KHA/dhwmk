@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token for admin
+    console.log(`✅ Admin login successful for ${username}`);
+
+    // Generate JWT token for admin (30 minutes expiration for security)
     const token = jwt.sign(
       {
         id: admin.id,
@@ -49,8 +51,12 @@ export async function POST(request: NextRequest) {
         role: 'admin',
       },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '30m' }
     );
+
+    console.log(`🔑 JWT token created for admin ${username}`);
+    console.log(`   - Token length: ${token.length}`);
+    console.log(`   - Admin ID: ${admin.id}`);
 
     // Create response with cookie
     const response = NextResponse.json({
@@ -62,12 +68,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set HTTP-only cookie
-    response.cookies.set('auth-token', token, {
+    // Use consistent cookie name 'token' with 30-minute expiration
+    response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: 30 * 60, // 30 minutes (matches JWT expiration)
+      path: '/', // Ensure cookie is available for all paths
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
+    });
+
+    console.log(`🍪 Admin cookie set with settings:`, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 60, // 30 minutes
+      path: '/'
     });
 
     return response;

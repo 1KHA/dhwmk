@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useToast } from '../../../components/ui/use-toast'
+import { useAuth } from '@/contexts/auth-context'
 import Link from 'next/link'
 import Loader from '@/components/ui/loader'
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { login, user, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -21,6 +23,17 @@ export default function LoginPage() {
   const [showLoader, setShowLoader] = useState(true)
   const [loaderVisible, setLoaderVisible] = useState(true)
   const [contentVisible, setContentVisible] = useState(false)
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      if (user.role === 'mentor') {
+        router.push('/mentor-dashboard')
+      } else {
+        router.push('/participant-dashboard')
+      }
+    }
+  }, [user, authLoading, router])
   
   // Loader timer effect
   useEffect(() => {
@@ -41,34 +54,25 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
+      const success = await login(formData.email, formData.password)
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (success) {
         toast({
           title: "نجح",
           description: "تم تسجيل الدخول بنجاح!",
         });
-        if (data.user.role === 'mentor') {
-          router.push('/mentor-dashboard');
-        } else {
-          router.push('/participant-dashboard');
-        }
+        
+        // The auth context will update the user state
+        // The useEffect above will handle the redirect based on user role
       } else {
         toast({
           title: "خطأ",
-          description: data.error || "فشل تسجيل الدخول",
+          description: "بيانات الدخول غير صحيحة",
           variant: "destructive",
         })
       }
     } catch (error) {
+      console.error('Login error:', error)
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء تسجيل الدخول",

@@ -57,3 +57,12 @@ UNIFIED_PASSWORD_SYSTEM.md
 migrate-to-unified-passwords.js
 
 test-auth-security.js
+AUTHENTICATION_FIX_SUMMARY.md
+CRITICAL_SECURITY_FIX_REPORT.md
+investigate-security-breach.js
+test-fixed-auth-flow.js
+test-security-fix.js
+
+
+UNIFIED_AUTHENTICATION_SYSTEM_REPORT.md
+test-unified-auth-system.js

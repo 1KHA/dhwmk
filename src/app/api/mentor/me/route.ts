@@ -15,15 +15,40 @@ interface DecodedToken {
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    console.log('🔍 /api/mentor/me - Starting request');
+    console.log('🌐 Request URL:', request.url);
+    console.log('🔗 Request headers:', Object.fromEntries(request.headers.entries()));
+
+    // Get all cookies for debugging
+    const allCookies = request.cookies.getAll();
+    console.log('🍪 All cookies received:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
+
+    // Get the token from the cookies (using consistent 'token' name)
+    const token = request.cookies.get('token')?.value;
+
+    console.log(`🍪 Token cookie: ${token ? 'Present (' + token.length + ' chars)' : 'Missing'}`);
 
     if (!token) {
+      console.log('❌ No token found in cookies');
       return NextResponse.json({ message: 'Authentication token not found' }, { status: 401 });
     }
 
+    console.log('🔑 Attempting JWT verification...');
+    console.log(`🔐 JWT_SECRET exists: ${!!JWT_SECRET}`);
+    console.log(`🔐 JWT_SECRET length: ${JWT_SECRET.length}`);
+
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
+    console.log('✅ JWT verified successfully');
+    console.log('🔑 Decoded token:', {
+      id: decoded.id,
+      role: decoded.role,
+      exp: decoded.exp,
+      iat: decoded.iat
+    });
+
     if (!decoded || decoded.role !== 'mentor') {
+      console.log(`❌ Invalid role: ${decoded.role} (expected: mentor)`);
       return NextResponse.json({ message: 'Invalid token or role' }, { status: 403 });
     }
 
@@ -32,12 +57,19 @@ export async function GET(request: NextRequest) {
     });
 
     if (!mentor) {
+      console.log(`❌ Mentor not found in database: ${decoded.id}`);
       return NextResponse.json({ message: 'Mentor not found' }, { status: 404 });
     }
 
+    console.log('✅ Mentor found:', {
+      id: mentor.id,
+      name: mentor.name,
+      email: mentor.email
+    });
+
     return NextResponse.json(mentor);
   } catch (error) {
-    console.error('Failed to get mentor profile:', error);
+    console.error('❌ Failed to get mentor profile:', error);
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
