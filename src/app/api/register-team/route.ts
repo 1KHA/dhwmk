@@ -86,28 +86,37 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => {
-      // Create team record (even for individual registrations)
-      const team = await tx.team.create({
-        data: {
-          teamName: teamName || `Individual - ${leaderInfo.fullName}`,
-          status: 'pending',
-          hackathonTrack: hackathonTrack || '', // Use correct field
-          ideaDescription: ideaDescription || '',
-          hearAboutUs: hearAboutUs || '', // Use correct field
-          isTeamRegistration: isTeamRegistration,
-          attachmentPath: attachmentPath,
-          // Keep deprecated fields for backward compatibility
-          challenge: hackathonTrack || '',
-          challengeReason: '',
-          ideaName: teamName || `Individual - ${leaderInfo.fullName}`,
-          ideaSolution: '',
-          ideaResults: '',
-          ideaStage: 'idea',
-          hasParticipated: false,
-          participationDetails: hearAboutUs || '',
-        },
-      });
-      const teamId = team.id;
+      let teamId = null;
+      let finalTeamName = '';
+
+      if (isTeamRegistration) {
+        // Create team record only for team registrations
+        const team = await tx.team.create({
+          data: {
+            teamName: teamName!,
+            status: 'pending',
+            hackathonTrack: hackathonTrack || '',
+            ideaDescription: ideaDescription || '',
+            hearAboutUs: hearAboutUs || '',
+            isTeamRegistration: true,
+            attachmentPath: attachmentPath,
+            // Keep deprecated fields for backward compatibility
+            challenge: hackathonTrack || '',
+            challengeReason: '',
+            ideaName: teamName!,
+            ideaSolution: '',
+            ideaResults: '',
+            ideaStage: 'idea',
+            hasParticipated: false,
+            participationDetails: hearAboutUs || '',
+          },
+        });
+        teamId = team.id;
+        finalTeamName = teamName!;
+      } else {
+        // For individual registrations, no team is created
+        finalTeamName = `Individual - ${leaderInfo.fullName}`;
+      }
 
       // Create leader/individual participant
       await tx.participant.create({
@@ -123,8 +132,8 @@ export async function POST(request: NextRequest) {
           professionalField: leaderInfo.professionalField || '',
           city: leaderInfo.city || '',
           canAttendHackathon: leaderInfo.canAttendHackathon || false,
-          isLeader: isTeamRegistration,
-          teamId: teamId,
+          isLeader: isTeamRegistration, // Only team leaders are leaders
+          teamId: teamId, // null for individuals, team ID for team members
           // Keep deprecated fields for backward compatibility
           firstName: leaderInfo.fullName || '',
           secondName: '',
@@ -177,7 +186,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return { teamId, teamName: teamName || `Individual - ${leaderInfo.fullName}` };
+      return { teamId, teamName: finalTeamName };
     })
 
     // Create notification for admins about new registration
@@ -188,8 +197,8 @@ export async function POST(request: NextRequest) {
         template.message,
         template.type,
         {
-          relatedEntityType: 'team',
-          relatedEntityId: result.teamId,
+          relatedEntityType: isTeamRegistration ? 'team' : 'participant',
+          relatedEntityId: result.teamId || undefined,
           actionUrl: template.actionUrl,
         }
       );

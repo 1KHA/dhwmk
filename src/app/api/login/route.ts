@@ -47,41 +47,42 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if team is approved
-      if (!participant.team || participant.team.status !== 'approved') {
+      // Check if participant has a team and if it's approved (only for team members)
+      if (participant.teamId && (!participant.team || participant.team.status !== 'approved')) {
         return NextResponse.json(
           { error: 'Your team is not yet approved' },
           { status: 401 }
         )
       }
 
-      // Generate JWT token for participant
+      // Generate JWT token for participant (consistent with other endpoints)
       const token = jwt.sign(
         {
-          id: participant.id,
+          participantId: participant.id,
           email: participant.email,
-          teamId: participant.teamId,
-          isLeader: participant.isLeader,
           role: 'participant',
         },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
+      const fullName = participant.fullName || `${participant.firstName || ''} ${participant.secondName || ''} ${participant.familyName || ''}`.trim();
+
       const response = NextResponse.json({
         success: true,
         user: {
           id: participant.id,
-          fullName: `${participant.firstName} ${participant.secondName} ${participant.familyName}`,
+          fullName: fullName,
           email: participant.email,
           teamId: participant.teamId,
-          teamName: participant.team.teamName,
+          teamName: participant.team?.teamName || null,
           isLeader: participant.isLeader,
           role: 'participant',
         },
       });
 
-      response.cookies.set('auth-token', token, {
+      // Use consistent cookie name
+      response.cookies.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
     // Generate JWT token for mentor
     const token = jwt.sign(
       {
-        id: mentor.id,
+        mentorId: mentor.id,
         email: mentor.email,
         role: 'mentor',
       },
@@ -135,8 +136,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set HTTP-only cookie
-    response.cookies.set('auth-token', token, {
+    // Set HTTP-only cookie (consistent cookie name)
+    response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
