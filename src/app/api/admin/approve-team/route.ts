@@ -48,9 +48,18 @@ export async function POST(request: NextRequest) {
 
       // Create passwords for all participants
       for (const participant of team.participants) {
-        // Get last 4 digits of phone number, fallback to default if null
-        const phoneNumber = participant.phoneNumber || participant.contactNumber || '0000'
-        const lastFourDigits = phoneNumber.slice(-4)
+        // Get phone number and sanitize it
+        const rawPhone = participant.phoneNumber || participant.contactNumber || '0000'
+        // Remove all non-numeric characters
+        const cleanPhone = rawPhone.replace(/\D/g, '')
+        // Get last 4 digits, fallback to '0000' if not enough digits
+        const lastFourDigits = cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '0000'
+        
+        console.log(`🔐 Generating password for ${participant.email}:`);
+        console.log(`   - Raw phone: "${rawPhone}"`);
+        console.log(`   - Clean phone: "${cleanPhone}"`);
+        console.log(`   - Password: "${lastFourDigits}"`);
+        
         const hashedPassword = await bcrypt.hash(lastFourDigits, 10)
 
         // Update participant with password
@@ -58,6 +67,8 @@ export async function POST(request: NextRequest) {
           where: { id: participant.id },
           data: { passwordHash: hashedPassword }
         })
+        
+        console.log(`✅ Password created for ${participant.email}`);
       }
     })
 

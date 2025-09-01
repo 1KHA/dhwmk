@@ -6,25 +6,43 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 /api/participant/me - Starting request');
+    console.log('🌐 Request URL:', request.url);
+    console.log('🔗 Request headers:', Object.fromEntries(request.headers.entries()));
+    
+    // Debug all cookies
+    const allCookies = request.cookies.getAll();
+    console.log('🍪 All cookies received:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
+    
     // Get JWT token from cookies (consistent with other endpoints)
     const token = request.cookies.get('token')?.value;
+    console.log('🍪 Token cookie:', token ? `Present (${token.length} chars)` : 'Missing');
     
     if (!token) {
-      console.error('No token found in cookies');
+      console.error('❌ No token found in cookies');
+      console.log('🔍 Available cookie names:', allCookies.map(c => c.name));
       return NextResponse.json({ error: 'غير مصرح - لا يوجد token' }, { status: 401 });
     }
 
     // Verify JWT token (consistent with other endpoints)
     let decoded;
     try {
+      console.log('🔑 Attempting JWT verification...');
+      console.log('🔐 JWT_SECRET exists:', !!process.env.JWT_SECRET);
+      console.log('🔐 JWT_SECRET length:', process.env.JWT_SECRET?.length || 0);
+      
       decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      console.log('Decoded token:', { 
+      console.log('✅ JWT verified successfully');
+      console.log('🔑 Decoded token:', { 
         participantId: decoded.participantId, 
         email: decoded.email, 
-        role: decoded.role 
+        role: decoded.role,
+        exp: decoded.exp,
+        iat: decoded.iat
       });
     } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError);
+      console.error('❌ JWT verification failed:', jwtError);
+      console.log('🔍 Token preview:', token.substring(0, 50) + '...');
       return NextResponse.json({ error: 'غير مصرح - token غير صالح' }, { status: 401 });
     }
 
@@ -47,15 +65,16 @@ export async function GET(request: NextRequest) {
     });
 
     if (!participant) {
-      console.error('Participant not found with ID:', decoded.participantId);
+      console.error('❌ Participant not found with ID:', decoded.participantId);
       return NextResponse.json({ error: 'المشارك غير موجود في قاعدة البيانات' }, { status: 404 });
     }
 
-    console.log('Participant found:', { 
+    console.log('✅ Participant found:', { 
       id: participant.id, 
       email: participant.email, 
       fullName: participant.fullName 
     });
+    console.log('📊 Team info:', participant.team ? { id: participant.team.id, name: participant.team.teamName, status: participant.team.status } : 'No team');
 
     // Handle different data formats and provide fallbacks
     const safeParticipant = {

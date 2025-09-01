@@ -46,3 +46,9 @@ next-env.d.ts
 notif.md
 countdown.md
 SEO.md
+
+debug-auth-issues.js
+debug-cookie-auth.js
+fix-password-hashes.js
+test-complete-auth-flow.js
+test-login-flow.js

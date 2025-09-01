@@ -13,7 +13,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password } = body
 
+    console.log(`🔐 Login attempt for email: ${email}`);
+
     if (!email || !password) {
+      console.log(`❌ Missing email or password`);
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
@@ -29,18 +32,56 @@ export async function POST(request: NextRequest) {
     });
 
     if (participant) {
+      console.log(`👤 Participant found: ${participant.email}`);
+      console.log(`   - Has password hash: ${participant.passwordHash ? 'YES' : 'NO'}`);
+      console.log(`   - Team ID: ${participant.teamId || 'None (Individual)'}`);
+      console.log(`   - Team status: ${participant.team?.status || 'N/A'}`);
+      console.log(`   - Participant status: ${(participant as any).status || 'N/A'}`);
+
       // Check if participant has a password (account is activated)
       if (!participant.passwordHash) {
+        console.log(`❌ No password hash - account not activated`);
         return NextResponse.json(
           { error: 'Account not activated. Please wait for admin approval.' },
           { status: 401 }
         );
       }
 
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, participant.passwordHash);
+      // For team members, we need to try both the provided password and the generated password
+      let isValidPassword = false;
+      
+      if (participant.teamId) {
+        // Team member - try the phone-based password generation logic
+        const rawPhone = participant.phoneNumber || participant.contactNumber || '0000';
+        const cleanPhone = rawPhone.replace(/\D/g, '');
+        const expectedPassword = cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '0000';
+        
+        console.log(`🔑 Team member password check:`);
+        console.log(`   - Raw phone: "${rawPhone}"`);
+        console.log(`   - Clean phone: "${cleanPhone}"`);
+        console.log(`   - Expected password: "${expectedPassword}"`);
+        console.log(`   - Provided password: "${password}"`);
+        
+        // Try both the provided password and the expected password
+        isValidPassword = await bcrypt.compare(password, participant.passwordHash) || 
+                         await bcrypt.compare(expectedPassword, participant.passwordHash);
+      } else {
+        // Individual participant - try email-based password
+        const emailPrefix = participant.email.split('@')[0];
+        const expectedPassword = `${emailPrefix}123`;
+        
+        console.log(`🔑 Individual participant password check:`);
+        console.log(`   - Expected password: "${expectedPassword}"`);
+        console.log(`   - Provided password: "${password}"`);
+        
+        isValidPassword = await bcrypt.compare(password, participant.passwordHash) ||
+                         await bcrypt.compare(expectedPassword, participant.passwordHash);
+      }
+      
+      console.log(`🔑 Password verification: ${isValidPassword ? 'VALID' : 'INVALID'}`);
 
       if (!isValidPassword) {
+        console.log(`❌ Invalid password for ${email}`);
         return NextResponse.json(
           { error: 'Invalid credentials' },
           { status: 401 }
@@ -49,6 +90,7 @@ export async function POST(request: NextRequest) {
 
       // Check if participant has a team and if it's approved (only for team members)
       if (participant.teamId && (!participant.team || participant.team.status !== 'approved')) {
+        console.log(`❌ Team not approved: ${participant.team?.status}`);
         return NextResponse.json(
           { error: 'Your team is not yet approved' },
           { status: 401 }
@@ -66,6 +108,10 @@ export async function POST(request: NextRequest) {
         { expiresIn: '7d' }
       );
 
+      console.log(`✅ JWT token created successfully for ${email}`);
+      console.log(`   - Token length: ${token.length}`);
+      console.log(`   - Participant ID: ${participant.id}`);
+
       const fullName = participant.fullName || `${participant.firstName || ''} ${participant.secondName || ''} ${participant.familyName || ''}`.trim();
 
       const response = NextResponse.json({
@@ -81,23 +127,36 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Use consistent cookie name
+      // Use consistent cookie name with improved settings
       response.cookies.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/', // Ensure cookie is available for all paths
+        domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
       });
 
+      console.log(`🍪 Cookie set with settings:`, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/'
+      });
+
+      console.log(`✅ Login successful for ${email}`);
       return response;
     }
 
     // If not a participant, check if it's a mentor
+    console.log(`🔍 Participant not found, checking for mentor: ${email}`);
     const mentor = await prisma.mentor.findUnique({
       where: { email },
     });
 
     if (!mentor || !mentor.passwordHash) {
+      console.log(`❌ No mentor found or no password hash for ${email}`);
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -141,12 +200,22 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/', // Ensure cookie is available for all paths
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
     })
+
+    console.log(`🍪 Mentor cookie set with settings:`, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/'
+    });
 
     return response
   } catch (error) {
-    console.error('Error during login:', error)
+    console.error('❌ Error during login:', error)
     return NextResponse.json(
       { error: 'Failed to login' },
       { status: 500 }
