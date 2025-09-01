@@ -225,7 +225,7 @@ export default function HomePage() {
       <picture>
         <source media="(max-width: 520px)" srcSet="/mobtop02.png" />
         <img
-          src="/dhnew02.png"
+          src="/dhnew03.png"
           alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
           style={{
             width: "100%",
