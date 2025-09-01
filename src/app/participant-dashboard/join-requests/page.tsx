@@ -55,9 +55,12 @@ export default function JoinRequestsPage() {
       setLoading(true);
       const response = await fetch('/api/team-leader/join-requests');
       if (!response.ok) {
-        throw new Error('Failed to fetch join requests');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch join requests');
       }
-      const requests: JoinRequest[] = await response.json();
+      const data = await response.json();
+      // Handle the API response structure: {requests: [...]}
+      const requests: JoinRequest[] = data.requests || [];
       setJoinRequests(requests);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
