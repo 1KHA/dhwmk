@@ -23,10 +23,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import NotificationDropdown from "@/components/ui/notification-dropdown";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function TopBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, logout } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +38,8 @@ export default function TopBar() {
     }
   };
 
-  const handleLogout = () => {
-    // Handle logout functionality
-    window.location.href = "/";
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
@@ -94,27 +95,40 @@ export default function TopBar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium">المشارك</p>
+                <p className="text-sm font-medium">{user?.fullName || user?.name || 'المشارك'}</p>
                 <p className="text-xs text-muted-foreground">
-                  participant@example.com
+                  {user?.email || 'participant@example.com'}
                 </p>
+                {user?.teamName && (
+                  <p className="text-xs text-muted-foreground">
+                    فريق: {user.teamName}
+                  </p>
+                )}
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="ml-2 h-4 w-4" />
-                <span>الملف الشخصي</span>
+              <DropdownMenuItem asChild>
+                <Link href="/participant-dashboard">
+                  <User className="ml-2 h-4 w-4" />
+                  <span>الملف الشخصي</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Users className="ml-2 h-4 w-4" />
-                <span>فريقي</span>
+              <DropdownMenuItem asChild>
+                <Link href="/participant-dashboard/teams">
+                  <Users className="ml-2 h-4 w-4" />
+                  <span>فريقي</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Calendar className="ml-2 h-4 w-4" />
-                <span>الفعاليات</span>
+              <DropdownMenuItem asChild>
+                <Link href="/participant-dashboard/events">
+                  <Calendar className="ml-2 h-4 w-4" />
+                  <span>الفعاليات</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Target className="ml-2 h-4 w-4" />
-                <span>المراحل</span>
+              <DropdownMenuItem asChild>
+                <Link href="/participant-dashboard/milestones">
+                  <Target className="ml-2 h-4 w-4" />
+                  <span>المراحل</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>

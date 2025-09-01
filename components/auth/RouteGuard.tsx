@@ -34,17 +34,20 @@ export function RouteGuard({
 
     // Check if user is authenticated
     if (!user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
     // Check role requirement
-    if (requiredRole && !hasRole(requiredRole)) {
-      router.push(redirectTo);
-      return;
+    if (requiredRole) {
+      const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+      if (!roles.includes(user.role)) {
+        router.push(redirectTo);
+        return;
+      }
     }
 
-    // Check permission requirement
+    // Check permission requirement (simplified for now)
     if (requiredPermission && !hasPermission(requiredPermission)) {
       router.push(redirectTo);
       return;
