@@ -77,4 +77,4 @@ The current focus is on three main areas:
 - **Data Consistency:** Need to ensure all admin interfaces can handle both old and new data formats during transition period
 - **File Management:** Need to implement proper file lifecycle management to prevent orphaned files in blob storage
 - **Storage Costs:** Monitor blob storage usage as it's a paid service with usage-based pricing
-- **File Size Limits:** Current implementation has a 10MB file size limit for milestone submissions - may need adjustment based on user needs
+- **File Size Limits:** Current implementation has a 25MB file size limit for all file uploads (team registration attachments and milestone submissions)

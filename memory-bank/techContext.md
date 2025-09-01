@@ -69,6 +69,7 @@ The application uses Vercel Blob storage for file management:
   - `milestones/`: Stores milestone submission files
 - **File Naming:** Files are stored with timestamp prefixes to ensure uniqueness
 - **Access Control:** Files are stored with public access for direct linking
+- **File Size Limits:** All file uploads are limited to 25MB to prevent abuse
 - **Implementation:** The `src/lib/blob-storage.ts` module provides three core functions:
   - `uploadToBlob()`: Uploads files to Vercel Blob storage
   - `listBlobFiles()`: Lists files from a specific folder

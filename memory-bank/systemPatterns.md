@@ -21,7 +21,7 @@ The application follows a standard client-server architecture built on the Next.
 - **Modal-Based UI for CRUD:** The admin and participant dashboards use dialogs/modals for adding, editing, and confirming deletions.
 - **Component Reusability:** UI components from `shadcn/ui` are used across all parts of the application for a consistent look and feel.
 - **Cloud-Based File Storage:** The application uses Vercel Blob storage for file uploads, with a folder-based organization system and unique filename generation to prevent collisions.
-- **File Upload Security:** Milestone submissions implement file type validation and size limits (10MB) to prevent abuse.
+- **File Upload Security:** File uploads implement file type validation and size limits (25MB) to prevent abuse.
 
 ## 3. Component Relationships
 - **Public Registration:** `register-team/page.tsx` sends `FormData` to `/api/register-team`, which handles both text data and file uploads using Vercel Blob storage.

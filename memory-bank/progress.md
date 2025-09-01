@@ -48,5 +48,5 @@
 - **Deployment Configuration:** Created `vercel.json` with proper function timeout settings and Prisma-specific environment variables
 - **API Route Optimization:** Fixed multiple API routes to prevent static generation issues during build process
 - **Object Storage Integration (September 2025):** Implemented Vercel Blob storage for file uploads in team registration and milestone submissions, replacing local file storage with cloud-based object storage
-- **File Upload Security:** Enhanced file upload security with size limits (10MB) and file type validation for milestone submissions
+- **File Upload Security:** Enhanced file upload security with size limits (25MB) and file type validation for file uploads
 - **File Organization:** Implemented folder-based organization in blob storage with 'teams' and 'milestones' folders

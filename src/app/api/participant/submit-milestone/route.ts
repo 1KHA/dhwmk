@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
 import { uploadToBlob } from '@/lib/blob-storage';
+import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from '@/lib/constants';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -15,20 +16,6 @@ interface JwtPayload {
   isLeader: boolean;
 }
 
-// Maximum file size (10MB)
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
-
-// Allowed file types
-const ALLOWED_FILE_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/zip",
-  "application/x-zip-compressed",
-  "application/vnd.rar",
-  "image/jpeg",
-  "image/png",
-];
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "حجم الملف يجب أن يكون أقل من 10 ميجابايت" },
+        { error: `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE_MB} ميجابايت` },
         { status: 400 }
       );
     }

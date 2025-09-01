@@ -42,6 +42,6 @@ Hackathon organizers need an efficient way to collect and manage registrations, 
     - Admins can view and manage mentors, including their availability and bookings.
 7.  **Milestone Tracking:**
     - Admins create milestones for teams to complete.
-    - Teams can view and submit their work for each milestone, including uploading files (up to 10MB) in various formats.
+    - Teams can view and submit their work for each milestone, including uploading files (up to 25MB) in various formats.
     - Files are securely stored in Vercel Blob storage and organized in appropriate folders.
     - Admins can review submissions, download files, and provide feedback on milestone submissions.

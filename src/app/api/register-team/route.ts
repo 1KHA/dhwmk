@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { PrismaClient } from '@prisma/client'
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications'
 import { uploadToBlob } from '@/lib/blob-storage'
+import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from '@/lib/constants'
 
 // Ensure this route is dynamic
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,14 @@ export async function POST(request: NextRequest) {
     let attachmentPath: string | null = null;
 
     if (attachmentFile) {
+        // Validate file size
+        if (attachmentFile.size > MAX_FILE_SIZE) {
+            return NextResponse.json(
+                { error: `File size must be less than ${MAX_FILE_SIZE_MB}MB` },
+                { status: 400 }
+            );
+        }
+
         try {
             const filename = `${Date.now()}_${attachmentFile.name}`;
             // Upload file to blob storage in 'teams' folder

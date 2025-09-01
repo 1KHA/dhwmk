@@ -305,7 +305,7 @@ export default function ParticipantMilestonesPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                الملفات المدعومة: PDF, Word, ZIP, RAR, JPEG, PNG (الحد الأقصى: 10 ميجابايت)
+                الملفات المدعومة: PDF, Word, ZIP, RAR, JPEG, PNG (الحد الأقصى: 25 ميجابايت)
               </p>
             </div>
 
