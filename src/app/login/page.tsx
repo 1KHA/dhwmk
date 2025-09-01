@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useToast } from '../../../components/ui/use-toast'
 import Link from 'next/link'
+import Loader from '@/components/ui/loader'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,6 +18,23 @@ export default function LoginPage() {
     email: '',
     password: ''
   })
+  const [showLoader, setShowLoader] = useState(true)
+  const [loaderVisible, setLoaderVisible] = useState(true)
+  const [contentVisible, setContentVisible] = useState(false)
+  
+  // Loader timer effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaderVisible(false);
+      // Start content fade in after loader starts fading out
+      setTimeout(() => {
+        setShowLoader(false);
+        setContentVisible(true);
+      }, 300); // Wait for loader fade out to complete
+    }, 1500); // 1.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,60 +80,110 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            تسجيل الدخول
-          </CardTitle>
-          <CardDescription className="text-center">
-            أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى لوحة التحكم
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="example@email.com"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="آخر 4 أرقام من رقم هاتفك"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                dir="ltr"
-              />
-              <p className="text-sm text-muted-foreground">
-               
-              </p>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-            </Button>
-          </form>
-          
-          <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              ليس لديك حساب؟
-            </p>
-            <Link href="/register-team" className="text-sm text-primary hover:underline">
-              سجل فريقك
-            </Link>
+    <>
+      {/* Loader with smooth fade out */}
+      {showLoader && <Loader isVisible={loaderVisible} />}
+      
+      {/* Main content with smooth fade in */}
+      <div 
+        className={`min-h-screen transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'}`}
+        style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}
+      >
+        {/* Header Image Section */}
+        <div className="w-full">
+          <img src="/header.png" alt="Header" className="w-full h-auto" />
+        </div>
+        
+        {/* Form Section */}
+        <div className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md mx-auto">
+            <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardHeader className="text-center pb-8 pt-10">
+                <CardTitle className="text-4xl font-bold mb-4" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                  تسجيل الدخول
+                </CardTitle>
+                <CardDescription className="text-xl" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                  أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى لوحة التحكم
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-10 pb-10">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      البريد الإلكتروني
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="example@email.com"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      dir="ltr"
+                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-base font-medium mb-2 block" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                      كلمة المرور
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="أدخل كلمة المرور"
+                      required
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      dir="ltr"
+                      className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg"
+                      style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full text-xl py-4 font-bold rounded-xl transition-all duration-300 hover:shadow-lg disabled:opacity-50" 
+                    style={{ 
+                      backgroundColor: '#620F10', 
+                      fontFamily: 'Somar-Bold, Arial, sans-serif',
+                      border: 'none'
+                    }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                  </Button>
+                </form>
+                
+                <div className="mt-8 text-center space-y-2">
+                  <p className="text-base" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                    ليس لديك حساب؟
+                  </p>
+                  <Link 
+                    href="/register-team" 
+                    className="text-base hover:underline" 
+                    style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}
+                  >
+                    سجل فريقك
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        
+        {/* Footer Image */}
+        <div className="w-full">
+          <picture>
+            <source media="(max-width: 520px)" srcSet="/mobfot.png" />
+            <img 
+              src="/footer.png" 
+              alt="Footer" 
+              className="w-full h-auto"
+              style={{ display: "block" }}
+            />
+          </picture>
+        </div>
+      </div>
+    </>
   )
 }
