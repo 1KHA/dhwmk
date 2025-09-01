@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Download, Trash, Edit, Eye, UserPlus, Check, X } from "lucide-react";
 import { useToast } from "@/../../components/ui/use-toast";
+import * as XLSX from 'xlsx';
 import {
   Dialog,
   DialogContent,
@@ -238,6 +239,78 @@ export default function TeamsPage() {
     }
   };
 
+  // Function to handle exporting teams data to Excel
+  const handleExportToExcel = () => {
+    try {
+      // Create a worksheet with all teams data
+      const worksheet = XLSX.utils.json_to_sheet(
+        teams.map(team => {
+          const leader = team.participants.find(p => p.isLeader);
+          return {
+            'اسم الفريق': team.teamName,
+            'اسم الفكرة': team.ideaName,
+            'المسار': team.hackathonTrack || '',
+            'التحدي': team.challenge,
+            'مرحلة الفكرة': team.ideaStage,
+            'الحالة': team.status === "approved" ? "معتمد" : 
+                     team.status === "rejected" ? "مرفوض" : "قيد الانتظار",
+            'تاريخ الإنشاء': new Date(team.createdAt).toLocaleDateString('ar-SA'),
+            'عدد الأعضاء': team.participants.length,
+            'قائد الفريق': leader?.fullName || '',
+            'بريد قائد الفريق': leader?.email || '',
+            'رقم هوية قائد الفريق': leader?.nationalId || '',
+            'وصف الفكرة': team.ideaDescription,
+            'الحل المقترح': team.ideaSolution,
+            'النتائج المتوقعة': team.ideaResults,
+            'هل شاركت الفكرة من قبل؟': team.hasParticipated ? 'نعم' : 'لا',
+            'تفاصيل المشاركة السابقة': team.participationDetails || '',
+          };
+        })
+      );
+
+      // Create a worksheet for participants
+      const participantsData = teams.flatMap(team => 
+        team.participants.map(p => ({
+          'اسم الفريق': team.teamName,
+          'الاسم الكامل': p.fullName || `${p.firstName} ${p.secondName} ${p.familyName}`,
+          'البريد الإلكتروني': p.email,
+          'رقم الهوية': p.nationalId,
+          'تاريخ الميلاد': p.dob,
+          'رقم الجوال': p.phoneNumber,
+          'المؤهل التعليمي': p.education,
+          'الجامعة': p.university,
+          'التخصص': p.major,
+          'الحالة الوظيفية': p.employmentStatus,
+          'الجنسية': p.nationality,
+          'منطقة الإقامة': p.residence,
+          'يمكنه الحضور؟': p.canAttend ? 'نعم' : 'لا',
+          'قائد الفريق؟': p.isLeader ? 'نعم' : 'لا',
+        }))
+      );
+      const participantsWorksheet = XLSX.utils.json_to_sheet(participantsData);
+
+      // Create a workbook with both worksheets
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "الفرق");
+      XLSX.utils.book_append_sheet(workbook, participantsWorksheet, "الأعضاء");
+
+      // Generate Excel file and trigger download
+      XLSX.writeFile(workbook, "بيانات_الفرق.xlsx");
+
+      toast({
+        title: "نجح",
+        description: "تم تصدير بيانات الفرق بنجاح",
+      });
+    } catch (error) {
+      console.error('Error exporting teams:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تصدير بيانات الفرق",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filter teams based on search query and selected filter
   const filteredTeams = teams.filter((team) => {
     const leader = team.participants.find(p => p.isLeader);
@@ -300,7 +373,7 @@ export default function TeamsPage() {
                 <Filter className="h-4 w-4" />
                 تصفية
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" onClick={handleExportToExcel}>
                 <Download className="h-4 w-4" />
                 تصدير
               </Button>

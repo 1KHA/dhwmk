@@ -1,10 +1,11 @@
-# Active Context: Object Storage Integration & Vercel Deployment Fixes
+# Active Context: Object Storage Integration, Vercel Deployment Fixes & Excel Export
 
 ## 1. Current Work Focus
-The current focus is on three main areas:
+The current focus is on four main areas:
 1. **Registration Form Enhancement:** Updating the team registration form to use new CSV-based questions from `signup.csv`
 2. **Vercel Deployment Fixes:** Resolving build errors that prevent successful deployment to Vercel
 3. **Object Storage Integration:** Implementing Vercel Blob storage for file uploads in registration and milestone submissions
+4. **Excel Export Functionality:** Implementing Excel export for teams data in the admin dashboard
 
 ## 2. Recent Changes
 
@@ -37,6 +38,17 @@ The current focus is on three main areas:
     - `/api/participant/submit-milestone/route.ts`: Stores milestone submissions in 'milestones' folder
   - Files are now stored in Vercel Blob storage with public access URLs stored in the database
 
+### Excel Export Functionality
+- **Teams Data Export:** Implemented Excel export for teams data in the admin dashboard:
+  - Added `xlsx` package to the project for Excel file generation
+  - Created export functionality in the teams page (`src/app/admin-hackton-dashboard/teams/page.tsx`)
+  - Implemented a comprehensive export that includes:
+    - A "Teams" worksheet with all team details
+    - A "Participants" worksheet with all participant details
+  - Export includes all data (not just filtered/paginated data)
+  - Files are generated client-side and downloaded directly to the user's device
+  - Added success/error toast notifications for the export process
+
 ## 3. Next Steps
 - **Test Registration Form:** Verify that the updated registration form works correctly with new CSV questions
 - **Deploy to Vercel:** All build issues have been resolved, ready for deployment
@@ -45,6 +57,10 @@ The current focus is on three main areas:
 - **Data Migration:** Consider migrating existing participant data to new schema format
 - **Object Storage Management:** Implement admin interface for managing files in blob storage
 - **File Deletion:** Add functionality to delete files from blob storage when associated records are deleted
+- **Excel Export Enhancement:** Consider adding more export options:
+  - Filtered data export (based on current filters)
+  - Additional data formats (CSV, PDF)
+  - Customizable column selection
 
 ## 4. Key Learnings & Patterns
 
@@ -70,6 +86,13 @@ The current focus is on three main areas:
 - **Unique Filenames:** Generated unique filenames with timestamps to prevent collisions
 - **Error Handling:** Implemented robust error handling for file uploads with graceful fallbacks
 - **Access Control:** Set appropriate public access for files that need to be directly accessible
+
+### Data Export Patterns
+- **Client-Side Generation:** Excel files are generated entirely client-side using the xlsx library
+- **Comprehensive Data Export:** Export includes all data, not just what's visible in the UI
+- **Multi-Sheet Organization:** Related data is organized into separate worksheets within the same Excel file
+- **Arabic Language Support:** Export properly handles Arabic text in column headers and cell values
+- **User Feedback:** Toast notifications provide clear feedback on export success or failure
 
 ## 5. Technical Debt & Considerations
 - **Field Mapping:** Current implementation maps new CSV fields to old database structure - consider refactoring for cleaner data model

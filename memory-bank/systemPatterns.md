@@ -40,6 +40,7 @@ The application follows a standard client-server architecture built on the Next.
   - Admin registration management is handled through `/api/admin/event-registrations/[eventId]` for viewing and managing registrations.
   - Participant event registration is handled through `/api/participant/register-event` for registering, checking status, and canceling.
   - Global export functionality in the admin events page fetches all events and their registrations to generate a comprehensive CSV file with UTF-8 encoding for Excel compatibility.
+  - Excel export functionality in the admin teams page uses the xlsx library to generate Excel files with multiple worksheets containing all teams and participants data.
 - **File Storage System:**
   - The `src/lib/blob-storage.ts` module provides core functionality for file operations.
   - Team registration attachments are uploaded through `/api/register-team` and stored in the 'teams' folder.

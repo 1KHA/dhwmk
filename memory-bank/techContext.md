@@ -14,6 +14,7 @@
 - **date-fns:** Used for date formatting and manipulation, particularly for event dates.
 - **react-big-calendar:** Used for the mentor availability calendar interface.
 - **@vercel/blob:** Vercel's object storage solution for file uploads and storage.
+- **xlsx:** Used for generating Excel files with multiple worksheets for data export.
 
 ## 2. Development Setup
 - **Node.js & npm:** Standard Node.js project with dependencies managed via npm.
