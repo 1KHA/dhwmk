@@ -46,21 +46,17 @@ export async function POST(request: NextRequest) {
         data: { status: 'approved' }
       })
 
-      // Create passwords for all participants
+      // Create passwords for all participants using email+123 format
       for (const participant of team.participants) {
-        // Get phone number and sanitize it
-        const rawPhone = participant.phoneNumber || participant.contactNumber || '0000'
-        // Remove all non-numeric characters
-        const cleanPhone = rawPhone.replace(/\D/g, '')
-        // Get last 4 digits, fallback to '0000' if not enough digits
-        const lastFourDigits = cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '0000'
+        // Generate password using email prefix + "123"
+        const emailPrefix = participant.email.split('@')[0]
+        const password = `${emailPrefix}123`
         
         console.log(`🔐 Generating password for ${participant.email}:`);
-        console.log(`   - Raw phone: "${rawPhone}"`);
-        console.log(`   - Clean phone: "${cleanPhone}"`);
-        console.log(`   - Password: "${lastFourDigits}"`);
+        console.log(`   - Email prefix: "${emailPrefix}"`);
+        console.log(`   - Password: "${password}"`);
         
-        const hashedPassword = await bcrypt.hash(lastFourDigits, 10)
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         // Update participant with password
         await tx.participant.update({

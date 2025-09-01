@@ -47,36 +47,18 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // For team members, we need to try both the provided password and the generated password
-      let isValidPassword = false;
+      // All participants now use email+123 format
+      const emailPrefix = participant.email.split('@')[0];
+      const expectedPassword = `${emailPrefix}123`;
       
-      if (participant.teamId) {
-        // Team member - try the phone-based password generation logic
-        const rawPhone = participant.phoneNumber || participant.contactNumber || '0000';
-        const cleanPhone = rawPhone.replace(/\D/g, '');
-        const expectedPassword = cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '0000';
-        
-        console.log(`🔑 Team member password check:`);
-        console.log(`   - Raw phone: "${rawPhone}"`);
-        console.log(`   - Clean phone: "${cleanPhone}"`);
-        console.log(`   - Expected password: "${expectedPassword}"`);
-        console.log(`   - Provided password: "${password}"`);
-        
-        // Try both the provided password and the expected password
-        isValidPassword = await bcrypt.compare(password, participant.passwordHash) || 
-                         await bcrypt.compare(expectedPassword, participant.passwordHash);
-      } else {
-        // Individual participant - try email-based password
-        const emailPrefix = participant.email.split('@')[0];
-        const expectedPassword = `${emailPrefix}123`;
-        
-        console.log(`🔑 Individual participant password check:`);
-        console.log(`   - Expected password: "${expectedPassword}"`);
-        console.log(`   - Provided password: "${password}"`);
-        
-        isValidPassword = await bcrypt.compare(password, participant.passwordHash) ||
-                         await bcrypt.compare(expectedPassword, participant.passwordHash);
-      }
+      console.log(`🔑 Participant password check:`);
+      console.log(`   - Expected password: "${expectedPassword}"`);
+      console.log(`   - Provided password: "${password}"`);
+      console.log(`   - Participant type: ${participant.teamId ? 'Team Member' : 'Individual'}`);
+      
+      // Try both the provided password and the expected password
+      const isValidPassword = await bcrypt.compare(password, participant.passwordHash) ||
+                             await bcrypt.compare(expectedPassword, participant.passwordHash);
       
       console.log(`🔑 Password verification: ${isValidPassword ? 'VALID' : 'INVALID'}`);
 

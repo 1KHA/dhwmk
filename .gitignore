@@ -52,3 +52,8 @@ debug-cookie-auth.js
 fix-password-hashes.js
 test-complete-auth-flow.js
 test-login-flow.js
+
+UNIFIED_PASSWORD_SYSTEM.md
+migrate-to-unified-passwords.js
+
+test-auth-security.js
