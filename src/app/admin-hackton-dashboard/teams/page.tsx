@@ -49,6 +49,7 @@ interface Team {
   ideaSolution: string;
   ideaResults: string;
   ideaStage: string;
+  hackathonTrack: string | null;
   attachmentsLink: string | null;
   hasParticipated: boolean;
   participationDetails: string | null;
@@ -312,7 +313,7 @@ export default function TeamsPage() {
                 <tr className="bg-muted">
                   <th className="border p-2 text-right">اسم الفريق</th>
                   <th className="border p-2 text-right">اسم الفكرة</th>
-                  <th className="border p-2 text-right">التحدي</th>
+                  <th className="border p-2 text-right">المسار</th>
                   <th className="border p-2 text-right">الأعضاء</th>
                   <th className="border p-2 text-right">قائد الفريق</th>
                   <th className="border p-2 text-right">الحالة</th>
@@ -328,7 +329,7 @@ export default function TeamsPage() {
                       <tr className="hover:bg-muted/50">
                         <td className="border p-2">{team.teamName}</td>
                         <td className="border p-2">{team.ideaName}</td>
-                        <td className="border p-2">{team.challenge}</td>
+                        <td className="border p-2">{team.hackathonTrack}</td>
                         <td className="border p-2">
                           <Button
                             variant="link"
@@ -512,6 +513,7 @@ export default function TeamsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                   <p><strong>اسم الفريق:</strong> {selectedTeam.teamName}</p>
                   <p><strong>اسم الفكرة:</strong> {selectedTeam.ideaName}</p>
+                  <p><strong>المسار:</strong> {selectedTeam.hackathonTrack}</p>
                   <p><strong>التحدي:</strong> {selectedTeam.challenge}</p>
                   <p><strong>مرحلة الفكرة:</strong> {selectedTeam.ideaStage}</p>
                   <p className="col-span-2"><strong>سبب اختيار التحدي:</strong> {selectedTeam.challengeReason}</p>

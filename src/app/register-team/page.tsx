@@ -522,13 +522,13 @@ export default function RegisterTeamPage() {
                         <SelectValue placeholder="اختر المسار..." />
                       </SelectTrigger>
                       <SelectContent className="text-right" dir="rtl">
-                        <SelectItem value="arabic-language" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                        <SelectItem value="إحياء اللغة العربية بحلول رقمية مبتكرة" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           إحياء اللغة العربية بحلول رقمية مبتكرة
                         </SelectItem>
-                        <SelectItem value="elderly-blind" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                        <SelectItem value="تحسين جودة الحياة لكبار السن والمكفوفين" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           تحسين جودة الحياة لكبار السن والمكفوفين
                         </SelectItem>
-                        <SelectItem value="religious-tourism" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                        <SelectItem value="تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
                           تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)
                         </SelectItem>
                       </SelectContent>
