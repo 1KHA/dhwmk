@@ -35,6 +35,7 @@ interface Participant {
   residence: string;
   canAttend: boolean;
   isLeader: boolean;
+  gender?: string; // Added gender field
   // Computed property
   fullName?: string; 
 }
@@ -612,6 +613,63 @@ export default function TeamsPage() {
               </h3>
               <p className="text-muted-foreground">المرفوضة</p>
             </div>
+          </div>
+
+          {/* Total Registered Users */}
+          <h3 className="text-lg font-semibold mt-8 mb-4">إحصائيات المستخدمين</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-muted p-4 rounded-lg text-center">
+              <h3 className="text-2xl font-bold">
+                {teams.reduce((sum, team) => sum + team.participants.length, 0)}
+              </h3>
+              <p className="text-muted-foreground">إجمالي المستخدمين المسجلين</p>
+            </div>
+            <div className="bg-muted p-4 rounded-lg text-center">
+              <h3 className="text-2xl font-bold">
+                {teams.filter(team => team.participants.length > 1)
+                  .reduce((sum, team) => sum + team.participants.length, 0)}
+              </h3>
+              <p className="text-muted-foreground">المشاركين ضمن فرق</p>
+            </div>
+            <div className="bg-muted p-4 rounded-lg text-center">
+              <h3 className="text-2xl font-bold">
+                {teams.filter(team => team.participants.length === 1).length}
+              </h3>
+              <p className="text-muted-foreground">المشاركين الفرديين</p>
+            </div>
+          </div>
+
+          {/* Gender Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-muted p-4 rounded-lg text-center">
+              <h3 className="text-2xl font-bold">
+                {teams.flatMap(team => team.participants)
+                  .filter(p => p.gender === "male" || p.gender === "ذكر").length}
+              </h3>
+              <p className="text-muted-foreground">الذكور</p>
+            </div>
+            <div className="bg-muted p-4 rounded-lg text-center">
+              <h3 className="text-2xl font-bold">
+                {teams.flatMap(team => team.participants)
+                  .filter(p => p.gender === "female" || p.gender === "أنثى").length}
+              </h3>
+              <p className="text-muted-foreground">الإناث</p>
+            </div>
+          </div>
+
+          {/* Teams per Track */}
+          <h3 className="text-lg font-semibold mb-4">الفرق حسب المسار</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {ARABIC_TRACKS.map(track => (
+              <div key={track} className="bg-muted p-4 rounded-lg text-center">
+                <h3 className="text-2xl font-bold">
+                  {teams.filter(team => team.hackathonTrack === track).length}
+                </h3>
+                <p className="text-muted-foreground" title={track}>
+                  {track.length > 30 ? `${track.substring(0, 30)}...` : track}
+                </p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
