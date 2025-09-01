@@ -63,15 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const mentorData = await response.json()
-        const userData: User = {
-          id: mentorData.id,
-          email: mentorData.email,
-          role: 'mentor',
-          name: mentorData.name,
-          fullName: mentorData.name
+        console.log('🔍 Auth Context - Mentor data received:', mentorData)
+        
+        if (mentorData.success && mentorData.role === 'mentor') {
+          const userData: User = {
+            id: mentorData.id,
+            email: mentorData.email,
+            role: 'mentor',
+            name: mentorData.name,
+            fullName: mentorData.name
+          }
+          console.log('✅ Auth Context - Setting mentor user:', userData)
+          setUser(userData)
+          return
         }
-        setUser(userData)
-        return
       }
 
       // If both fail, try admin endpoint

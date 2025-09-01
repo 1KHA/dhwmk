@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../../components/mentor/Sidebar";
 import TopBar from "../../../components/mentor/TopBar";
+import MentorRouteGuard from "@/components/auth/MentorRouteGuard";
 
 export default function MentorDashboardLayout({
   children,
@@ -20,14 +21,16 @@ export default function MentorDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 mr-64">
-          {children}
-        </main>
+    <MentorRouteGuard>
+      <div className="min-h-screen bg-background">
+        <TopBar />
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 p-6 mr-64">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </MentorRouteGuard>
   );
 }

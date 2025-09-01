@@ -67,7 +67,18 @@ export async function GET(request: NextRequest) {
       email: mentor.email
     });
 
-    return NextResponse.json(mentor);
+    // Return the mentor user data in standardized format (matching admin endpoint)
+    return NextResponse.json({
+      success: true,
+      id: mentor.id,
+      username: mentor.email, // Use email as username for compatibility
+      email: mentor.email,
+      name: mentor.name,
+      role: 'mentor',
+      specialty: mentor.specialty, // Use actual field from schema
+      phone: mentor.phone,
+      status: mentor.status,
+    });
   } catch (error) {
     console.error('❌ Failed to get mentor profile:', error);
     if (error instanceof jwt.JsonWebTokenError) {

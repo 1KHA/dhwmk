@@ -15,8 +15,13 @@ The application follows a standard client-server architecture built on the Next.
 - **Database:** A SQLite database managed by the Prisma ORM.
 
 ## 2. Key Technical Decisions & Patterns
-- **JWT-Based Authentication:** Participant login is handled via a JWT stored in an `httpOnly` cookie. API routes for participants verify this token to authorize requests.
-- **Role-Based Access Control (RBAC):** The participant dashboard implements UI and API-level checks to differentiate between a team leader and a regular member. For example, the `isLeader` flag in the JWT payload is checked on the `/api/participant/add-member` route to grant or deny access.
+- **JWT-Based Authentication:** All user types (admin, participant, mentor) use JWT tokens stored in `httpOnly` cookies. API routes verify these tokens to authorize requests.
+- **Role-Based Access Control (RBAC):** The system implements comprehensive role-based access control:
+  - **Admin Dashboard:** Protected by AdminRouteGuard component that verifies admin role
+  - **Mentor Dashboard:** Protected by MentorRouteGuard component that verifies mentor role  
+  - **Participant Dashboard:** Implements UI and API-level checks to differentiate between team leaders and regular members
+  - **API Endpoints:** All secured endpoints verify JWT tokens and user roles before processing requests
+- **Standardized Authentication Responses:** All `/me` endpoints return consistent response format with `success`, `role`, and user data fields
 - **Client-Side Data Fetching:** All dashboards use `useEffect` hooks to fetch data from their respective API routes and manage state with `useState`.
 - **Modal-Based UI for CRUD:** The admin and participant dashboards use dialogs/modals for adding, editing, and confirming deletions.
 - **Component Reusability:** UI components from `shadcn/ui` are used across all parts of the application for a consistent look and feel.
