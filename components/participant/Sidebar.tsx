@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
@@ -20,7 +20,22 @@ const navItems = [
     name: "فريقي", 
     href: "/participant-dashboard/team", 
     icon: Flag,
-    permission: { category: 'users', action: 'view' }
+    permission: { category: 'users', action: 'view' },
+    showWhen: 'hasTeam' // Only show when participant has a team
+  },
+  { 
+    name: "الفرق", 
+    href: "/participant-dashboard/teams", 
+    icon: Users,
+    permission: { category: 'users', action: 'view' },
+    showWhen: 'noTeam' // Only show when participant doesn't have a team
+  },
+  { 
+    name: "الدعوات المستلمة", 
+    href: "/participant-dashboard/join-requests", 
+    icon: Users,
+    permission: { category: 'users', action: 'view' },
+    showWhen: 'isLeader' // Only show for team leaders
   },
   { 
     name: "التسليمات", 
@@ -50,18 +65,63 @@ const navItems = [
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [participantData, setParticipantData] = useState<{
+    teamId: string | null;
+    isLeader: boolean;
+  } | null>(null)
+  const [dataLoading, setDataLoading] = useState(true)
   const pathname = usePathname()
   const { hasPermission, loading } = usePermissions()
 
-  // Filter navigation items based on permissions
+  // Fetch participant data
+  useEffect(() => {
+    const fetchParticipantData = async () => {
+      try {
+        const response = await fetch('/api/participant/me')
+        if (response.ok) {
+          const data = await response.json()
+          setParticipantData({
+            teamId: data.teamId,
+            isLeader: data.isLeader
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching participant data:', error)
+      } finally {
+        setDataLoading(false)
+      }
+    }
+
+    fetchParticipantData()
+  }, [])
+
+  // Filter navigation items based on permissions and participant status
   const filteredNavItems = useMemo(() => {
-    if (loading) return []
+    if (loading || dataLoading) return []
     
     return navItems.filter(item => {
-      if (!item.permission) return true
-      return hasPermission(item.permission)
+      // Check permissions first
+      if (item.permission && !hasPermission(item.permission)) {
+        return false
+      }
+
+      // Check conditional display rules
+      if (item.showWhen && participantData) {
+        switch (item.showWhen) {
+          case 'hasTeam':
+            return participantData.teamId !== null
+          case 'noTeam':
+            return participantData.teamId === null
+          case 'isLeader':
+            return participantData.isLeader && participantData.teamId !== null
+          default:
+            return true
+        }
+      }
+
+      return true
     })
-  }, [hasPermission, loading])
+  }, [hasPermission, loading, participantData, dataLoading])
 
   return (
     <motion.aside

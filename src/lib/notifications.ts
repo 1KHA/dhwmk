@@ -242,6 +242,33 @@ export const NotificationTemplates = {
     type: "success" as const,
     actionUrl: "/mentor-dashboard",
   }),
+
+  // Team join request notifications
+  teamJoinRequest: (participantName: string, teamName: string) => ({
+    title: "طلب انضمام جديد للفريق",
+    message: `${participantName} يريد الانضمام لفريق ${teamName}`,
+    type: "info" as const,
+    actionUrl: "/participant-dashboard/join-requests",
+  }),
+
+  joinRequestAccepted: (teamName: string) => ({
+    title: "تم قبول طلب الانضمام!",
+    message: `تهانينا! تم قبولك في فريق ${teamName}`,
+    type: "success" as const,
+    actionUrl: "/participant-dashboard/team",
+  }),
+
+  joinRequestRejected: (teamName: string) => ({
+    title: "لم يتم قبول طلب الانضمام",
+    message: `لم يتم قبولك في فريق ${teamName}`,
+    type: "info" as const,
+  }),
+
+  joinRequestCancelled: (teamName: string) => ({
+    title: "تم إلغاء طلب الانضمام",
+    message: `تم إلغاء طلب انضمامك لفريق ${teamName} بسبب انضمامك لفريق آخر`,
+    type: "info" as const,
+  }),
 };
 
 /**

@@ -23,6 +23,7 @@ model Team {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   participants         Participant[]
+  receivedJoinRequests TeamJoinRequest[]
   
   // DEPRECATED FIELDS - Keep for backward compatibility
   challenge            String?
@@ -60,6 +61,7 @@ model Participant {
   bookings             MentorBooking[]
   submissions          MilestoneSubmission[]
   eventRegistrations   EventRegistration[]
+  sentJoinRequests     TeamJoinRequest[]
   
   // DEPRECATED FIELDS - Keep for backward compatibility
   firstName            String?
@@ -191,4 +193,19 @@ model Notification {
   actionUrl         String?   // Optional URL for clickable notifications
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model TeamJoinRequest {
+  id            String   @id @default(cuid())
+  participantId String   // Individual requesting to join
+  teamId        String   // Team they want to join
+  status        String   @default("pending") // pending, accepted, rejected
+  message       String?  // Optional message from participant
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  participant   Participant @relation(fields: [participantId], references: [id])
+  team          Team        @relation(fields: [teamId], references: [id])
+  
+  @@unique([participantId, teamId]) // Prevent duplicate requests
 }
