@@ -81,15 +81,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const adminData = await response.json()
-        const userData: User = {
-          id: adminData.id,
-          email: adminData.email,
-          role: 'admin',
-          name: adminData.name,
-          fullName: adminData.name
+        console.log('🔍 Auth Context - Admin data received:', adminData)
+        
+        if (adminData.success && adminData.role === 'admin') {
+          const userData: User = {
+            id: adminData.id,
+            email: adminData.email || adminData.username,
+            role: 'admin',
+            name: adminData.name || adminData.username,
+            fullName: adminData.name || adminData.username
+          }
+          console.log('✅ Auth Context - Setting admin user:', userData)
+          setUser(userData)
+          return
         }
-        setUser(userData)
-        return
       }
 
       // No valid authentication found

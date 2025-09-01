@@ -25,18 +25,26 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include', // Include cookies
         });
 
+        console.log('🔍 AdminRouteGuard - Response status:', response.status);
+
         if (!response.ok) {
+          console.log('❌ AdminRouteGuard - Response not OK:', response.status, response.statusText);
           throw new Error('غير مصرح. هذه الخدمة متاحة للمسؤولين فقط.');
         }
 
         const data = await response.json();
         
-        // Verify the user is an admin
-        if (data.user && data.user.role === 'admin') {
+        console.log('🔍 AdminRouteGuard - Response data:', data);
+        
+        // Verify the user is an admin (updated to match new response format)
+        if (data.success && data.role === 'admin') {
+          console.log('✅ AdminRouteGuard - Admin authorization successful');
           setAuthorized(true);
         } else {
+          console.log('❌ AdminRouteGuard - Authorization failed:', { success: data.success, role: data.role });
           throw new Error('غير مصرح. هذه الخدمة متاحة للمسؤولين فقط.');
         }
       } catch (error: any) {
