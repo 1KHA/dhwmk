@@ -16,26 +16,42 @@ interface JwtPayload {
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const tokenCookie = cookieStore.get('auth-token');
+    // Use consistent cookie name with other endpoints
+    const token = request.cookies.get('token')?.value;
 
-    if (!tokenCookie) {
+    if (!token) {
       return NextResponse.json({ error: 'Authentication token not found.' }, { status: 401 });
     }
 
-    const token = tokenCookie.value;
-    let decoded: JwtPayload;
+    let decoded: any;
 
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      decoded = jwt.verify(token, JWT_SECRET) as any;
     } catch (err) {
       return NextResponse.json({ error: 'Invalid or expired token.' }, { status: 401 });
     }
 
-    const { teamId, id: currentUserId, isLeader } = decoded;
+    // Use consistent field names with other endpoints
+    const currentUserId = decoded.participantId;
+    
+    if (!currentUserId) {
+      return NextResponse.json({ error: 'Participant ID not found in token.' }, { status: 401 });
+    }
+
+    // Get participant to check team membership
+    const participant = await prisma.participant.findUnique({
+      where: { id: currentUserId },
+      select: { teamId: true, isLeader: true }
+    });
+
+    if (!participant) {
+      return NextResponse.json({ error: 'Participant not found.' }, { status: 404 });
+    }
+
+    const { teamId, isLeader } = participant;
 
     if (!teamId) {
-      return NextResponse.json({ error: 'Team ID not found in token.' }, { status: 400 });
+      return NextResponse.json({ error: 'You are not part of any team.' }, { status: 400 });
     }
 
     const team = await prisma.team.findUnique({

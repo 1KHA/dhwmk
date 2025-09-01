@@ -10,11 +10,28 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     
     if (!token) {
-      return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+      console.error('No token found in cookies');
+      return NextResponse.json({ error: 'غير مصرح - لا يوجد token' }, { status: 401 });
     }
 
     // Verify JWT token (consistent with other endpoints)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { participantId: string };
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      console.log('Decoded token:', { 
+        participantId: decoded.participantId, 
+        email: decoded.email, 
+        role: decoded.role 
+      });
+    } catch (jwtError) {
+      console.error('JWT verification failed:', jwtError);
+      return NextResponse.json({ error: 'غير مصرح - token غير صالح' }, { status: 401 });
+    }
+
+    if (!decoded.participantId) {
+      console.error('No participantId in token:', decoded);
+      return NextResponse.json({ error: 'غير مصرح - participantId مفقود من الـ token' }, { status: 401 });
+    }
     
     const participant = await prisma.participant.findUnique({
       where: { id: decoded.participantId },
@@ -30,8 +47,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!participant) {
-      return NextResponse.json({ error: 'المشارك غير موجود' }, { status: 404 });
+      console.error('Participant not found with ID:', decoded.participantId);
+      return NextResponse.json({ error: 'المشارك غير موجود في قاعدة البيانات' }, { status: 404 });
     }
+
+    console.log('Participant found:', { 
+      id: participant.id, 
+      email: participant.email, 
+      fullName: participant.fullName 
+    });
 
     // Handle different data formats and provide fallbacks
     const safeParticipant = {
