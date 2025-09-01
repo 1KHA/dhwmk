@@ -225,7 +225,7 @@ export default function HomePage() {
       <picture>
         <source media="(max-width: 520px)" srcSet="/mobtop02.png" />
         <img
-          src="/dhnew01.png"
+          src="/dhnew02.png"
           alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
           style={{
             width: "100%",
@@ -240,7 +240,7 @@ export default function HomePage() {
       {/* Mobile-only Bottom Image */}
       <div className="mobile-bottom-image">
         <img 
-          src="/mobbot.png" 
+          src="/mobbot02.png" 
           alt="Mobile Bottom" 
           className="w-full h-auto"
           style={{ display: "block" }}
