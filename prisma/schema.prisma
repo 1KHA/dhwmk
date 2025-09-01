@@ -54,6 +54,7 @@ model Participant {
   university           String?               // اذكر جامعتك
   isLeader             Boolean               @default(false)
   passwordHash         String?
+  status               String                @default("pending") // pending, approved, rejected (for individual participants)
   teamId               String?               // Make optional for individual participants
   team                 Team?                 @relation(fields: [teamId], references: [id])
   createdAt            DateTime              @default(now())

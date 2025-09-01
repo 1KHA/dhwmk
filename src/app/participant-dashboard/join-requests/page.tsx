@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Users, Check, X, Loader2, Mail, User, Calendar } from "lucide-react";
-import { useToast } from "../../../../components/ui/use-toast";
+import { Check, X, Eye, Clock, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,350 +12,392 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { useToast } from "../../../../components/ui/use-toast";
 
 interface JoinRequest {
   id: string;
-  status: string;
-  message: string | null;
+  status: string; // pending, accepted, rejected
+  message?: string;
   createdAt: string;
-  updatedAt: string;
   participant: {
     id: string;
-    fullName: string | null;
-    firstName: string | null;
-    secondName: string | null;
-    familyName: string | null;
     email: string;
-    university: string | null;
-    professionalField: string | null;
-    displayName: string;
+    fullName?: string;
+    firstName?: string;
+    secondName?: string;
+    familyName?: string;
+    contactNumber?: string;
+    phoneNumber?: string;
+    university?: string;
+    universityMajor?: string;
+    major?: string;
+    city?: string;
+    residence?: string;
+    professionalField?: string;
+    employmentStatus?: string;
+    gender?: string;
+    isUniversityStudent?: boolean;
+    canAttendHackathon?: boolean;
+    canAttend?: boolean;
   };
 }
 
 export default function JoinRequestsPage() {
-  const [requests, setRequests] = useState<JoinRequest[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { toast } = useToast();
 
-  // Fetch join requests
-  const fetchRequests = async () => {
+  const fetchJoinRequests = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/team-leader/join-requests');
-      if (response.ok) {
-        const data = await response.json();
-        setRequests(data.requests);
-      } else {
-        const errorData = await response.json();
-        toast({
-          title: "خطأ",
-          description: errorData.error || "فشل في جلب طلبات الانضمام",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error('Failed to fetch join requests');
       }
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في الاتصال",
-        variant: "destructive",
-      });
+      const requests: JoinRequest[] = await response.json();
+      setJoinRequests(requests);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRequests();
+    fetchJoinRequests();
   }, []);
 
-  // Handle request action (accept/reject)
-  const handleRequestAction = async (requestId: string, action: 'accept' | 'reject') => {
+  const handleJoinRequest = async (requestId: string, action: 'accept' | 'reject') => {
     try {
-      setProcessingId(requestId);
       const response = await fetch('/api/team-leader/handle-join-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          requestId,
-          action,
-        }),
+        body: JSON.stringify({ requestId, action }),
       });
 
       if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "نجح",
+          description: action === 'accept' 
+            ? "تم قبول طلب الانضمام بنجاح" 
+            : "تم رفض طلب الانضمام",
+        });
+        fetchJoinRequests(); // Refresh the list
+      } else {
         const data = await response.json();
         toast({
-          title: action === 'accept' ? "تم القبول" : "تم الرفض",
-          description: data.message,
-        });
-        
-        // Refresh requests list
-        fetchRequests();
-        
-        // Close detail modal if open
-        if (isDetailModalOpen) {
-          setIsDetailModalOpen(false);
-        }
-      } else {
-        const errorData = await response.json();
-        toast({
           title: "خطأ",
-          description: errorData.error || "فشل في معالجة الطلب",
+          description: data.error || `فشل في ${action === 'accept' ? 'قبول' : 'رفض'} الطلب`,
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "خطأ",
-        description: "حدث خطأ في الاتصال",
+        description: `حدث خطأ أثناء ${action === 'accept' ? 'قبول' : 'رفض'} الطلب`,
         variant: "destructive",
       });
-    } finally {
-      setProcessingId(null);
     }
   };
 
-  const openDetailModal = (request: JoinRequest) => {
-    setSelectedRequest(request);
-    setIsDetailModalOpen(true);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">مقبول</span>;
+      case 'pending':
+        return <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">قيد المراجعة</span>;
+      case 'rejected':
+        return <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">مرفوض</span>;
+      default:
+        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{status}</span>;
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>جاري تحميل طلبات الانضمام...</span>
-        </div>
-      </div>
-    );
-  }
+  const getDisplayName = (participant: JoinRequest['participant']) => {
+    return participant.fullName || 
+           `${participant.firstName || ''} ${participant.secondName || ''} ${participant.familyName || ''}`.trim() || 
+           'غير متوفر';
+  };
+
+  const pendingRequests = joinRequests.filter(req => req.status === 'pending');
+  const processedRequests = joinRequests.filter(req => req.status !== 'pending');
 
   return (
-    <div className="space-y-6 p-6" dir="rtl">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">الدعوات المستلمة</h1>
-          <p className="text-muted-foreground">
-            إدارة طلبات الانضمام المرسلة لفريقك
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex gap-4">
-          <Badge variant="secondary" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            {requests.length} طلب معلق
-          </Badge>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">الدعوات المستلمة</h1>
       </div>
 
-      {requests.length === 0 ? (
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Mail className="h-12 w-12 text-muted-foreground mb-4" />
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+            </div>
+            <h3 className="text-2xl font-bold">{pendingRequests.length}</h3>
+            <p className="text-muted-foreground">طلبات قيد المراجعة</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Check className="h-5 w-5 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold">
+              {joinRequests.filter(req => req.status === 'accepted').length}
+            </h3>
+            <p className="text-muted-foreground">طلبات مقبولة</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <X className="h-5 w-5 text-red-500" />
+            </div>
+            <h3 className="text-2xl font-bold">
+              {joinRequests.filter(req => req.status === 'rejected').length}
+            </h3>
+            <p className="text-muted-foreground">طلبات مرفوضة</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Users className="h-5 w-5 text-blue-500" />
+            </div>
+            <h3 className="text-2xl font-bold">{joinRequests.length}</h3>
+            <p className="text-muted-foreground">إجمالي الطلبات</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Requests */}
+      {pendingRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              طلبات قيد المراجعة ({pendingRequests.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-center p-4">جاري تحميل البيانات...</p>
+            ) : error ? (
+              <p className="text-center p-4 text-red-500">{error}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="border p-2 text-right">الاسم</th>
+                      <th className="border p-2 text-right">البريد الإلكتروني</th>
+                      <th className="border p-2 text-right">الجامعة</th>
+                      <th className="border p-2 text-right">التخصص</th>
+                      <th className="border p-2 text-right">المدينة</th>
+                      <th className="border p-2 text-right">تاريخ الطلب</th>
+                      <th className="border p-2 text-right">الرسالة</th>
+                      <th className="border p-2 text-right">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingRequests.map((request) => (
+                      <tr key={request.id} className="hover:bg-muted/50">
+                        <td className="border p-2">{getDisplayName(request.participant)}</td>
+                        <td className="border p-2">{request.participant.email}</td>
+                        <td className="border p-2">{request.participant.university || 'غير متوفر'}</td>
+                        <td className="border p-2">
+                          {request.participant.universityMajor || request.participant.major || 'غير متوفر'}
+                        </td>
+                        <td className="border p-2">
+                          {request.participant.city || request.participant.residence || 'غير متوفر'}
+                        </td>
+                        <td className="border p-2">
+                          {new Date(request.createdAt).toLocaleDateString('ar-SA')}
+                        </td>
+                        <td className="border p-2">
+                          {request.message ? (
+                            <span className="text-sm">{request.message.substring(0, 50)}...</span>
+                          ) : (
+                            'لا توجد رسالة'
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              className="p-1 rounded-md hover:bg-muted"
+                              title="عرض التفاصيل"
+                              onClick={() => {
+                                setSelectedRequest(request);
+                                setIsViewModalOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button 
+                              className="p-1 rounded-md hover:bg-muted text-green-600"
+                              title="قبول الطلب"
+                              onClick={() => handleJoinRequest(request.id, 'accept')}
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button 
+                              className="p-1 rounded-md hover:bg-muted text-red-600"
+                              title="رفض الطلب"
+                              onClick={() => handleJoinRequest(request.id, 'reject')}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Processed Requests */}
+      {processedRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>الطلبات المعالجة ({processedRequests.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-muted">
+                    <th className="border p-2 text-right">الاسم</th>
+                    <th className="border p-2 text-right">البريد الإلكتروني</th>
+                    <th className="border p-2 text-right">الحالة</th>
+                    <th className="border p-2 text-right">تاريخ الطلب</th>
+                    <th className="border p-2 text-right">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processedRequests.map((request) => (
+                    <tr key={request.id} className="hover:bg-muted/50">
+                      <td className="border p-2">{getDisplayName(request.participant)}</td>
+                      <td className="border p-2">{request.participant.email}</td>
+                      <td className="border p-2">{getStatusBadge(request.status)}</td>
+                      <td className="border p-2">
+                        {new Date(request.createdAt).toLocaleDateString('ar-SA')}
+                      </td>
+                      <td className="border p-2">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            className="p-1 rounded-md hover:bg-muted"
+                            title="عرض التفاصيل"
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setIsViewModalOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && joinRequests.length === 0 && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">لا توجد طلبات انضمام</h3>
-            <p className="text-muted-foreground text-center">
-              لم يتم استلام أي طلبات انضمام لفريقك حتى الآن
+            <p className="text-muted-foreground">
+              لم يتم استلام أي طلبات انضمام لفريقك حتى الآن.
             </p>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {requests.map((request) => (
-            <Card key={request.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-1">
-                      {request.participant.displayName}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {request.participant.email}
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(request.createdAt), 'dd MMM', { locale: ar })}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {request.participant.university && (
-                  <div>
-                    <h4 className="font-medium mb-1">الجامعة:</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {request.participant.university}
-                    </p>
-                  </div>
-                )}
-
-                {request.participant.professionalField && (
-                  <div>
-                    <h4 className="font-medium mb-1">المجال المهني:</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {request.participant.professionalField}
-                    </p>
-                  </div>
-                )}
-
-                {request.message && (
-                  <div>
-                    <h4 className="font-medium mb-1">الرسالة:</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {request.message}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => handleRequestAction(request.id, 'accept')}
-                    disabled={processingId === request.id}
-                    className="flex-1"
-                  >
-                    {processingId === request.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 ml-1" />
-                        قبول
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRequestAction(request.id, 'reject')}
-                    disabled={processingId === request.id}
-                    className="flex-1"
-                  >
-                    {processingId === request.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <X className="h-4 w-4 ml-1" />
-                        رفض
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openDetailModal(request)}
-                  className="w-full"
-                >
-                  <User className="h-4 w-4 ml-1" />
-                  عرض التفاصيل
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       )}
 
-      {/* Detail Modal */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+      {/* View Request Details Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>تفاصيل طلب الانضمام</DialogTitle>
-            <DialogDescription>
-              معلومات تفصيلية عن المشارك
-            </DialogDescription>
+            <DialogTitle>
+              تفاصيل طلب الانضمام: {selectedRequest && getDisplayName(selectedRequest.participant)}
+            </DialogTitle>
           </DialogHeader>
-
           {selectedRequest && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2">معلومات المشارك:</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">الاسم:</span>
-                    <span>{selectedRequest.participant.displayName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">البريد الإلكتروني:</span>
-                    <span>{selectedRequest.participant.email}</span>
-                  </div>
-                  {selectedRequest.participant.university && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">الجامعة:</span>
-                      <span>{selectedRequest.participant.university}</span>
-                    </div>
-                  )}
-                  {selectedRequest.participant.professionalField && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">المجال المهني:</span>
-                      <span>{selectedRequest.participant.professionalField}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">تاريخ الطلب:</span>
-                    <span>
-                      {format(new Date(selectedRequest.createdAt), 'dd MMMM yyyy', { locale: ar })}
-                    </span>
-                  </div>
-                </div>
+            <div className="space-y-4 p-4 max-h-[70vh] overflow-y-auto text-right">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                <p><strong>الاسم:</strong> {getDisplayName(selectedRequest.participant)}</p>
+                <p><strong>البريد الإلكتروني:</strong> {selectedRequest.participant.email}</p>
+                <p><strong>رقم التواصل:</strong> {selectedRequest.participant.contactNumber || selectedRequest.participant.phoneNumber || 'غير متوفر'}</p>
+                <p><strong>الجنس:</strong> {selectedRequest.participant.gender || 'غير متوفر'}</p>
+                <p><strong>الجامعة:</strong> {selectedRequest.participant.university || 'غير متوفر'}</p>
+                <p><strong>التخصص:</strong> {selectedRequest.participant.universityMajor || selectedRequest.participant.major || 'غير متوفر'}</p>
+                <p><strong>المجال المهني:</strong> {selectedRequest.participant.professionalField || selectedRequest.participant.employmentStatus || 'غير متوفر'}</p>
+                <p><strong>المدينة:</strong> {selectedRequest.participant.city || selectedRequest.participant.residence || 'غير متوفر'}</p>
+                <p><strong>طالب جامعي؟</strong> {selectedRequest.participant.isUniversityStudent !== undefined ? (selectedRequest.participant.isUniversityStudent ? 'نعم' : 'لا') : 'غير متوفر'}</p>
+                <p><strong>يمكنه الحضور؟</strong> {selectedRequest.participant.canAttendHackathon !== undefined ? (selectedRequest.participant.canAttendHackathon ? 'نعم' : 'لا') : (selectedRequest.participant.canAttend !== undefined ? (selectedRequest.participant.canAttend ? 'نعم' : 'لا') : 'غير متوفر')}</p>
+                <p><strong>حالة الطلب:</strong> {getStatusBadge(selectedRequest.status)}</p>
+                <p><strong>تاريخ الطلب:</strong> {new Date(selectedRequest.createdAt).toLocaleDateString('ar-SA')}</p>
               </div>
-
               {selectedRequest.message && (
-                <div>
-                  <h4 className="font-medium mb-2">رسالة المشارك:</h4>
-                  <div className="bg-muted p-3 rounded-lg text-sm">
+                <div className="mt-4">
+                  <p><strong>رسالة المتقدم:</strong></p>
+                  <div className="bg-muted p-3 rounded-md mt-2">
                     {selectedRequest.message}
                   </div>
                 </div>
               )}
             </div>
           )}
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDetailModalOpen(false)}
-            >
-              إغلاق
-            </Button>
-            {selectedRequest && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleRequestAction(selectedRequest.id, 'accept')}
-                  disabled={processingId === selectedRequest.id}
-                >
-                  {processingId === selectedRequest.id ? (
-                    <Loader2 className="h-4 w-4 ml-1 animate-spin" />
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4 ml-1" />
-                      قبول
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleRequestAction(selectedRequest.id, 'reject')}
-                  disabled={processingId === selectedRequest.id}
-                >
-                  {processingId === selectedRequest.id ? (
-                    <Loader2 className="h-4 w-4 ml-1 animate-spin" />
-                  ) : (
-                    <>
-                      <X className="h-4 w-4 ml-1" />
-                      رفض
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              {selectedRequest?.status === 'pending' && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="text-green-600 border-green-600 hover:bg-green-50"
+                    onClick={() => {
+                      if (selectedRequest) {
+                        handleJoinRequest(selectedRequest.id, 'accept');
+                        setIsViewModalOpen(false);
+                      }
+                    }}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    قبول
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      if (selectedRequest) {
+                        handleJoinRequest(selectedRequest.id, 'reject');
+                        setIsViewModalOpen(false);
+                      }
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    رفض
+                  </Button>
+                </>
+              )}
+              <Button onClick={() => setIsViewModalOpen(false)}>إغلاق</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
