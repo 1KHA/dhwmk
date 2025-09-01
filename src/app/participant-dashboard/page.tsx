@@ -16,22 +16,48 @@ import { useToast } from "../../../components/ui/use-toast";
 // Define type for our data
 interface Participant {
   id: string;
-  firstName: string;
-  secondName: string;
-  familyName: string;
-  nationalId: string;
-  dob: string;
   email: string;
-  phoneNumber: string;
-  education: string;
-  university: string;
-  major: string;
-  employmentStatus: string;
-  nationality: string;
-  residence: string;
-  canAttend: boolean;
+  status: string;
+  teamId?: string;
   isLeader: boolean;
+  
+  // Name fields
+  firstName?: string;
+  secondName?: string;
+  familyName?: string;
   fullName?: string;
+  
+  // Contact information
+  phoneNumber?: string;
+  contactNumber?: string;
+  
+  // Personal information
+  nationalId?: string;
+  dob?: string;
+  gender?: string;
+  nationality?: string;
+  residence?: string;
+  city?: string;
+  
+  // Education information
+  education?: string;
+  university?: string;
+  major?: string;
+  universityMajor?: string;
+  employmentStatus?: string;
+  professionalField?: string;
+  
+  // Boolean fields
+  canAttend?: boolean;
+  canAttendHackathon?: boolean;
+  isUniversityStudent?: boolean;
+  
+  // Team information
+  team?: {
+    id: string;
+    teamName: string;
+    status: string;
+  };
 }
 
 const educationOptions = [
@@ -88,7 +114,7 @@ export default function ParticipantDashboardPage() {
     if (!editedParticipant) return;
 
     try {
-      const response = await fetch('/api/admin/update-participant', {
+      const response = await fetch('/api/participant/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedParticipant),
@@ -204,7 +230,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="firstName">الاسم الأول</Label>
                   <Input
                     id="firstName"
-                    value={participant.firstName}
+                    value={participant.firstName || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, firstName: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -214,7 +240,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="secondName">الاسم الثاني</Label>
                   <Input
                     id="secondName"
-                    value={participant.secondName}
+                    value={participant.secondName || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, secondName: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -224,7 +250,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="familyName">اسم العائلة</Label>
                   <Input
                     id="familyName"
-                    value={participant.familyName}
+                    value={participant.familyName || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, familyName: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -234,7 +260,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="nationalId">رقم الهوية</Label>
                   <Input
                     id="nationalId"
-                    value={participant.nationalId}
+                    value={participant.nationalId || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, nationalId: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -244,7 +270,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="nationality">الجنسية</Label>
                   <Input
                     id="nationality"
-                    value={participant.nationality}
+                    value={participant.nationality || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, nationality: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -254,7 +280,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="residence">منطقة الإقامة</Label>
                   <Input
                     id="residence"
-                    value={participant.residence}
+                    value={participant.residence || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, residence: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -277,7 +303,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="education">المؤهل التعليمي</Label>
                   {isEditing ? (
                     <Select
-                      value={participant.education}
+                      value={participant.education || ''}
                       onValueChange={(value) => setEditedParticipant({ ...editedParticipant!, education: value })}
                     >
                       <SelectTrigger>
@@ -292,14 +318,14 @@ export default function ParticipantDashboardPage() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Input value={participant.education} disabled className="text-right" />
+                    <Input value={participant.education || ''} disabled className="text-right" />
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="university">الجامعة</Label>
                   <Input
                     id="university"
-                    value={participant.university}
+                    value={participant.university || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, university: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -309,7 +335,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="major">التخصص</Label>
                   <Input
                     id="major"
-                    value={participant.major}
+                    value={participant.major || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, major: e.target.value })}
                     disabled={!isEditing}
                     className="text-right"
@@ -319,7 +345,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="employmentStatus">الحالة الوظيفية</Label>
                   {isEditing ? (
                     <Select
-                      value={participant.employmentStatus}
+                      value={participant.employmentStatus || ''}
                       onValueChange={(value) => setEditedParticipant({ ...editedParticipant!, employmentStatus: value })}
                     >
                       <SelectTrigger>
@@ -334,7 +360,7 @@ export default function ParticipantDashboardPage() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Input value={participant.employmentStatus} disabled className="text-right" />
+                    <Input value={participant.employmentStatus || ''} disabled className="text-right" />
                   )}
                 </div>
               </div>
@@ -357,7 +383,7 @@ export default function ParticipantDashboardPage() {
                   <Label htmlFor="phoneNumber">رقم الجوال</Label>
                   <Input
                     id="phoneNumber"
-                    value={participant.phoneNumber}
+                    value={participant.phoneNumber || ''}
                     onChange={(e) => isEditing && setEditedParticipant({ ...editedParticipant!, phoneNumber: e.target.value })}
                     disabled={!isEditing}
                     dir="ltr"
