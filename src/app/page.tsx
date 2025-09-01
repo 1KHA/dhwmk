@@ -240,7 +240,7 @@ export default function HomePage() {
       {/* Mobile-only Bottom Image */}
       <div className="mobile-bottom-image">
         <img 
-          src="/mobbot02.png" 
+          src="/mobbot03.png" 
           alt="Mobile Bottom" 
           className="w-full h-auto"
           style={{ display: "block" }}
