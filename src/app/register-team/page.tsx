@@ -340,7 +340,6 @@ export default function RegisterTeamPage() {
             <SelectValue placeholder="اختر الجنس..." />
           </SelectTrigger>
           <SelectContent className="text-right" dir="rtl">
-            <SelectItem value="male" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>ذكر</SelectItem>
             <SelectItem value="female" className="text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>أنثى</SelectItem>
           </SelectContent>
         </Select>
