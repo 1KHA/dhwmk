@@ -223,9 +223,9 @@ export default function HomePage() {
       />
       {/* Responsive background image */}
       <picture>
-        <source media="(max-width: 520px)" srcSet="/mobtop02.png" />
+        <source media="(max-width: 520px)" srcSet="/mobtop03.png" />
         <img
-          src="/dhnew03.png"
+          src="/dhnew04.png"
           alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
           style={{
             width: "100%",
@@ -240,7 +240,7 @@ export default function HomePage() {
       {/* Mobile-only Bottom Image */}
       <div className="mobile-bottom-image">
         <img 
-          src="/mobbot03.png" 
+          src="/mobbot04.png" 
           alt="Mobile Bottom" 
           className="w-full h-auto"
           style={{ display: "block" }}
