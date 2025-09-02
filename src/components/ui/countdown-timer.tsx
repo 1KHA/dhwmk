@@ -27,7 +27,7 @@ function getTimeLeft(target: Date) {
 }
 
 export default function CountdownTimer({
-  targetDate = "2025-09-14T23:59:59",
+  targetDate = "2025-09-25T23:59:59",
   title = "الوقت المتبقي على إغلاق التسجيل",
 }: {
   targetDate?: string;
