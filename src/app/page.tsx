@@ -41,8 +41,13 @@ export default function HomePage() {
         setTopPosition("15%");
         setCountdownTopPosition("10%");
         setBoxHeight("350px");
+      } else if (window.innerWidth < 636) {
+        // Large phones / Small tablets (521-635px)
+        setTopPosition("6%");
+        setCountdownTopPosition("6.5%");
+        setBoxHeight("400px");
       } else if (window.innerWidth < 720) {
-        // Large phones / Small tablets (520-719px)
+        // Small tablets (636-719px)
         setTopPosition("6%");
         setCountdownTopPosition("7%");
         setBoxHeight("400px");
@@ -54,22 +59,22 @@ export default function HomePage() {
       } else if (window.innerWidth < 1120) {
         // Small laptops (920-1119px)
         setTopPosition("8%");
-        setCountdownTopPosition("8%");
+        setCountdownTopPosition("7.5%");
         setBoxHeight("480px");
       } else if (window.innerWidth < 1320) {
         // Medium laptops (1120-1319px)
         setTopPosition("9%");
-        setCountdownTopPosition("8.5%");
+        setCountdownTopPosition("8%");
         setBoxHeight("500px");
       } else if (window.innerWidth < 1520) {
         // Large laptops (1320-1519px)
         setTopPosition("10%");
-        setCountdownTopPosition("9%");
+        setCountdownTopPosition("8%");
         setBoxHeight("500px");
       } else if (window.innerWidth < 1720) {
         // Desktop monitors (1520-1719px)
         setTopPosition("12%");
-        setCountdownTopPosition("10%");
+        setCountdownTopPosition("9%");
         setBoxHeight("500px");
       } else if (window.innerWidth < 1920) {
         // Large desktop monitors (1720-1919px)
@@ -79,7 +84,7 @@ export default function HomePage() {
       } else {
         // Ultra-wide monitors (1920px+)
         setTopPosition("15%");
-        setCountdownTopPosition("10%");
+        setCountdownTopPosition("9%");
         setBoxHeight("500px");
       }
     };
@@ -223,9 +228,9 @@ export default function HomePage() {
       />
       {/* Responsive background image */}
       <picture>
-        <source media="(max-width: 520px)" srcSet="/mobtop03.png" />
+        <source media="(max-width: 520px)" srcSet="/mobtop04.png" />
         <img
-          src="/dhnew04.png"
+          src="/dhnew05.png"
           alt="جائزة مايدة محي الدين ناظر للابتكار 3 - هاكاثون الابتكار في جامعة دار الحكمة"
           style={{
             width: "100%",
@@ -240,7 +245,7 @@ export default function HomePage() {
       {/* Mobile-only Bottom Image */}
       <div className="mobile-bottom-image">
         <img 
-          src="/mobbot04.png" 
+          src="/mobbot05.png" 
           alt="Mobile Bottom" 
           className="w-full h-auto"
           style={{ display: "block" }}

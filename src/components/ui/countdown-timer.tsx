@@ -182,58 +182,58 @@ export default function CountdownTimer({
             transform: translateY(0) scale(1);
           }
         }
-        @media (max-width: 1125px) {
+        @media (min-width: 1320px) {
           .countdown-container {
-            max-width: 600px;
-            --digit-height: 36px;
+            max-width: 800px;
+            --digit-height: 48px;
           }
           .countdown-grid {
-            gap: 1rem;
+            gap: 1.5rem;
           }
           .time-unit {
-            min-width: 90px;
-            padding: 1rem 0.75rem;
-            border-radius: 12px;
+            min-width: 120px;
+            padding: 1.0rem 1rem;
+            border-radius: 16px;
           }
           .digit-wrapper {
             width: 24px;
-            height: 36px;
+            height: 48px;
           }
           .digit {
-            height: 36px;
-            font-size: 1.4rem;
+            height: 48px;
+            font-size: 2.5rem;
           }
           .time-label {
-            font-size: 1rem;
+            font-size: 1.9rem;
           }
         }
-        @media (max-width: 768px) {
+        @media (min-width: 769px) and (max-width: 1319px) {
           .countdown-container {
-            max-width: 500px;
-            --digit-height: 32px;
+            max-width: 400px;
+            --digit-height: 28px;
           }
           .countdown-grid {
-            gap: 0.75rem;
+            gap: 0.7rem;
           }
           .time-unit {
-            min-width: 80px;
-            padding: 0.75rem 0.5rem;
+            min-width: 70px;
+            padding: 0.5rem 0.4rem;
             border-radius: 10px;
           }
           .digit-wrapper {
-            width: 20px;
-            height: 32px;
+            width: 18px;
+            height: 28px;
           }
           .digit {
-            height: 32px;
-            font-size: 1.2rem;
+            height: 28px;
+            font-size: 1.0rem;
           }
           .time-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
           }
         }
-        @media (max-width: 640px) {
-          .countdown-container {
+        @media (max-width: 768px) {
+.countdown-container {
             max-width: 300px;
             --digit-height: 22px;
           }
@@ -263,6 +263,31 @@ export default function CountdownTimer({
           }
           .countdown-title {
             font-size: 0.9rem;
+          }
+        }
+        @media (max-width: 640px) {
+          .countdown-container {
+            max-width: 280px;
+            --digit-height: 18px;
+          }
+          .countdown-grid {
+            gap: 0.2rem;
+          }
+          .time-unit {
+            min-width: 50px;
+            padding: 0.3rem 0.15rem;
+            border-radius: 5px;
+          }
+          .digit-wrapper {
+            width: 12px;
+            height: 18px;
+          }
+          .digit {
+            height: 18px;
+            font-size: 0.9rem;
+          }
+          .time-label {
+            font-size: 0.8rem;
           }
         }
         @media (max-width: 480px) {
