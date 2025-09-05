@@ -12,9 +12,26 @@ The application follows a standard client-server architecture built on the Next.
   - **Admin Endpoints:** Routes under `/api/admin/` handle global data management.
   - **Participant Endpoints:** Secure routes under `/api/participant/` handle actions for the logged-in user, such as fetching their data, managing their team, or registering for events.
   - **Mentor Endpoints:** Secure routes under `/api/mentor/` handle actions for mentors, such as managing their availability.
-- **Database:** A SQLite database managed by the Prisma ORM.
+- **Database:** Dual database configuration:
+  - **Development:** SQLite database for local development
+  - **Production:** PostgreSQL database (via Supabase) for production
+  - Both managed by the Prisma ORM with environment-based configuration
 
 ## 2. Key Technical Decisions & Patterns
+
+### Dual Database Configuration
+- **Environment-Based Database Selection:** The system uses environment variables to dynamically select the database provider:
+  - `DATABASE_TYPE=sqlite` for local development
+  - `DATABASE_TYPE=postgresql` for production
+- **Prisma Schema Management:** Separate schema files for each database type:
+  - `schema.sqlite.prisma` for SQLite
+  - `schema.production.prisma` for PostgreSQL
+- **Database Switching Script:** The `scripts/switch-db.js` script automates switching between database types
+- **Environment Files:** Different environment files for different configurations:
+  - `.env.local` for SQLite configuration
+  - `.env.production` for PostgreSQL configuration
+- **Prisma Client Configuration:** Enhanced Prisma client in `src/lib/prisma.ts` with dynamic database selection based on environment variables
+
 - **JWT-Based Authentication:** All user types (admin, participant, mentor) use JWT tokens stored in `httpOnly` cookies. API routes verify these tokens to authorize requests.
 - **Role-Based Access Control (RBAC):** The system implements comprehensive role-based access control:
   - **Admin Dashboard:** Protected by AdminRouteGuard component that verifies admin role

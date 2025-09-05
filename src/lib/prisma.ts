@@ -1,12 +1,21 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Enhanced Prisma client configuration for build-time compatibility
+// Determine database type from environment
+const isDevelopment = process.env.NODE_ENV === 'development'
+const databaseType = process.env.DATABASE_TYPE || (isDevelopment ? 'sqlite' : 'postgresql')
+
+// Configure logging based on environment
+const logOptions: Prisma.LogLevel[] = isDevelopment 
+  ? ['query', 'error', 'warn'] as Prisma.LogLevel[]
+  : ['error'] as Prisma.LogLevel[]
+
+// Enhanced Prisma client configuration for multi-database support
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: logOptions,
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
@@ -14,7 +23,13 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   },
 })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Log database connection information in development
+if (isDevelopment) {
+  console.log(`[Prisma] Using ${databaseType} database`)
+}
+
+// Store Prisma client in global object in development
+if (isDevelopment) globalForPrisma.prisma = prisma
 
 // Gracefully handle disconnection
 process.on('beforeExit', async () => {

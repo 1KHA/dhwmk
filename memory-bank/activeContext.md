@@ -1,14 +1,37 @@
-# Active Context: Authentication System Fixes & Dashboard Security
+# Active Context: Dual Database Configuration & Authentication System Fixes
 
 ## 1. Current Work Focus
-The current focus is on critical authentication and security fixes:
-1. **Admin Dashboard Authentication:** Fixed authentication issues preventing admin access
-2. **Mentor Dashboard Security:** Implemented complete authentication protection for mentor dashboard
-3. **API Response Standardization:** Standardized authentication response formats across all user types
-4. **Route Guard Implementation:** Created comprehensive route protection for all dashboard types
-5. **Auth Context Integration:** Updated authentication context to handle all user roles consistently
+The current focus is on dual database configuration and critical authentication fixes:
+1. **Dual Database Configuration:** Implemented a system to use SQLite for local development and PostgreSQL/Supabase for production
+2. **Admin Dashboard Authentication:** Fixed authentication issues preventing admin access
+3. **Mentor Dashboard Security:** Implemented complete authentication protection for mentor dashboard
+4. **API Response Standardization:** Standardized authentication response formats across all user types
+5. **Route Guard Implementation:** Created comprehensive route protection for all dashboard types
+6. **Auth Context Integration:** Updated authentication context to handle all user roles consistently
 
 ## 2. Recent Changes
+
+### Dual Database Configuration
+- **Environment-Based Database Selection:** Implemented a system to dynamically select database provider based on environment
+- **Package.json Scripts:** Added new scripts to support both database types:
+  - `dev:local` - Runs the app with SQLite database
+  - `dev:prod` - Runs the app with PostgreSQL database
+  - `build:local` - Builds the app with SQLite configuration
+  - `build:prod` - Builds the app with PostgreSQL configuration
+  - `prisma:migrate:local` - Runs migrations for SQLite
+  - `prisma:migrate:prod` - Runs migrations for PostgreSQL
+  - `prisma:studio:local` - Opens Prisma Studio with SQLite
+  - `prisma:studio:prod` - Opens Prisma Studio with PostgreSQL
+- **Environment Files:** Created/updated environment files for different database configurations:
+  - `.env.local` - Contains SQLite configuration
+  - `.env.production` - Contains PostgreSQL/Supabase configuration
+  - `.env` - Contains default configuration with DATABASE_TYPE variable
+- **Prisma Schema Files:** Created separate schema files for each database type:
+  - `prisma/schema.sqlite.prisma` - SQLite schema
+  - `prisma/schema.production.prisma` - PostgreSQL schema
+- **Database Switching Script:** Created `scripts/switch-db.js` to switch between database types
+- **Documentation:** Created comprehensive guide in `DB_SETUP.md` explaining the dual database configuration
+
 
 ### Registration Form Updates
 - **CSV Integration:** Successfully integrated new Arabic questions from `signup.csv` into the registration form
@@ -62,8 +85,19 @@ The current focus is on critical authentication and security fixes:
   - Filtered data export (based on current filters)
   - Additional data formats (CSV, PDF)
   - Customizable column selection
+- **Database Migration Automation:** Enhance the database switching script to automatically run migrations
+- **Production Database Backup:** Implement a system to backup the production database regularly
+- **Database Synchronization:** Create a tool to synchronize data between local and production databases
 
 ## 4. Key Learnings & Patterns
+
+### Dual Database Configuration
+- **Environment-Based Configuration:** Using environment variables to dynamically select database provider allows for seamless switching between development and production environments.
+- **Schema Compatibility:** Ensuring schema compatibility between SQLite and PostgreSQL requires careful consideration of database-specific features.
+- **Migration Management:** Separate migration commands for each database type ensure that migrations are applied correctly.
+- **Script Automation:** The `switch-db.js` script automates the process of switching between database types, making it easy for developers to work with either database.
+- **Cross-Environment Variables:** Using `cross-env` package to set environment variables in npm scripts ensures compatibility across different operating systems.
+
 
 ### Vercel Build Issues Resolution
 - **Dynamic Route Configuration:** The key to resolving Vercel build errors was adding `export const dynamic = 'force-dynamic';` to API routes that use database connections or cookies. This prevents Next.js from trying to statically generate these routes during build time.
@@ -102,3 +136,6 @@ The current focus is on critical authentication and security fixes:
 - **File Management:** Need to implement proper file lifecycle management to prevent orphaned files in blob storage
 - **Storage Costs:** Monitor blob storage usage as it's a paid service with usage-based pricing
 - **File Size Limits:** Current implementation has a 25MB file size limit for all file uploads (team registration attachments and milestone submissions)
+- **Database Schema Divergence:** As the project evolves, the SQLite and PostgreSQL schemas might diverge due to database-specific features - need to regularly synchronize schema files
+- **Migration Complexity:** Managing migrations for two different database types adds complexity to the development process
+- **Environment File Management:** Multiple environment files (.env, .env.local, .env.production) need to be kept in sync for proper configuration

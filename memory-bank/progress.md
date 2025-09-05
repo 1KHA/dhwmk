@@ -57,3 +57,10 @@
   - **API Response Standardization:** Unified authentication response formats across admin, participant, and mentor endpoints
   - **Route Guard Implementation:** Created comprehensive route protection for all dashboard types
   - **Auth Context Integration:** Updated authentication context to handle all user roles consistently
+- **Dual Database Configuration (September 2025):** Implemented a system to use SQLite for local development and PostgreSQL/Supabase for production:
+  - **Environment-Based Database Selection:** Created a system to dynamically select database provider based on environment variables
+  - **Separate Schema Files:** Created separate schema files for SQLite and PostgreSQL
+  - **Database Switching Script:** Developed a script to switch between database types
+  - **Environment Files:** Created environment files for different database configurations
+  - **Package.json Scripts:** Added scripts to support both database types
+  - **Documentation:** Created comprehensive guide explaining the dual database configuration

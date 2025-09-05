@@ -7,7 +7,9 @@
 - **Tailwind CSS:** A utility-first CSS framework.
 - **shadcn/ui:** A collection of reusable UI components used across all dashboards.
 - **Prisma:** A next-generation ORM for Node.js and TypeScript.
-- **SQLite:** A self-contained, serverless SQL database engine.
+- **SQLite:** A self-contained, serverless SQL database engine used for local development.
+- **PostgreSQL:** A powerful, open-source relational database used in production via Supabase.
+- **Supabase:** A PostgreSQL database provider with additional features.
 - **Lucide React:** A library of icons.
 - **JSONWebToken (jsonwebtoken):** Used to generate and verify JWTs for authentication.
 - **bcryptjs:** Used for hashing participant passwords.
@@ -15,22 +17,37 @@
 - **react-big-calendar:** Used for the mentor availability calendar interface.
 - **@vercel/blob:** Vercel's object storage solution for file uploads and storage.
 - **xlsx:** Used for generating Excel files with multiple worksheets for data export.
+- **cross-env:** Used for setting environment variables across different platforms.
 
 ## 2. Development Setup
 - **Node.js & npm:** Standard Node.js project with dependencies managed via npm.
-- **`package.json`:** Defines project scripts (`dev`, `build`, `start`).
+- **`package.json`:** Defines project scripts for different environments:
+  - Development: `dev`, `dev:local`, `dev:prod`
+  - Building: `build`, `build:local`, `build:prod`
+  - Database: `prisma:migrate:local`, `prisma:migrate:prod`, `prisma:studio:local`, `prisma:studio:prod`
 - **Prisma CLI:** Used for managing the database (`prisma migrate dev`, `prisma generate`).
+- **Environment Files:**
+  - `.env` - Default environment variables
+  - `.env.local` - Local development with SQLite
+  - `.env.production` - Production with PostgreSQL/Supabase
+- **Database Switching:** `scripts/switch-db.js` script for switching between database types.
 
 ## 3. Technical Constraints & Dependencies
 - **Serverless Environment:** API routes are designed for a serverless environment.
 - **`@prisma/client`:** The core dependency for database interaction.
 - **`@vercel/blob`:** Required for object storage functionality.
 - **`cookies-next` or similar:** Would be needed for more advanced cookie management, but currently using Next.js's built-in `cookies()` helper.
+- **`cross-env`:** Required for setting environment variables across different platforms.
 - **Vercel Environment:** The application is optimized for deployment on Vercel, with specific configurations in `vercel.json`.
-- **BLOB_READ_WRITE_TOKEN:** Environment variable required for Vercel Blob storage authentication.
+- **Environment Variables:**
+  - **BLOB_READ_WRITE_TOKEN:** Required for Vercel Blob storage authentication.
+  - **DATABASE_URL:** Connection string for the database (SQLite or PostgreSQL).
+  - **DIRECT_URL:** Direct connection URL for PostgreSQL (used for migrations).
+  - **DATABASE_TYPE:** Determines which database provider to use ('sqlite' or 'postgresql').
+  - **JWT_SECRET:** Secret key for JWT token generation and verification.
 
 ## 4. Database Schema
-The application uses a relational database with the following key models:
+The application uses a relational database (SQLite for local development, PostgreSQL for production) with the following key models:
 - **Participant:** Stores user information for hackathon participants.
 - **Team:** Represents a team in the hackathon, with a one-to-many relationship to Participant. Includes `attachmentPath` field to store URLs to files in Vercel Blob storage.
 - **Mentor:** Stores information about mentors who provide guidance to participants.
