@@ -9,12 +9,16 @@
     "build": "prisma generate && next build",
     "build:local": "cross-env DATABASE_TYPE=sqlite prisma generate && next build",
     "build:prod": "cross-env DATABASE_TYPE=postgresql prisma generate && next build",
+    "build:vercel": "chmod +x vercel-build.sh && ./vercel-build.sh",
     "start": "next start",
     "lint": "next lint",
     "prisma:migrate:local": "cross-env DATABASE_TYPE=sqlite prisma migrate dev",
     "prisma:migrate:prod": "cross-env DATABASE_TYPE=postgresql prisma migrate deploy",
     "prisma:studio:local": "cross-env DATABASE_TYPE=sqlite prisma studio",
-    "prisma:studio:prod": "cross-env DATABASE_TYPE=postgresql prisma studio"
+    "prisma:studio:prod": "cross-env DATABASE_TYPE=postgresql prisma studio",
+    "db:check": "node scripts/check-db-config.js",
+    "db:switch:local": "cross-env DATABASE_TYPE=sqlite node scripts/switch-db.js sqlite",
+    "db:switch:prod": "cross-env DATABASE_TYPE=postgresql node scripts/switch-db.js postgresql"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
