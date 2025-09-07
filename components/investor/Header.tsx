@@ -1,5 +1,7 @@
 "use client"
 
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 import { Bell, User, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +16,8 @@ import {
 import { useTheme } from "next-themes"
 
 export default function Header() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
   const { setTheme, theme } = useTheme()
 
   return (
@@ -44,7 +48,7 @@ export default function Header() {
               تبديل المظهر
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>تسجيل الخروج</DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>تسجيل الخروج</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
