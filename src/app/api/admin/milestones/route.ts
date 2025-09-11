@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
     `;
 
     // Create notifications for all participants about the new milestone
+    // Use a non-blocking approach to avoid Vercel timeout
     try {
       const template = NotificationTemplates.newMilestoneAvailable(title);
       
@@ -72,9 +73,11 @@ export async function POST(request: NextRequest) {
         select: { id: true },
       });
 
-      // Create notifications for all participants
-      for (const participant of participants) {
-        await createNotification({
+      if (participants.length > 0) {
+        console.log(`Creating notifications for ${participants.length} participants`);
+        
+        // Prepare notification data for all participants at once
+        const notificationsData = participants.map(participant => ({
           title: template.title,
           message: template.message,
           type: template.type,
@@ -83,7 +86,15 @@ export async function POST(request: NextRequest) {
           relatedEntityType: 'milestone',
           relatedEntityId: id,
           actionUrl: template.actionUrl,
+        }));
+
+        // Use createMany for a single batch insert instead of individual awaits
+        // This is much faster than creating notifications one by one
+        await prisma.notification.createMany({
+          data: notificationsData,
         });
+        
+        console.log(`Successfully created ${participants.length} notifications`);
       }
     } catch (notificationError) {
       console.error('Error creating milestone creation notifications:', notificationError);
