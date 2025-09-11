@@ -54,7 +54,7 @@ export async function GET(
       JOIN "Participant" p ON ms.participantId = p.id
       JOIN "Team" t ON p.teamId = t.id
       WHERE ms.milestoneId = ${milestoneId}
-      ORDER BY ms.submittedAt DESC
+      ORDER BY ms."submittedAt" DESC
     `;
 
     // Transform the raw data to a more structured format

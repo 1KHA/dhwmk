@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     // Update the milestone submission count
     await prisma.$executeRaw`
       UPDATE "Milestone"
-      SET submissionCount = submissionCount + 1
+      SET "submissionCount" = "submissionCount" + 1
       WHERE id = ${milestoneId}
     `;
 

@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
         t.id as teamId, 
         t.teamName,
         m.title as milestoneTitle,
-        m.dueDate as milestoneDueDate
+        m."dueDate" as milestoneDueDate
       FROM "MilestoneSubmission" ms
       JOIN "Participant" p ON ms.participantId = p.id
       JOIN "Team" t ON p.teamId = t.id
       JOIN "Milestone" m ON ms.milestoneId = m.id
-      ORDER BY ms.submittedAt DESC
+      ORDER BY ms."submittedAt" DESC
     `;
 
     // Transform the raw data to a more structured format

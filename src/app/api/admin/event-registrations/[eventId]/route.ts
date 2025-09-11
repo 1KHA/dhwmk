@@ -61,7 +61,7 @@ export async function GET(
       FROM "EventRegistration" er
       JOIN "Participant" p ON er.participantId = p.id
       WHERE er.eventId = ${eventId}
-      ORDER BY er.createdAt DESC
+      ORDER BY er."createdAt" DESC
     `;
 
     // تنسيق البيانات للعرض
@@ -132,7 +132,7 @@ export async function PUT(
     // تحديث حالة التسجيل
     await prisma.$executeRaw`
       UPDATE "EventRegistration"
-      SET status = ${status}, updatedAt = ${new Date().toISOString()}
+      SET status = ${status}, "updatedAt" = ${new Date().toISOString()}
       WHERE id = ${registrationId}
     `;
     
