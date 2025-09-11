@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Check if the milestone exists
     const milestone = await prisma.$queryRaw`
-      SELECT * FROM Milestone WHERE id = ${milestoneId}
+      SELECT * FROM "Milestone" WHERE id = ${milestoneId}
     `;
     if (!milestone || (Array.isArray(milestone) && milestone.length === 0)) {
       return NextResponse.json(
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     // Check if the participant has already submitted for this milestone
     const existingSubmission = await prisma.$queryRaw`
-      SELECT * FROM MilestoneSubmission 
+      SELECT * FROM "MilestoneSubmission" 
       WHERE participantId = ${participant.id} AND milestoneId = ${milestoneId}
     `;
     
@@ -136,13 +136,13 @@ export async function POST(request: NextRequest) {
 
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
-      INSERT INTO MilestoneSubmission (id, participantId, milestoneId, filePath, fileName, submittedAt)
+      INSERT INTO "MilestoneSubmission" (id, participantId, milestoneId, filePath, fileName, submittedAt)
       VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()})
     `;
 
     // Update the milestone submission count
     await prisma.$executeRaw`
-      UPDATE Milestone
+      UPDATE "Milestone"
       SET submissionCount = submissionCount + 1
       WHERE id = ${milestoneId}
     `;

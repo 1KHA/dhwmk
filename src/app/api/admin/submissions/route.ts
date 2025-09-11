@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
         t.teamName,
         m.title as milestoneTitle,
         m.dueDate as milestoneDueDate
-      FROM MilestoneSubmission ms
-      JOIN Participant p ON ms.participantId = p.id
-      JOIN Team t ON p.teamId = t.id
-      JOIN Milestone m ON ms.milestoneId = m.id
+      FROM "MilestoneSubmission" ms
+      JOIN "Participant" p ON ms.participantId = p.id
+      JOIN "Team" t ON p.teamId = t.id
+      JOIN "Milestone" m ON ms.milestoneId = m.id
       ORDER BY ms.submittedAt DESC
     `;
 

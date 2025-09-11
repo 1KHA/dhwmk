@@ -25,7 +25,7 @@ type EventFromDB = {
 export async function GET() {
   try {
     const events = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event ORDER BY startDate ASC
+      SELECT * FROM "Event" ORDER BY startDate ASC
     `;
 
     return NextResponse.json(events);

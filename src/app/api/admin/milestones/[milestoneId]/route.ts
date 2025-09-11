@@ -22,7 +22,7 @@ export async function GET(
 
     // Fetch the milestone
     const milestone = await prisma.$queryRaw`
-      SELECT * FROM Milestone WHERE id = ${milestoneId}
+      SELECT * FROM "Milestone" WHERE id = ${milestoneId}
     `;
 
     if (!milestone || (Array.isArray(milestone) && milestone.length === 0)) {

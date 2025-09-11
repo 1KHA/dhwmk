@@ -52,15 +52,15 @@ export async function POST(request: NextRequest) {
     const statusValue = status || "upcoming";
     const formattedDueDate = new Date(dueDate).toISOString();
 
-    // Create the new milestone using raw SQL
+    // Create the new milestone using raw SQL with quoted table name for PostgreSQL compatibility
     await prisma.$executeRaw`
-      INSERT INTO Milestone (id, title, description, dueDate, status, requirements, submissionCount, createdAt, updatedAt)
+      INSERT INTO "Milestone" (id, title, description, dueDate, status, requirements, submissionCount, createdAt, updatedAt)
       VALUES (${id}, ${title}, ${description}, ${formattedDueDate}, ${statusValue}, ${requirementsJson}, 0, ${now}, ${now})
     `;
 
     // Fetch the created milestone
     const newMilestone = await prisma.$queryRaw<MilestoneFromDB[]>`
-      SELECT * FROM Milestone WHERE id = ${id}
+      SELECT * FROM "Milestone" WHERE id = ${id}
     `;
 
     // Create notifications for all participants about the new milestone
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
 
     // Get the current milestone
     const currentMilestone = await prisma.$queryRaw<MilestoneFromDB[]>`
-      SELECT * FROM Milestone WHERE id = ${id}
+      SELECT * FROM "Milestone" WHERE id = ${id}
     `;
 
     if (currentMilestone.length === 0) {
@@ -143,7 +143,7 @@ export async function PUT(request: NextRequest) {
 
     // Update the milestone
     await prisma.$executeRaw`
-      UPDATE Milestone
+      UPDATE "Milestone"
       SET title = ${updatedTitle},
           description = ${updatedDescription},
           dueDate = ${updatedDueDate},
@@ -155,7 +155,7 @@ export async function PUT(request: NextRequest) {
 
     // Fetch the updated milestone
     const updatedMilestone = await prisma.$queryRaw<MilestoneFromDB[]>`
-      SELECT * FROM Milestone WHERE id = ${id}
+      SELECT * FROM "Milestone" WHERE id = ${id}
     `;
 
     return NextResponse.json({
@@ -186,7 +186,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if milestone exists
     const milestone = await prisma.$queryRaw<MilestoneFromDB[]>`
-      SELECT * FROM Milestone WHERE id = ${id}
+      SELECT * FROM "Milestone" WHERE id = ${id}
     `;
 
     if (milestone.length === 0) {
@@ -198,7 +198,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the milestone
     await prisma.$executeRaw`
-      DELETE FROM Milestone WHERE id = ${id}
+      DELETE FROM "Milestone" WHERE id = ${id}
     `;
 
     return NextResponse.json(

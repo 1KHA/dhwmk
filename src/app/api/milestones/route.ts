@@ -33,7 +33,7 @@ type MilestoneFromDB = {
 export async function GET() {
   try {
     // Check if the Milestone model exists in the Prisma client
-    const milestones = await prisma.$queryRaw`SELECT * FROM Milestone ORDER BY dueDate ASC`;
+    const milestones = await prisma.$queryRaw`SELECT * FROM "Milestone" ORDER BY dueDate ASC`;
 
     // Get the participant ID from the JWT token
     const cookieStore = cookies();
@@ -87,7 +87,7 @@ export async function GET() {
 
     // Get all submissions for the current participant
     const submissions = await prisma.$queryRaw`
-      SELECT milestoneId FROM MilestoneSubmission 
+      SELECT milestoneId FROM "MilestoneSubmission" 
       WHERE participantId = ${participant.id}
     `;
 

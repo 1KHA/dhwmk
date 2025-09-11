@@ -22,7 +22,7 @@ export async function GET(
 
     // Check if the milestone exists
     const milestone = await prisma.$queryRaw`
-      SELECT * FROM Milestone WHERE id = ${milestoneId}
+      SELECT * FROM "Milestone" WHERE id = ${milestoneId}
     `;
 
     if (!milestone || (Array.isArray(milestone) && milestone.length === 0)) {
@@ -50,9 +50,9 @@ export async function GET(
         p.email,
         t.id as teamId, 
         t.teamName
-      FROM MilestoneSubmission ms
-      JOIN Participant p ON ms.participantId = p.id
-      JOIN Team t ON p.teamId = t.id
+      FROM "MilestoneSubmission" ms
+      JOIN "Participant" p ON ms.participantId = p.id
+      JOIN "Team" t ON p.teamId = t.id
       WHERE ms.milestoneId = ${milestoneId}
       ORDER BY ms.submittedAt DESC
     `;

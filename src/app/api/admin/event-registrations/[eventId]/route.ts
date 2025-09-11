@@ -34,7 +34,7 @@ export async function GET(
     
     // التحقق من وجود الفعالية
     const event = await prisma.$queryRaw`
-      SELECT * FROM Event WHERE id = ${eventId}
+      SELECT * FROM "Event" WHERE id = ${eventId}
     `;
 
     if (!event || (Array.isArray(event) && event.length === 0)) {
@@ -58,8 +58,8 @@ export async function GET(
              p.phoneNumber, 
              p.isLeader, 
              p.teamId
-      FROM EventRegistration er
-      JOIN Participant p ON er.participantId = p.id
+      FROM "EventRegistration" er
+      JOIN "Participant" p ON er.participantId = p.id
       WHERE er.eventId = ${eventId}
       ORDER BY er.createdAt DESC
     `;
@@ -117,7 +117,7 @@ export async function PUT(
 
     // التحقق من وجود التسجيل
     const registration = await prisma.$queryRaw`
-      SELECT * FROM EventRegistration 
+      SELECT * FROM "EventRegistration" 
       WHERE id = ${registrationId} AND eventId = ${eventId}
     `;
 
@@ -131,7 +131,7 @@ export async function PUT(
 
     // تحديث حالة التسجيل
     await prisma.$executeRaw`
-      UPDATE EventRegistration
+      UPDATE "EventRegistration"
       SET status = ${status}, updatedAt = ${new Date().toISOString()}
       WHERE id = ${registrationId}
     `;
@@ -144,8 +144,8 @@ export async function PUT(
              p.secondName, 
              p.familyName, 
              p.email
-      FROM EventRegistration er
-      JOIN Participant p ON er.participantId = p.id
+      FROM "EventRegistration" er
+      JOIN "Participant" p ON er.participantId = p.id
       WHERE er.id = ${registrationId}
     `;
     
@@ -192,7 +192,7 @@ export async function DELETE(
 
     // التحقق من وجود التسجيل
     const registration = await prisma.$queryRaw`
-      SELECT * FROM EventRegistration 
+      SELECT * FROM "EventRegistration" 
       WHERE id = ${registrationId} AND eventId = ${eventId}
     `;
 
@@ -205,7 +205,7 @@ export async function DELETE(
 
     // حذف التسجيل
     await prisma.$executeRaw`
-      DELETE FROM EventRegistration
+      DELETE FROM "EventRegistration"
       WHERE id = ${registrationId}
     `;
 

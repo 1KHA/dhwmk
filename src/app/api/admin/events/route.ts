@@ -72,13 +72,13 @@ export async function POST(request: NextRequest) {
 
     // Create the new event using raw SQL
     await prisma.$executeRaw`
-      INSERT INTO Event (id, title, description, startDate, endDate, location, capacity, type, plan, presenter, status, createdAt, updatedAt)
+      INSERT INTO "Event" (id, title, description, startDate, endDate, location, capacity, type, plan, presenter, status, createdAt, updatedAt)
       VALUES (${id}, ${title}, ${description}, ${formattedStartDate}, ${formattedEndDate}, ${location}, ${capacity}, ${type}, ${plan}, ${presenter}, ${statusValue}, ${now}, ${now})
     `;
 
     // Fetch the created event
     const newEvent = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event WHERE id = ${id}
+      SELECT * FROM "Event" WHERE id = ${id}
     `;
 
     return NextResponse.json(newEvent[0], { status: 201 });
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const events = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event ORDER BY startDate DESC
+      SELECT * FROM "Event" ORDER BY startDate DESC
     `;
 
     return NextResponse.json(events);
@@ -123,7 +123,7 @@ export async function PUT(request: NextRequest) {
 
     // Get the current event
     const currentEvent = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event WHERE id = ${id}
+      SELECT * FROM "Event" WHERE id = ${id}
     `;
 
     if (currentEvent.length === 0) {
@@ -148,7 +148,7 @@ export async function PUT(request: NextRequest) {
 
     // Update the event
     await prisma.$executeRaw`
-      UPDATE Event
+      UPDATE "Event"
       SET title = ${updatedTitle},
           description = ${updatedDescription},
           startDate = ${updatedStartDate},
@@ -165,7 +165,7 @@ export async function PUT(request: NextRequest) {
 
     // Fetch the updated event
     const updatedEvent = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event WHERE id = ${id}
+      SELECT * FROM "Event" WHERE id = ${id}
     `;
 
     return NextResponse.json(updatedEvent[0]);
@@ -193,7 +193,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if event exists
     const event = await prisma.$queryRaw<EventFromDB[]>`
-      SELECT * FROM Event WHERE id = ${id}
+      SELECT * FROM "Event" WHERE id = ${id}
     `;
 
     if (event.length === 0) {
@@ -205,7 +205,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the event
     await prisma.$executeRaw`
-      DELETE FROM Event WHERE id = ${id}
+      DELETE FROM "Event" WHERE id = ${id}
     `;
 
     return NextResponse.json(
