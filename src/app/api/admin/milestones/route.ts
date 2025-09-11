@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Create the new milestone using raw SQL with quoted table name and column names for PostgreSQL compatibility
     await prisma.$executeRaw`
       INSERT INTO "Milestone" (id, title, description, "dueDate", status, requirements, "submissionCount", "createdAt", "updatedAt")
-      VALUES (${id}, ${title}, ${description}, ${formattedDueDate}, ${statusValue}, ${requirementsJson}, 0, ${now}, ${now})
+      VALUES (${id}, ${title}, ${description}, ${formattedDueDate}::timestamp, ${statusValue}, ${requirementsJson}, 0, ${now}::timestamp, ${now}::timestamp)
     `;
 
     // Fetch the created milestone
@@ -146,10 +146,10 @@ export async function PUT(request: NextRequest) {
       UPDATE "Milestone"
       SET title = ${updatedTitle},
           description = ${updatedDescription},
-          "dueDate" = ${updatedDueDate},
+          "dueDate" = ${updatedDueDate}::timestamp,
           status = ${updatedStatus},
           requirements = ${updatedRequirements},
-          "updatedAt" = ${now}
+          "updatedAt" = ${now}::timestamp
       WHERE id = ${id}
     `;
 

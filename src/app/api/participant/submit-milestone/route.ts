@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
       INSERT INTO "MilestoneSubmission" (id, participantId, milestoneId, filePath, fileName, submittedAt)
-      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()})
+      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()}::timestamp)
     `;
 
     // Update the milestone submission count

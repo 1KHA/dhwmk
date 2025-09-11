@@ -132,7 +132,7 @@ export async function PUT(
     // تحديث حالة التسجيل
     await prisma.$executeRaw`
       UPDATE "EventRegistration"
-      SET status = ${status}, "updatedAt" = ${new Date().toISOString()}
+      SET status = ${status}, "updatedAt" = ${new Date().toISOString()}::timestamp
       WHERE id = ${registrationId}
     `;
     

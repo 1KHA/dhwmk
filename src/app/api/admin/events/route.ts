@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     // Create the new event using raw SQL
     await prisma.$executeRaw`
       INSERT INTO "Event" (id, title, description, "startDate", "endDate", location, capacity, type, plan, presenter, status, "createdAt", "updatedAt")
-      VALUES (${id}, ${title}, ${description}, ${formattedStartDate}, ${formattedEndDate}, ${location}, ${capacity}, ${type}, ${plan}, ${presenter}, ${statusValue}, ${now}, ${now})
+      VALUES (${id}, ${title}, ${description}, ${formattedStartDate}::timestamp, ${formattedEndDate}::timestamp, ${location}, ${capacity}, ${type}, ${plan}, ${presenter}, ${statusValue}, ${now}::timestamp, ${now}::timestamp)
     `;
 
     // Fetch the created event
@@ -151,15 +151,15 @@ export async function PUT(request: NextRequest) {
       UPDATE "Event"
       SET title = ${updatedTitle},
           description = ${updatedDescription},
-          "startDate" = ${updatedStartDate},
-          "endDate" = ${updatedEndDate},
+          "startDate" = ${updatedStartDate}::timestamp,
+          "endDate" = ${updatedEndDate}::timestamp,
           location = ${updatedLocation},
           capacity = ${updatedCapacity},
           type = ${updatedType},
           plan = ${updatedPlan},
           presenter = ${updatedPresenter},
           status = ${updatedStatus},
-          "updatedAt" = ${now}
+          "updatedAt" = ${now}::timestamp
       WHERE id = ${id}
     `;
 
