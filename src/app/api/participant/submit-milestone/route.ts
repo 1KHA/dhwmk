@@ -10,10 +10,10 @@ import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from '@/lib/const
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface JwtPayload {
-  id: string;
+  participantId: string; // Changed from id to participantId to match login route
   email: string;
-  teamId: string;
-  isLeader: boolean;
+  role: string;
+  // teamId and isLeader are not in the token from login route
 }
 
 
@@ -66,9 +66,10 @@ export async function POST(request: NextRequest) {
 
     // Get the participant ID from the JWT token
     const cookieStore = cookies();
-    const tokenCookie = cookieStore.get('auth-token');
+    const tokenCookie = cookieStore.get('token'); // Changed from 'auth-token' to 'token' to match login route
 
     if (!tokenCookie) {
+      console.log('No token cookie found in request');
       return NextResponse.json(
         { error: "يرجى تسجيل الدخول للتسليم" },
         { status: 401 }
@@ -80,14 +81,17 @@ export async function POST(request: NextRequest) {
 
     try {
       decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      console.log('Decoded token:', decoded);
     } catch (err) {
+      console.error('Token verification failed:', err);
       return NextResponse.json(
         { error: "جلسة غير صالحة، يرجى تسجيل الدخول مرة أخرى" },
         { status: 401 }
       );
     }
 
-    const { id: participantId } = decoded;
+    // Get participantId directly from the decoded token
+    const participantId = decoded.participantId;
 
     // Get the participant with team information
     const participant = await prisma.participant.findUnique({
