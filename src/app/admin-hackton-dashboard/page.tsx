@@ -37,6 +37,43 @@ interface DashboardStats {
   completedMentorBookings: number;
   teamDistribution: { name: string; count: number }[];
   milestones: { id: string; title: string; submissionCount: number }[];
+  recentNotifications: {
+    id: string;
+    title: string;
+    message: string;
+    type: string;
+    isRead: boolean;
+    recipientType: string;
+    recipientId: string;
+    relatedEntityType?: string;
+    relatedEntityId?: string;
+    actionUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  upcomingEventsList: {
+    id: string;
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    capacity: number;
+    type: string;
+    plan: string;
+    presenter: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  recentSubmissions: {
+    id: string;
+    milestoneTitle: string;
+    teamName: string;
+    participantName: string;
+    submittedAt: string;
+    reviewStatus: string | null;
+  }[];
 }
 
 export default function DashboardPage() {
@@ -274,50 +311,32 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <Calendar className="h-4 w-4 text-primary" />
+                  {stats?.upcomingEventsList && stats.upcomingEventsList.length > 0 ? (
+                    stats.upcomingEventsList.map((event) => (
+                      <div key={event.id} className="flex items-center">
+                        <div className="bg-primary/10 p-2 rounded-full ml-4">
+                          <Calendar className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium">{event.title}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(event.startDate).toLocaleDateString('ar-SA', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })} - {new Date(event.startDate).toLocaleTimeString('ar-SA', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-center h-[200px]">
+                      <p className="text-muted-foreground">لا توجد فعاليات قادمة</p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium">ورشة عمل تطوير الواجهات</h4>
-                      <p className="text-xs text-muted-foreground">
-                        22 يوليو، 2025 - 10:00 صباحاً
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">جلسة إرشادية للفرق</h4>
-                      <p className="text-xs text-muted-foreground">
-                        24 يوليو، 2025 - 2:00 مساءً
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">عرض المشاريع الأولي</h4>
-                      <p className="text-xs text-muted-foreground">
-                        26 يوليو، 2025 - 11:00 صباحاً
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">العرض النهائي والتقييم</h4>
-                      <p className="text-xs text-muted-foreground">
-                        30 يوليو، 2025 - 9:00 صباحاً
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -328,50 +347,61 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div className="bg-blue-100 p-2 rounded-full ml-4">
-                      <Bell className="h-4 w-4 text-blue-600" />
+                  {stats?.recentNotifications && stats.recentNotifications.length > 0 ? (
+                    stats.recentNotifications.map((notification) => {
+                      // Determine icon and color based on notification type
+                      let IconComponent = Bell;
+                      let bgColor = "bg-blue-100";
+                      let textColor = "text-blue-600";
+                      
+                      if (notification.type === "success") {
+                        IconComponent = CheckCircle;
+                        bgColor = "bg-green-100";
+                        textColor = "text-green-600";
+                      } else if (notification.type === "warning") {
+                        IconComponent = Trophy;
+                        bgColor = "bg-yellow-100";
+                        textColor = "text-yellow-600";
+                      } else if (notification.type === "error") {
+                        IconComponent = Calendar;
+                        bgColor = "bg-red-100";
+                        textColor = "text-red-600";
+                      }
+                      
+                      // Calculate time ago
+                      const createdAt = new Date(notification.createdAt);
+                      const now = new Date();
+                      const diffInHours = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60));
+                      
+                      let timeAgo;
+                      if (diffInHours < 1) {
+                        timeAgo = "منذ أقل من ساعة";
+                      } else if (diffInHours < 24) {
+                        timeAgo = `منذ ${diffInHours} ساعة`;
+                      } else {
+                        const diffInDays = Math.floor(diffInHours / 24);
+                        timeAgo = `منذ ${diffInDays} يوم`;
+                      }
+                      
+                      return (
+                        <div key={notification.id} className="flex items-center justify-between">
+                          <div className={`${bgColor} p-2 rounded-full ml-4`}>
+                            <IconComponent className={`h-4 w-4 ${textColor}`} />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium">{notification.title}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {timeAgo}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="flex items-center justify-center h-[200px]">
+                      <p className="text-muted-foreground">لا توجد إشعارات حديثة</p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium">تم تسجيل فريق جديد</h4>
-                      <p className="text-xs text-muted-foreground">
-                        منذ 2 ساعة
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-green-100 p-2 rounded-full ml-4">
-                      <FileText className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">تم تقديم مشروع جديد</h4>
-                      <p className="text-xs text-muted-foreground">
-                        منذ 5 ساعات
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-yellow-100 p-2 rounded-full ml-4">
-                      <Trophy className="h-4 w-4 text-yellow-600" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">تم تعيين حكم جديد</h4>
-                      <p className="text-xs text-muted-foreground">
-                        منذ يوم واحد
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="bg-red-100 p-2 rounded-full ml-4">
-                      <Calendar className="h-4 w-4 text-red-600" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">تم تعديل موعد ورشة العمل</h4>
-                      <p className="text-xs text-muted-foreground">
-                        منذ يومين
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -379,72 +409,131 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>المشاريع المقدمة</CardTitle>
+              <CardTitle>أحدث التسليمات</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">منصة تعليمية ذكية</h4>
-                      <p className="text-xs text-muted-foreground">
-                        فريق ألفا - تم التقديم منذ 3 أيام
-                      </p>
-                    </div>
+                {stats?.recentSubmissions && stats.recentSubmissions.length > 0 ? (
+                  stats.recentSubmissions.map((submission) => {
+                    // Determine status color
+                    let statusColor = "text-yellow-600";
+                    let statusText = "قيد المراجعة";
+                    
+                    if (submission.reviewStatus === "accepted") {
+                      statusColor = "text-green-600";
+                      statusText = "مقبول";
+                    } else if (submission.reviewStatus === "rejected") {
+                      statusColor = "text-red-600";
+                      statusText = "مرفوض";
+                    }
+                    
+                    // Calculate time ago
+                    const submittedAt = new Date(submission.submittedAt);
+                    const now = new Date();
+                    const diffInHours = Math.floor((now.getTime() - submittedAt.getTime()) / (1000 * 60 * 60));
+                    
+                    let timeAgo;
+                    if (diffInHours < 1) {
+                      timeAgo = "منذ أقل من ساعة";
+                    } else if (diffInHours < 24) {
+                      timeAgo = `منذ ${diffInHours} ساعة`;
+                    } else {
+                      const diffInDays = Math.floor(diffInHours / 24);
+                      timeAgo = `منذ ${diffInDays} يوم`;
+                    }
+                    
+                    return (
+                      <div key={submission.id} className="flex justify-between items-center">
+                        <div className="bg-primary/10 p-2 rounded-full ml-4">
+                          <FileText className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 mr-4">
+                          <div className="flex justify-between">
+                            <h4 className="text-sm font-medium">{submission.milestoneTitle}</h4>
+                            <span className={`text-sm font-medium ${statusColor}`}>{statusText}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {submission.teamName} - {timeAgo}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex items-center justify-center h-[200px]">
+                    <p className="text-muted-foreground">لا توجد تسليمات حديثة</p>
                   </div>
-                  <div className="text-sm font-medium">
-                    <span className="text-green-600">4.8</span>/5
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>إحصائيات المشاركة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">نسبة المشاركة في الفعاليات</span>
+                    <span className="text-sm text-muted-foreground">
+                      {stats?.totalEventRegistrations && stats?.totalParticipants
+                        ? Math.round((stats.totalEventRegistrations / (stats.totalParticipants * Math.max(stats.totalEvents, 1))) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500" 
+                      style={{ 
+                        width: `${stats?.totalEventRegistrations && stats?.totalParticipants && stats?.totalEvents
+                          ? Math.min(100, (stats.totalEventRegistrations / (stats.totalParticipants * Math.max(stats.totalEvents, 1))) * 100)
+                          : 0}%` 
+                      }}
+                    />
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">تطبيق صحة رقمية</h4>
-                      <p className="text-xs text-muted-foreground">
-                        فريق بيتا - تم التقديم منذ 2 أيام
-                      </p>
-                    </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">نسبة اكتمال جلسات الإرشاد</span>
+                    <span className="text-sm text-muted-foreground">
+                      {stats?.completedMentorBookings && stats?.totalMentorBookings
+                        ? Math.round((stats.completedMentorBookings / Math.max(stats.totalMentorBookings, 1)) * 100)
+                        : 0}%
+                    </span>
                   </div>
-                  <div className="text-sm font-medium">
-                    <span className="text-green-600">4.5</span>/5
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">حلول ذكاء اصطناعي</h4>
-                      <p className="text-xs text-muted-foreground">
-                        فريق جاما - تم التقديم منذ 1 يوم
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium">
-                    <span className="text-green-600">4.7</span>/5
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-green-500" 
+                      style={{ 
+                        width: `${stats?.completedMentorBookings && stats?.totalMentorBookings
+                          ? Math.min(100, (stats.completedMentorBookings / Math.max(stats.totalMentorBookings, 1)) * 100)
+                          : 0}%` 
+                      }}
+                    />
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="bg-primary/10 p-2 rounded-full ml-4">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">منصة تجارة إلكترونية</h4>
-                      <p className="text-xs text-muted-foreground">
-                        فريق دلتا - تم التقديم منذ 5 ساعات
-                      </p>
-                    </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">نسبة تسليم المراحل</span>
+                    <span className="text-sm text-muted-foreground">
+                      {stats?.totalSubmissions && stats?.totalTeams && stats?.milestones?.length
+                        ? Math.round((stats.totalSubmissions / (stats.totalTeams * Math.max(stats.milestones.length, 1))) * 100)
+                        : 0}%
+                    </span>
                   </div>
-                  <div className="text-sm font-medium">
-                    <span className="text-yellow-600">3.9</span>/5
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-purple-500" 
+                      style={{ 
+                        width: `${stats?.totalSubmissions && stats?.totalTeams && stats?.milestones?.length
+                          ? Math.min(100, (stats.totalSubmissions / (stats.totalTeams * Math.max(stats.milestones.length, 1))) * 100)
+                          : 0}%` 
+                      }}
+                    />
                   </div>
                 </div>
               </div>

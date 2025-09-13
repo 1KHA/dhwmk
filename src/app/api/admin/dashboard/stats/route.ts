@@ -86,6 +86,54 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Get recent notifications
+    const recentNotifications = await prisma.notification.findMany({
+      take: 5,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Get upcoming events
+    const upcomingEventsList = await prisma.event.findMany({
+      where: {
+        status: "upcoming",
+        startDate: {
+          gte: new Date()
+        }
+      },
+      orderBy: {
+        startDate: 'asc'
+      },
+      take: 5
+    });
+
+    // Get recent submissions with team and participant info
+    const recentSubmissions = await prisma.milestoneSubmission.findMany({
+      take: 5,
+      orderBy: {
+        submittedAt: 'desc'
+      },
+      include: {
+        participant: {
+          include: {
+            team: true
+          }
+        },
+        milestone: true
+      }
+    });
+
+    // Format recent submissions for display
+    const formattedSubmissions = recentSubmissions.map(submission => ({
+      id: submission.id,
+      milestoneTitle: submission.milestone.title,
+      teamName: submission.participant.team?.teamName || 'مشاركة فردية',
+      participantName: submission.participant.fullName || `${submission.participant.firstName || ''} ${submission.participant.familyName || ''}`,
+      submittedAt: submission.submittedAt,
+      reviewStatus: submission.reviewStatus
+    }));
+
     // Return all statistics
     return NextResponse.json({
       totalParticipants,
@@ -102,7 +150,10 @@ export async function GET(request: NextRequest) {
       totalMentorBookings,
       completedMentorBookings,
       teamDistribution,
-      milestones
+      milestones,
+      recentNotifications,
+      upcomingEventsList,
+      recentSubmissions: formattedSubmissions
     });
   } catch (error) {
     console.error("Error fetching dashboard statistics:", error);
