@@ -106,6 +106,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if the participant is a team leader
+    if (!participant.isLeader) {
+      console.log(`Participant ${participantId} is not a team leader. isLeader=${participant.isLeader}`);
+      return NextResponse.json(
+        { error: "فقط قائد الفريق يمكنه تسليم المشاريع" },
+        { status: 403 }
+      );
+    }
+
     // Check if the milestone exists
     const milestone = await prisma.$queryRaw`
       SELECT * FROM "Milestone" WHERE id = ${milestoneId}
@@ -120,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Check if the participant has already submitted for this milestone
     const existingSubmission = await prisma.$queryRaw`
       SELECT * FROM "MilestoneSubmission" 
-      WHERE participantId = ${participant.id} AND milestoneId = ${milestoneId}
+      WHERE "participantId" = ${participant.id} AND "milestoneId" = ${milestoneId}
     `;
     
     if (existingSubmission && Array.isArray(existingSubmission) && existingSubmission.length > 0) {
@@ -140,7 +149,7 @@ export async function POST(request: NextRequest) {
 
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
-      INSERT INTO "MilestoneSubmission" (id, participantId, milestoneId, filePath, fileName, submittedAt)
+      INSERT INTO "MilestoneSubmission" (id, "participantId", "milestoneId", "filePath", "fileName", "submittedAt")
       VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()}::timestamp)
     `;
 
