@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -12,11 +12,62 @@ import {
   TrendingUp,
   Bell,
   Award,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import { showAdminToast } from "@/components/admin/admin-toaster";
+import { LineChart, BarChart, PieChart } from "../../../components/Charts";
+
+// Define the dashboard statistics type
+interface DashboardStats {
+  totalParticipants: number;
+  totalTeams: number;
+  individualParticipants: number;
+  totalMentors: number;
+  totalEvents: number;
+  completedEvents: number;
+  upcomingEvents: number;
+  totalEventRegistrations: number;
+  totalSubmissions: number;
+  pendingSubmissions: number;
+  acceptedSubmissions: number;
+  totalMentorBookings: number;
+  completedMentorBookings: number;
+  teamDistribution: { name: string; count: number }[];
+  milestones: { id: string; title: string; submissionCount: number }[];
+}
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/admin/dashboard/stats");
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard statistics");
+        }
+        
+        const data = await response.json();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        setError("حدث خطأ أثناء جلب إحصائيات لوحة التحكم");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -26,6 +77,24 @@ export default function DashboardPage() {
       variant: "default",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="mr-2 text-lg">جاري تحميل البيانات...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 p-4 rounded-md text-red-800 text-center">
+        <p className="font-bold">خطأ</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,9 +113,9 @@ export default function DashboardPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">152</div>
+                <div className="text-2xl font-bold">{stats?.totalParticipants || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  +12% من الأسبوع الماضي
+                  إجمالي عدد المشاركين المسجلين
                 </p>
               </CardContent>
             </Card>
@@ -58,23 +127,23 @@ export default function DashboardPage() {
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">28</div>
+                <div className="text-2xl font-bold">{stats?.totalTeams || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  +4% من الأسبوع الماضي
+                  إجمالي عدد الفرق المسجلة
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  عدد الحكام
+                  المشاركات الفردية
                 </CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
+                <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">{stats?.individualParticipants || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  +2 من الأسبوع الماضي
+                  عدد المشاركين بدون فرق
                 </p>
               </CardContent>
             </Card>
@@ -86,9 +155,113 @@ export default function DashboardPage() {
                 <Award className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
+                <div className="text-2xl font-bold">{stats?.totalMentors || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  نفس العدد من الأسبوع الماضي
+                  إجمالي عدد الموجهين المسجلين
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  إجمالي الفعاليات
+                </CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.totalEvents || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد الفعاليات المخططة
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  الفعاليات المكتملة
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.completedEvents || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد الفعاليات التي تم إكمالها
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  الفعاليات القادمة
+                </CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.upcomingEvents || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد الفعاليات المستقبلية
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  إجمالي التسجيلات
+                </CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.totalEventRegistrations || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد التسجيلات في الفعاليات
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  إجمالي التسليمات
+                </CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.totalSubmissions || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد تسليمات المراحل
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  التسليمات المقبولة
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.acceptedSubmissions || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد التسليمات المقبولة
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  التسليمات المعلقة
+                </CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.pendingSubmissions || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  عدد التسليمات قيد المراجعة
                 </p>
               </CardContent>
             </Card>
@@ -283,63 +456,123 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>إحصائيات المشاركين</CardTitle>
+                <CardTitle>توزيع المشاركين</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center">
-                    <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      هنا سيتم عرض رسم بياني لإحصائيات المشاركين
-                    </p>
-                  </div>
+                <div className="h-[300px]">
+                  <PieChart />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>توزيع الفرق</CardTitle>
+                <CardTitle>توزيع الفرق حسب المسار</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center">
-                    <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      هنا سيتم عرض رسم بياني لتوزيع الفرق
-                    </p>
-                  </div>
+                <div className="h-[300px]">
+                  <BarChart />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>تقييمات المشاريع</CardTitle>
+                <CardTitle>تسليمات المراحل</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center">
-                    <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      هنا سيتم عرض رسم بياني لتقييمات المشاريع
-                    </p>
-                  </div>
+                <div className="h-[300px]">
+                  {stats?.milestones && stats.milestones.length > 0 ? (
+                    <div className="space-y-4">
+                      {stats.milestones.map((milestone) => (
+                        <div key={milestone.id} className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">{milestone.title}</span>
+                            <span className="text-sm text-muted-foreground">{milestone.submissionCount} تسليم</span>
+                          </div>
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary" 
+                              style={{ 
+                                width: `${Math.min(100, (milestone.submissionCount / Math.max(stats.totalTeams, 1)) * 100)}%` 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground">لا توجد مراحل مسجلة</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>نشاط المنصة</CardTitle>
+                <CardTitle>حالة التسليمات</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center">
-                    <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      هنا سيتم عرض رسم بياني لنشاط المنصة
-                    </p>
+                <div className="h-[300px]">
+                  <div className="flex flex-col h-full justify-center">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">التسليمات المقبولة</span>
+                          <span className="text-sm text-muted-foreground">
+                            {stats?.acceptedSubmissions || 0} من {stats?.totalSubmissions || 0}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500" 
+                            style={{ 
+                              width: `${stats?.totalSubmissions ? (stats.acceptedSubmissions / stats.totalSubmissions) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">التسليمات المعلقة</span>
+                          <span className="text-sm text-muted-foreground">
+                            {stats?.pendingSubmissions || 0} من {stats?.totalSubmissions || 0}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-yellow-500" 
+                            style={{ 
+                              width: `${stats?.totalSubmissions ? (stats.pendingSubmissions / stats.totalSubmissions) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">نسبة الإكمال</span>
+                          <span className="text-sm text-muted-foreground">
+                            {stats?.totalSubmissions && stats?.totalTeams && stats.milestones?.length
+                              ? Math.round((stats.totalSubmissions / (stats.totalTeams * stats.milestones.length)) * 100)
+                              : 0}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500" 
+                            style={{ 
+                              width: `${stats?.totalSubmissions && stats?.totalTeams && stats.milestones?.length
+                                ? (stats.totalSubmissions / (stats.totalTeams * stats.milestones.length)) * 100
+                                : 0}%` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

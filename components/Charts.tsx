@@ -8,11 +8,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts"
 import { BarChart as RechartsBarChart, Bar } from "recharts"
 import { PieChart as RechartsPieChart, Pie, Cell } from "recharts"
+import { useState, useEffect } from "react"
 
-const lineData = [
+// Default data for when real data is not available
+const defaultLineData = [
   { name: "يناير", users: 400 },
   { name: "فبراير", users: 300 },
   { name: "مارس", users: 200 },
@@ -21,62 +24,129 @@ const lineData = [
   { name: "يونيو", users: 239 },
 ]
 
-export function LineChart() {
+const defaultBarData = [
+  { name: "مسار التعليم", count: 4 },
+  { name: "مسار الصحة", count: 3 },
+  { name: "مسار التقنية", count: 5 },
+  { name: "مسار الترفيه", count: 2 },
+]
+
+const defaultPieData = [
+  { name: "المشاركين في فرق", value: 120 },
+  { name: "المشاركين الفرديين", value: 32 },
+]
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"]
+
+interface LineChartProps {
+  data?: Array<{ name: string; users: number }>
+}
+
+export function LineChart({ data = defaultLineData }: LineChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <RechartsLineChart data={lineData}>
+      <RechartsLineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Line type="monotone" dataKey="users" stroke="#8884d8" />
+        <Legend />
+        <Line type="monotone" dataKey="users" stroke="#8884d8" name="عدد المستخدمين" />
       </RechartsLineChart>
     </ResponsiveContainer>
   )
 }
 
-const barData = [
-  { name: "فعالية أ", attendees: 400 },
-  { name: "فعالية ب", attendees: 300 },
-  { name: "فعالية ج", attendees: 200 },
-  { name: "فعالية د", attendees: 278 },
-]
+interface BarChartProps {
+  data?: Array<{ name: string; count: number }>
+}
 
-export function BarChart() {
+export function BarChart({ data = defaultBarData }: BarChartProps) {
+  const [chartData, setChartData] = useState(data)
+
+  useEffect(() => {
+    // Fetch team distribution data from API
+    const fetchTeamDistribution = async () => {
+      try {
+        const response = await fetch("/api/admin/dashboard/stats")
+        if (response.ok) {
+          const stats = await response.json()
+          if (stats.teamDistribution && stats.teamDistribution.length > 0) {
+            setChartData(stats.teamDistribution)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching team distribution:", error)
+      }
+    }
+
+    fetchTeamDistribution()
+  }, [])
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <RechartsBarChart data={barData}>
+      <RechartsBarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Bar dataKey="attendees" fill="#8884d8" />
+        <Legend />
+        <Bar dataKey="count" fill="#8884d8" name="عدد الفرق" />
       </RechartsBarChart>
     </ResponsiveContainer>
   )
 }
 
-const pieData = [
-  { name: "مطورون", value: 400 },
-  { name: "مصممون", value: 300 },
-  { name: "مدراء منتجات", value: 300 },
-  { name: "آخرون", value: 200 },
-]
+interface PieChartProps {
+  data?: Array<{ name: string; value: number }>
+}
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+export function PieChart({ data = defaultPieData }: PieChartProps) {
+  const [chartData, setChartData] = useState(data)
 
-export function PieChart() {
+  useEffect(() => {
+    // Fetch participant distribution data from API
+    const fetchParticipantDistribution = async () => {
+      try {
+        const response = await fetch("/api/admin/dashboard/stats")
+        if (response.ok) {
+          const stats = await response.json()
+          if (stats.totalParticipants && stats.individualParticipants) {
+            const teamParticipants = stats.totalParticipants - stats.individualParticipants
+            setChartData([
+              { name: "المشاركين في فرق", value: teamParticipants },
+              { name: "المشاركين الفرديين", value: stats.individualParticipants }
+            ])
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching participant distribution:", error)
+      }
+    }
+
+    fetchParticipantDistribution()
+  }, [])
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <RechartsPieChart>
-        <Pie data={pieData} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value">
-          {pieData.map((entry, index) => (
+        <Pie 
+          data={chartData} 
+          cx="50%" 
+          cy="50%" 
+          labelLine={true} 
+          outerRadius={80} 
+          fill="#8884d8" 
+          dataKey="value"
+          label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+        >
+          {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip />
+        <Tooltip formatter={(value) => [`${value} مشارك`, 'العدد']} />
+        <Legend />
       </RechartsPieChart>
     </ResponsiveContainer>
   )
 }
-
