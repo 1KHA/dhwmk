@@ -15,7 +15,7 @@ interface JwtPayload {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = cookies();
-    const tokenCookie = cookieStore.get('auth-token');
+    const tokenCookie = cookieStore.get('token');
 
     if (!tokenCookie) {
       return NextResponse.json({ error: 'Authentication token not found.' }, { status: 401 });

@@ -16,7 +16,7 @@ interface JwtPayload {
 // Helper function to get the current participant from the session
 async function getCurrentParticipant(request: NextRequest) {
   const cookieStore = cookies();
-  const tokenCookie = cookieStore.get('auth-token');
+  const tokenCookie = cookieStore.get('token');
   
   if (!tokenCookie) {
     return null;

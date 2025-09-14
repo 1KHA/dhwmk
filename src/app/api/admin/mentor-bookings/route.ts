@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 // Helper to check admin auth
 async function isAdmin(request: NextRequest) {
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get('token')?.value;
   if (!token) return false;
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string, role: string };

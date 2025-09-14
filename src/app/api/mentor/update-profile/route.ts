@@ -13,7 +13,7 @@ interface DecodedToken {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const token = request.cookies.get('token')?.value;
 
     if (!token) {
       return NextResponse.json({ message: 'Authentication token not found' }, { status: 401 });

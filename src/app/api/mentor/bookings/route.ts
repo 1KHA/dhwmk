@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (!targetMentorId) {
       // Check if this is a mentor requesting their own bookings
       const cookieStore = cookies();
-      const token = cookieStore.get('auth-token')?.value;
+      const token = cookieStore.get('token')?.value;
       
       if (!token) {
         return NextResponse.json(

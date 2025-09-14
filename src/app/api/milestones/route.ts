@@ -37,7 +37,7 @@ export async function GET() {
 
     // Get the participant ID from the JWT token
     const cookieStore = cookies();
-    const tokenCookie = cookieStore.get('auth-token');
+    const tokenCookie = cookieStore.get('token');
     
     // If no token is found, return milestones without hasSubmitted
     if (!tokenCookie) {

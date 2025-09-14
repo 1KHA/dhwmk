@@ -10,7 +10,7 @@ export async function DELETE(
   { params }: { params: { availabilityId: string } }
 ) {
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get('token')?.value;
 
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

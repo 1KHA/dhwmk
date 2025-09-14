@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export async function GET() {
   console.log('GET /api/mentor/availability');
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get('token')?.value;
   console.log('Auth token from cookie:', token);
   console.log('JWT_SECRET used:', process.env.JWT_SECRET ? 'Environment variable set' : 'Using default secret');
 
@@ -45,7 +45,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get('token')?.value;
 
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
