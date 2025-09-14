@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Trash, Edit, Eye, Check, X } from "lucide-react";
+import * as XLSX from 'xlsx';
 import {
   Dialog,
   DialogContent,
@@ -205,6 +206,54 @@ export default function ParticipantsPage() {
     return participant.fullName || `${participant.firstName || ''} ${participant.secondName || ''} ${participant.familyName || ''}`.trim() || 'غير متوفر';
   };
 
+  // Function to handle exporting participants data to Excel
+  const handleExportToExcel = () => {
+    try {
+      // Create a worksheet with participants data
+      const worksheet = XLSX.utils.json_to_sheet(
+        individualParticipants.map(participant => ({
+          'الاسم الكامل': getDisplayName(participant),
+          'البريد الإلكتروني': participant.email,
+          'رقم التواصل': participant.contactNumber || participant.phoneNumber || '',
+          'الجنس': participant.gender || '',
+          'الجامعة': participant.university || '',
+          'التخصص': participant.universityMajor || participant.major || '',
+          'المجال المهني': participant.professionalField || participant.employmentStatus || '',
+          'المدينة': participant.city || participant.residence || '',
+          'طالب جامعي؟': participant.isUniversityStudent !== undefined ? (participant.isUniversityStudent ? 'نعم' : 'لا') : '',
+          'يمكنه الحضور؟': participant.canAttendHackathon !== undefined ? (participant.canAttendHackathon ? 'نعم' : 'لا') : 
+                          (participant.canAttend !== undefined ? (participant.canAttend ? 'نعم' : 'لا') : ''),
+          'رقم الهوية': participant.nationalId || '',
+          'تاريخ الميلاد': participant.dob || '',
+          'الجنسية': participant.nationality || '',
+          'المؤهل التعليمي': participant.education || '',
+          'الحالة': participant.status === "approved" ? "معتمد" : 
+                   participant.status === "rejected" ? "مرفوض" : "قيد المراجعة",
+          'تاريخ التسجيل': new Date(participant.createdAt).toLocaleDateString('ar-SA'),
+        }))
+      );
+
+      // Create a workbook and add the worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "المشاركون الأفراد");
+
+      // Generate Excel file and trigger download
+      XLSX.writeFile(workbook, "بيانات_المشاركين_الأفراد.xlsx");
+
+      toast({
+        title: "نجح",
+        description: "تم تصدير بيانات المشاركين الأفراد بنجاح",
+      });
+    } catch (error) {
+      console.error('Error exporting participants:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تصدير بيانات المشاركين الأفراد",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -238,7 +287,7 @@ export default function ParticipantsPage() {
                 <option value="approved">معتمد</option>
                 <option value="rejected">مرفوض</option>
               </select>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" onClick={handleExportToExcel}>
                 <Download className="h-4 w-4" />
                 تصدير
               </Button>

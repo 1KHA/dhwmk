@@ -9,7 +9,7 @@ async function main() {
   // Create admin accounts
   const adminPassword1 = await bcrypt.hash('987951357Admin', 10);
   const adminPassword2 = await bcrypt.hash('987951357Admin', 10);
-  const adminPassword3 = await bcrypt.hash('Dar123@alhekma', 10); // Temporary password for daralhekma
+  const adminPassword3 = await bcrypt.hash('TemporaryPassword123', 10); // Temporary password for daralhekma Dar123@alhekma
 
   const admin1 = await prisma.admin.upsert({
     where: { username: 'admin1' },
