@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { User } from "lucide-react"
+import { User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,6 +24,15 @@ export default function TopBar() {
       <div className="text-sm font-medium">منصة دِيَم</div>
       <div className="flex items-center gap-4">
         <div className="text-sm">لوحة تحكم</div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={logout} 
+          className="text-primary-foreground hover:bg-[#4A6490] text-xs flex items-center gap-1"
+        >
+          <LogOut className="h-3 w-3 ml-1" />
+          تسجيل الخروج
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-[#4A6490]">

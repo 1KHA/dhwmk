@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { 
   Home, 
   Calendar, 
@@ -12,8 +13,10 @@ import {
   BookOpen,
   BarChart3,
   Bell,
-  Flag
+  Flag,
+  LogOut
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { name: "لوحة التحكم", href: "/admin-hackton-dashboard", icon: Home },
@@ -26,6 +29,7 @@ const navItems = [
 
 export default function AdminHacktonSidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col" dir="rtl">
@@ -48,6 +52,16 @@ export default function AdminHacktonSidebar() {
           </Link>
         ))}
       </nav>
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <Button 
+          variant="ghost" 
+          className="w-full flex items-center justify-start text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+          onClick={logout}
+        >
+          <LogOut className="w-5 h-5 ml-3" />
+          تسجيل الخروج
+        </Button>
+      </div>
     </div>
   );
 }
