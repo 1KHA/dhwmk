@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/hackathon-admin/Sidebar";
+import Sidebar from "../../../components/hackathon-admin/AdminHacktonSidebar";
 import TopBar from "@/components/hackathon-admin/TopBar";
 import { AdminToaster } from "@/components/admin/admin-toaster";
 import AdminRouteGuard from "@/components/auth/AdminRouteGuard";

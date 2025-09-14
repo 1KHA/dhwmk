@@ -135,12 +135,6 @@ const hackathonAdminNavItems: NavItem[] = [
     permission: { category: "hackathons", action: "view" },
   },
   {
-    name: "المشاركات",
-    href: "/admin-hackton-dashboard/submissions",
-    icon: FileText,
-    permission: { category: "submissions", action: "view" },
-  },
-  {
     name: "المشاركون",
     href: "/admin-hackton-dashboard/participants",
     icon: Users,
@@ -153,28 +147,10 @@ const hackathonAdminNavItems: NavItem[] = [
     permission: { category: "users", action: "view" },
   },
   {
-    name: "المحكمون",
-    href: "/admin-hackton-dashboard/judges",
-    icon: Users,
-    permission: { category: "users", action: "view" },
-  },
-  {
     name: "المرشدون",
     href: "/admin-hackton-dashboard/mentors",
     icon: Users,
     permission: { category: "users", action: "view" },
-  },
-  {
-    name: "التحليلات",
-    href: "/admin-hackton-dashboard/analytics",
-    icon: BarChart,
-    permission: { category: "analytics", action: "view" },
-  },
-  {
-    name: "الإشعارات",
-    href: "/admin-hackton-dashboard/notifications",
-    icon: Bell,
-    permission: { category: "notifications", action: "view" },
   },
   {
     name: "التسليمات",
