@@ -32,7 +32,7 @@ The application follows a standard client-server architecture built on the Next.
   - `.env.production` for PostgreSQL configuration
 - **Prisma Client Configuration:** Enhanced Prisma client in `src/lib/prisma.ts` with dynamic database selection based on environment variables
 
-- **JWT-Based Authentication:** All user types (admin, participant, mentor) use JWT tokens stored in `httpOnly` cookies. API routes verify these tokens to authorize requests.
+- **JWT-Based Authentication:** All user types (admin, participant, mentor) use JWT tokens stored in `httpOnly` cookies named 'token'. API routes verify these tokens to authorize requests. The system previously had inconsistencies with some routes looking for 'auth-token' while login was setting 'token', which has been standardized.
 - **Role-Based Access Control (RBAC):** The system implements comprehensive role-based access control:
   - **Admin Dashboard:** Protected by AdminRouteGuard component that verifies admin role
   - **Mentor Dashboard:** Protected by MentorRouteGuard component that verifies mentor role  

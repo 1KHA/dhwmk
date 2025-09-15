@@ -43,6 +43,10 @@
 - **Prisma Client Initialization Fix (August 29, 2025):** Resolved PrismaClientInitializationError on Vercel by updating build script to include `prisma generate` and removing conflicting `PRISMA_GENERATE_SKIP_AUTOINSTALL` environment variables.
 
 ## 5. Recent Fixes & Improvements
+- **Authentication Cookie Name Fix (September 2025):** Resolved a critical authentication issue where API routes were looking for 'auth-token' but login was setting 'token':
+  - Updated 11 API routes to use the correct cookie name, including mentor bookings, availability, and participant routes
+  - Fixed authentication issues in the admin-hackton-dashboard/mentors page and potentially other affected pages
+  - Confirmed that logout route was already correctly handling both cookie names for thorough cleanup
 - **Database Schema Updates:** Added new fields to Participant model to accommodate CSV-based questions while maintaining backward compatibility
 - **Build Configuration:** Enhanced Prisma client configuration with better error handling and graceful disconnection
 - **Deployment Configuration:** Created `vercel.json` with proper function timeout settings and Prisma-specific environment variables

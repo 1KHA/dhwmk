@@ -11,6 +11,23 @@ The current focus is on dual database configuration and critical authentication 
 
 ## 2. Recent Changes
 
+### Authentication Cookie Name Standardization
+- **Cookie Name Mismatch Fix:** Resolved a critical authentication issue where API routes were looking for 'auth-token' but login was setting 'token'
+- **Affected Routes:** Updated the following API routes to use the correct cookie name:
+  - `src/app/api/admin/mentor-bookings/route.ts`
+  - `src/app/api/admin/mentor-bookings/[bookingId]/route.ts`
+  - `src/app/api/mentor/availability/route.ts`
+  - `src/app/api/mentor/availability/[availabilityId]/route.ts`
+  - `src/app/api/mentor/bookings/route.ts`
+  - `src/app/api/mentor/update-profile/route.ts`
+  - `src/app/api/milestones/route.ts`
+  - `src/app/api/participant/add-member/route.ts`
+  - `src/app/api/participant/book-appointment/route.ts`
+  - `src/app/api/participant/my-bookings/route.ts`
+  - `src/app/api/participant/register-event/route.ts`
+- **Logout Handling:** Confirmed that logout route was already correctly handling both cookie names for thorough cleanup
+- **Impact:** Fixed authentication issues in the admin-hackton-dashboard/mentors page and potentially other pages affected by the same issue
+
 ### Dual Database Configuration
 - **Environment-Based Database Selection:** Implemented a system to dynamically select database provider based on environment
 - **Package.json Scripts:** Added new scripts to support both database types:
