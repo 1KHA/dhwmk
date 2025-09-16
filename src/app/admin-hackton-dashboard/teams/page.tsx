@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter, Download, Trash, Edit, Eye, UserPlus, Check, X } from "lucide-react";
+import { Plus, Search, Filter, Download, Trash, Edit, Eye, UserPlus, Check, X, Users } from "lucide-react";
 import { useToast } from "@/../../components/ui/use-toast";
 import * as XLSX from 'xlsx';
+import AutoTeamCreationModal from "@/../../components/admin/AutoTeamCreationModal";
 import {
   Dialog,
   DialogContent,
@@ -72,6 +73,7 @@ export default function TeamsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isAutoTeamModalOpen, setIsAutoTeamModalOpen] = useState(false);
   const [editedTeam, setEditedTeam] = useState<Partial<Team> | null>(null);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
   
@@ -377,10 +379,16 @@ export default function TeamsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">الفرق</h1>
-        <Button onClick={() => router.push('/admin-hackton-dashboard/teams/create')}>
-          <Plus className="ml-2 h-4 w-4" />
-          إنشاء فريق
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/admin-hackton-dashboard/teams/create')}>
+            <Plus className="ml-2 h-4 w-4" />
+            إنشاء فريق
+          </Button>
+          <Button variant="outline" onClick={() => setIsAutoTeamModalOpen(true)}>
+            <Users className="ml-2 h-4 w-4" />
+            إضافة فريق من المشاركين
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -894,6 +902,13 @@ export default function TeamsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Auto Team Creation Modal */}
+      <AutoTeamCreationModal
+        isOpen={isAutoTeamModalOpen}
+        onClose={() => setIsAutoTeamModalOpen(false)}
+        onSuccess={fetchTeams}
+      />
     </div>
   );
 }
