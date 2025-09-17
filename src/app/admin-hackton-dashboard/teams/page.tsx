@@ -21,44 +21,63 @@ import {
 
 interface Participant {
   id: string;
-  firstName: string;
-  secondName: string;
-  familyName: string;
-  nationalId: string;
-  dob: string;
+  // New CSV-based fields
+  fullName?: string;
+  contactNumber?: string;
+  gender?: string;
+  isUniversityStudent?: boolean;
+  universityMajor?: string;
+  professionalField?: string;
+  city?: string;
+  canAttendHackathon?: boolean;
+  
+  // Core fields
   email: string;
-  phoneNumber: string;
-  education: string;
-  university: string;
-  major: string;
-  employmentStatus: string;
-  nationality: string;
-  residence: string;
-  canAttend: boolean;
+  university?: string;
   isLeader: boolean;
-  gender?: string; // Added gender field
-  // Computed property
-  fullName?: string; 
+  status?: string;
+  teamId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  
+  // Legacy fields
+  firstName?: string;
+  secondName?: string;
+  familyName?: string;
+  nationalId?: string;
+  dob?: string;
+  phoneNumber?: string;
+  education?: string;
+  major?: string;
+  employmentStatus?: string;
+  nationality?: string;
+  residence?: string;
+  canAttend?: boolean;
 }
 
 interface Team {
   id: string;
-  teamName: string;
+  teamName?: string;
   status: string;
-  challenge: string;
-  challengeReason: string;
-  ideaName: string;
-  ideaDescription: string;
-  ideaSolution: string;
-  ideaResults: string;
-  ideaStage: string;
-  hackathonTrack: string | null;
-  attachmentsLink: string | null;
-  hasParticipated: boolean;
-  participationDetails: string | null;
-  attachmentPath: string | null;
+  hackathonTrack?: string;
+  ideaDescription?: string;
+  hearAboutUs?: string;
+  isTeamRegistration?: boolean;
+  attachmentPath?: string;
   createdAt: string;
+  updatedAt?: string;
   participants: Participant[];
+  
+  // Legacy fields
+  challenge?: string;
+  challengeReason?: string;
+  ideaName?: string;
+  ideaSolution?: string;
+  ideaResults?: string;
+  ideaStage?: string;
+  attachmentsLink?: string;
+  hasParticipated?: boolean;
+  participationDetails?: string;
 }
 
 export default function TeamsPage() {
@@ -251,70 +270,144 @@ export default function TeamsPage() {
   // Function to handle exporting teams data to Excel
   const handleExportToExcel = () => {
     try {
-      // Create a worksheet with all teams data
-      const worksheet = XLSX.utils.json_to_sheet(
+      // Create a detailed worksheet with all teams data
+      const teamsWorksheet = XLSX.utils.json_to_sheet(
         teams.map(team => {
           const leader = team.participants.find(p => p.isLeader);
           return {
-            'اسم الفريق': team.teamName,
-            'اسم الفكرة': team.ideaName,
+            'اسم الفريق': team.teamName || '',
+            'اسم الفكرة': team.ideaName || '',
             'المسار': team.hackathonTrack || '',
-            'التحدي': team.challenge,
-            'مرحلة الفكرة': team.ideaStage,
+            'التحدي': team.challenge || '',
+            'سبب اختيار التحدي': team.challengeReason || '',
+            'وصف الفكرة': team.ideaDescription || '',
+            'الحل المقترح': team.ideaSolution || '',
+            'النتائج المتوقعة': team.ideaResults || '',
+            'مرحلة الفكرة': team.ideaStage || '',
+            'من أين سمعت عنا': team.hearAboutUs || '',
+            'هل شاركت الفكرة من قبل؟': team.hasParticipated ? 'نعم' : 'لا',
+            'تفاصيل المشاركة السابقة': team.participationDetails || '',
+            'رابط المرفقات': team.attachmentsLink || '',
+            'مسار المرفقات': team.attachmentPath || '',
             'الحالة': team.status === "approved" ? "معتمد" : 
                      team.status === "rejected" ? "مرفوض" : "قيد الانتظار",
             'تاريخ الإنشاء': new Date(team.createdAt).toLocaleDateString('ar-SA'),
+            'تاريخ التحديث': team.updatedAt ? new Date(team.updatedAt).toLocaleDateString('ar-SA') : new Date(team.createdAt).toLocaleDateString('ar-SA'),
             'عدد الأعضاء': team.participants.length,
-            'قائد الفريق': leader?.fullName || '',
+            'قائد الفريق': leader?.fullName || `${leader?.firstName || ''} ${leader?.secondName || ''} ${leader?.familyName || ''}`.trim() || '',
             'بريد قائد الفريق': leader?.email || '',
             'رقم هوية قائد الفريق': leader?.nationalId || '',
-            'وصف الفكرة': team.ideaDescription,
-            'الحل المقترح': team.ideaSolution,
-            'النتائج المتوقعة': team.ideaResults,
-            'هل شاركت الفكرة من قبل؟': team.hasParticipated ? 'نعم' : 'لا',
-            'تفاصيل المشاركة السابقة': team.participationDetails || '',
+            'رقم جوال قائد الفريق': leader?.phoneNumber || leader?.contactNumber || '',
           };
         })
       );
 
-      // Create a worksheet for participants
+      // Create a detailed worksheet for participants with all fields
       const participantsData = teams.flatMap(team => 
         team.participants.map(p => ({
-          'اسم الفريق': team.teamName,
-          'الاسم الكامل': p.fullName || `${p.firstName} ${p.secondName} ${p.familyName}`,
-          'البريد الإلكتروني': p.email,
-          'رقم الهوية': p.nationalId,
-          'تاريخ الميلاد': p.dob,
-          'رقم الجوال': p.phoneNumber,
-          'المؤهل التعليمي': p.education,
-          'الجامعة': p.university,
-          'التخصص': p.major,
-          'الحالة الوظيفية': p.employmentStatus,
-          'الجنسية': p.nationality,
-          'منطقة الإقامة': p.residence,
-          'يمكنه الحضور؟': p.canAttend ? 'نعم' : 'لا',
+          // Team information
+          'اسم الفريق': team.teamName || '',
+          'المسار': team.hackathonTrack || '',
+          'حالة الفريق': team.status === "approved" ? "معتمد" : 
+                        team.status === "rejected" ? "مرفوض" : "قيد الانتظار",
+          
+          // Participant information - both new and legacy fields
+          'معرف المشارك': p.id,
           'قائد الفريق؟': p.isLeader ? 'نعم' : 'لا',
+          'حالة المشارك': p.status === "approved" ? "معتمد" : 
+                          p.status === "rejected" ? "مرفوض" : "قيد الانتظار",
+          
+          // New CSV-based fields
+          'الاسم الكامل': p.fullName || '',
+          'رقم التواصل': p.contactNumber || '',
+          'الجنس': p.gender || '',
+          'طالب جامعي؟': p.isUniversityStudent !== undefined ? (p.isUniversityStudent ? 'نعم' : 'لا') : '',
+          'التخصص الجامعي': p.universityMajor || '',
+          'المجال المهني': p.professionalField || '',
+          'المدينة': p.city || '',
+          'يمكنه الحضور للهاكاثون؟': p.canAttendHackathon !== undefined ? (p.canAttendHackathon ? 'نعم' : 'لا') : '',
+          
+          // Core fields
+          'البريد الإلكتروني': p.email || '',
+          'الجامعة': p.university || '',
+          'تاريخ التسجيل': p.createdAt ? new Date(p.createdAt).toLocaleDateString('ar-SA') : '',
+          'تاريخ التحديث': p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ar-SA') : (p.createdAt ? new Date(p.createdAt).toLocaleDateString('ar-SA') : ''),
+          
+          // Legacy fields
+          'الاسم الأول': p.firstName || '',
+          'الاسم الثاني': p.secondName || '',
+          'اسم العائلة': p.familyName || '',
+          'رقم الهوية': p.nationalId || '',
+          'تاريخ الميلاد': p.dob || '',
+          'رقم الجوال': p.phoneNumber || '',
+          'المؤهل التعليمي': p.education || '',
+          'التخصص': p.major || '',
+          'الحالة الوظيفية': p.employmentStatus || '',
+          'الجنسية': p.nationality || '',
+          'منطقة الإقامة': p.residence || '',
+          'يمكنه الحضور؟': p.canAttend !== undefined ? (p.canAttend ? 'نعم' : 'لا') : '',
         }))
       );
       const participantsWorksheet = XLSX.utils.json_to_sheet(participantsData);
 
-      // Create a workbook with both worksheets
+      // Create a combined worksheet showing teams with their members
+      const combinedData = teams.flatMap(team => {
+        // Get team leader
+        const leader = team.participants.find(p => p.isLeader);
+        
+        // Create one row per participant with team details
+        return team.participants.map((p, index) => {
+          const isLeader = p.isLeader;
+          
+          return {
+            // Team information
+            'اسم الفريق': team.teamName || '',
+            'اسم الفكرة': team.ideaName || '',
+            'المسار': team.hackathonTrack || '',
+            'التحدي': team.challenge || '',
+            'وصف الفكرة': team.ideaDescription || '',
+            'حالة الفريق': team.status === "approved" ? "معتمد" : 
+                          team.status === "rejected" ? "مرفوض" : "قيد الانتظار",
+            'عدد الأعضاء': team.participants.length,
+            
+            // Participant role
+            'دور المشارك': isLeader ? 'قائد الفريق' : `عضو ${index}`,
+            
+            // Participant information
+            'الاسم الكامل': p.fullName || `${p.firstName || ''} ${p.secondName || ''} ${p.familyName || ''}`.trim() || '',
+            'البريد الإلكتروني': p.email || '',
+            'رقم التواصل': p.contactNumber || p.phoneNumber || '',
+            'الجنس': p.gender || '',
+            'الجامعة': p.university || '',
+            'التخصص': p.universityMajor || p.major || '',
+            'المجال المهني': p.professionalField || p.employmentStatus || '',
+            'المدينة': p.city || p.residence || '',
+            'طالب جامعي؟': p.isUniversityStudent !== undefined ? (p.isUniversityStudent ? 'نعم' : 'لا') : '',
+            'يمكنه الحضور؟': p.canAttendHackathon !== undefined ? (p.canAttendHackathon ? 'نعم' : 'لا') : 
+                            (p.canAttend !== undefined ? (p.canAttend ? 'نعم' : 'لا') : ''),
+          };
+        });
+      });
+      const combinedWorksheet = XLSX.utils.json_to_sheet(combinedData);
+
+      // Create a workbook with all worksheets
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "الفرق");
-      XLSX.utils.book_append_sheet(workbook, participantsWorksheet, "الأعضاء");
+      XLSX.utils.book_append_sheet(workbook, teamsWorksheet, "الفرق");
+      XLSX.utils.book_append_sheet(workbook, participantsWorksheet, "الأعضاء بالتفصيل");
+      XLSX.utils.book_append_sheet(workbook, combinedWorksheet, "الفرق والأعضاء");
 
       // Generate Excel file and trigger download
-      XLSX.writeFile(workbook, "بيانات_الفرق.xlsx");
+      XLSX.writeFile(workbook, "بيانات_الفرق_والأعضاء.xlsx");
 
       toast({
         title: "نجح",
-        description: "تم تصدير بيانات الفرق بنجاح",
+        description: "تم تصدير بيانات الفرق والأعضاء بنجاح",
       });
     } catch (error) {
       console.error('Error exporting teams:', error);
       toast({
         title: "خطأ",
-        description: "فشل في تصدير بيانات الفرق",
+        description: "فشل في تصدير البيانات",
         variant: "destructive",
       });
     }
@@ -344,8 +437,8 @@ export default function TeamsPage() {
   const filteredTeams = teams.filter((team) => {
     const leader = team.participants.find(p => p.isLeader);
     const matchesSearch =
-      team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.ideaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (team.teamName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (team.ideaName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       (leader && leader.fullName && leader.fullName.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Basic status filter (dropdown)
