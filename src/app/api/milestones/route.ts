@@ -9,10 +9,11 @@ export const dynamic = 'force-dynamic';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface JwtPayload {
-  id: string;
+  participantId: string;
   email: string;
-  teamId: string;
-  isLeader: boolean;
+  role: string;
+  teamId?: string;
+  isLeader?: boolean;
 }
 
 // Define the Milestone type
@@ -41,6 +42,7 @@ export async function GET() {
     
     // If no token is found, return milestones without hasSubmitted
     if (!tokenCookie) {
+      console.log('No token cookie found in request');
       // Parse the requirements JSON string for each milestone
       const formattedMilestones = (milestones as MilestoneFromDB[]).map((milestone) => ({
         ...milestone,
@@ -55,7 +57,9 @@ export async function GET() {
     let decoded: JwtPayload;
     try {
       decoded = jwt.verify(tokenCookie.value, JWT_SECRET) as JwtPayload;
+      console.log('Decoded token:', decoded);
     } catch (err) {
+      console.error('Token verification failed:', err);
       // If token is invalid, return milestones without hasSubmitted
       const formattedMilestones = (milestones as MilestoneFromDB[]).map((milestone) => ({
         ...milestone,
@@ -66,7 +70,20 @@ export async function GET() {
       return NextResponse.json(formattedMilestones);
     }
     
-    const { id: participantId } = decoded;
+    // Extract participantId directly from the token
+    const participantId = decoded.participantId;
+    
+    // If participantId is undefined, log the issue and return milestones without hasSubmitted
+    if (!participantId) {
+      console.error('No participantId found in token:', decoded);
+      const formattedMilestones = (milestones as MilestoneFromDB[]).map((milestone) => ({
+        ...milestone,
+        requirements: JSON.parse(milestone.requirements),
+        hasSubmitted: false,
+      }));
+
+      return NextResponse.json(formattedMilestones);
+    }
     
     // Get the participant from the database
     const participant = await prisma.participant.findUnique({
