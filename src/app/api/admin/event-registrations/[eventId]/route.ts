@@ -59,8 +59,8 @@ export async function GET(
              p.isLeader, 
              p.teamId
       FROM "EventRegistration" er
-      JOIN "Participant" p ON er.participantId = p.id
-      WHERE er.eventId = ${eventId}
+      JOIN "Participant" p ON er."participantId" = p.id
+      WHERE er."eventId" = ${eventId}
       ORDER BY er."createdAt" DESC
     `;
 
@@ -118,7 +118,7 @@ export async function PUT(
     // التحقق من وجود التسجيل
     const registration = await prisma.$queryRaw`
       SELECT * FROM "EventRegistration" 
-      WHERE id = ${registrationId} AND eventId = ${eventId}
+      WHERE id = ${registrationId} AND "eventId" = ${eventId}
     `;
 
     if (!registration || (Array.isArray(registration) && registration.length === 0)) {
@@ -132,7 +132,7 @@ export async function PUT(
     // تحديث حالة التسجيل
     await prisma.$executeRaw`
       UPDATE "EventRegistration"
-      SET status = ${status}, "updatedAt" = ${new Date().toISOString()}::timestamp
+      SET "status" = ${status}, "updatedAt" = ${new Date().toISOString()}::timestamp
       WHERE id = ${registrationId}
     `;
     
@@ -145,7 +145,7 @@ export async function PUT(
              p.familyName, 
              p.email
       FROM "EventRegistration" er
-      JOIN "Participant" p ON er.participantId = p.id
+      JOIN "Participant" p ON er."participantId" = p.id
       WHERE er.id = ${registrationId}
     `;
     
@@ -193,7 +193,7 @@ export async function DELETE(
     // التحقق من وجود التسجيل
     const registration = await prisma.$queryRaw`
       SELECT * FROM "EventRegistration" 
-      WHERE id = ${registrationId} AND eventId = ${eventId}
+      WHERE id = ${registrationId} AND "eventId" = ${eventId}
     `;
 
     if (!registration || (Array.isArray(registration) && registration.length === 0)) {
