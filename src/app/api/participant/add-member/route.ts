@@ -6,10 +6,11 @@ import { cookies } from 'next/headers';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface JwtPayload {
-  id: string;
+  participantId: string;
   email: string;
-  teamId: string;
-  isLeader: boolean;
+  role: string;
+  teamId?: string;
+  isLeader?: boolean;
 }
 
 export async function POST(request: NextRequest) {

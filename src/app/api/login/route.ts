@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
           participantId: participant.id,
           email: participant.email,
           role: 'participant',
+          teamId: participant.teamId || null,
+          isLeader: participant.isLeader || false,
         },
         JWT_SECRET,
         { expiresIn: '30m' }

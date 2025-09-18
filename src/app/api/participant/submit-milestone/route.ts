@@ -10,10 +10,11 @@ import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from '@/lib/const
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface JwtPayload {
-  participantId: string; // Changed from id to participantId to match login route
+  participantId: string;
   email: string;
   role: string;
-  // teamId and isLeader are not in the token from login route
+  teamId?: string;
+  isLeader?: boolean;
 }
 
 

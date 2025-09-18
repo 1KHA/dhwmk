@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface JwtPayload {
-  id: string;
+  participantId: string;
   email: string;
-  teamId: string;
-  isLeader: boolean;
+  role: string;
+  teamId?: string;
+  isLeader?: boolean;
 }
 
 // Helper function to get the current participant from the session
@@ -26,9 +27,18 @@ async function getCurrentParticipant(request: NextRequest) {
   try {
     const token = tokenCookie.value;
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    console.log('Decoded token:', decoded);
+    
+    // Extract participantId directly from the token
+    const participantId = decoded.participantId;
+    
+    if (!participantId) {
+      console.error('No participantId found in token:', decoded);
+      return null;
+    }
     
     const participant = await prisma.participant.findUnique({
-      where: { id: decoded.id },
+      where: { id: participantId },
     });
 
     return participant;
