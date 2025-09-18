@@ -14,11 +14,40 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
   const { toast } = useToast();
   const [authorized, setAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [redirectAttempts, setRedirectAttempts] = useState(0);
+
+  // Function to clear auth cookies
+  const clearAuthCookies = async () => {
+    try {
+      // Call logout endpoint to clear server-side session/cookies
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      console.log('🍪 AdminRouteGuard - Auth cookies cleared');
+    } catch (error) {
+      console.error('Error clearing auth cookies:', error);
+    }
+  };
 
   useEffect(() => {
+    // Reset redirect attempts when pathname changes
+    if (pathname !== '/admin-login') {
+      setRedirectAttempts(0);
+    }
+
     // Authentication check function
     const authCheck = async () => {
       try {
+        // Prevent infinite redirect loops
+        if (redirectAttempts > 2) {
+          console.log('⚠️ AdminRouteGuard - Too many redirect attempts, clearing auth state');
+          await clearAuthCookies();
+          setIsLoading(false);
+          setAuthorized(false);
+          return;
+        }
+
         // Check if user is authenticated as admin
         const response = await fetch('/api/admin/me', {
           method: 'GET',
@@ -32,6 +61,12 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
 
         if (!response.ok) {
           console.log('❌ AdminRouteGuard - Response not OK:', response.status, response.statusText);
+          
+          // Clear auth cookies on 401 Unauthorized
+          if (response.status === 401) {
+            await clearAuthCookies();
+          }
+          
           throw new Error('غير مصرح. هذه الخدمة متاحة للمسؤولين فقط.');
         }
 
@@ -45,6 +80,7 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
           setAuthorized(true);
         } else {
           console.log('❌ AdminRouteGuard - Authorization failed:', { success: data.success, role: data.role });
+          await clearAuthCookies();
           throw new Error('غير مصرح. هذه الخدمة متاحة للمسؤولين فقط.');
         }
       } catch (error: any) {
@@ -54,6 +90,9 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
           description: error.message || "غير مصرح. هذه الخدمة متاحة للمسؤولين فقط.",
           variant: "destructive",
         });
+        
+        // Increment redirect attempts and redirect to login
+        setRedirectAttempts(prev => prev + 1);
         router.push("/admin-login");
       } finally {
         setIsLoading(false);
@@ -62,7 +101,7 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
 
     // Check authentication on route change
     authCheck();
-  }, [pathname, router, toast]);
+  }, [pathname, router, toast, redirectAttempts]);
 
   // Show loading while checking authentication
   if (isLoading) {

@@ -24,37 +24,78 @@ export function RouteGuard({
 }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, checkAuth } = useAuth();
   const { hasPermission, hasRole, loading: permissionsLoading } = usePermissions();
   const [authorized, setAuthorized] = useState(false);
+  const [redirectAttempts, setRedirectAttempts] = useState(0);
+
+  // Function to clear auth cookies
+  const clearAuthCookies = async () => {
+    try {
+      // Call logout endpoint to clear server-side session/cookies
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      console.log('🍪 RouteGuard - Auth cookies cleared');
+    } catch (error) {
+      console.error('Error clearing auth cookies:', error);
+    }
+  };
 
   useEffect(() => {
-    // Wait for auth and permissions to load
-    if (authLoading || permissionsLoading) return;
-
-    // Check if user is authenticated
-    if (!user) {
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
-      return;
+    // Reset redirect attempts when pathname changes
+    if (pathname !== '/login') {
+      setRedirectAttempts(0);
     }
 
-    // Check role requirement
-    if (requiredRole) {
-      const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-      if (!roles.includes(user.role)) {
+    const authCheck = async () => {
+      // Prevent infinite redirect loops
+      if (redirectAttempts > 2) {
+        console.log('⚠️ RouteGuard - Too many redirect attempts, clearing auth state');
+        await clearAuthCookies();
+        setAuthorized(false);
+        return;
+      }
+
+      // Wait for auth and permissions to load
+      if (authLoading || permissionsLoading) return;
+
+      // Check if user is authenticated
+      if (!user) {
+        console.log('❌ RouteGuard - No user found, redirecting to login');
+        await clearAuthCookies();
+        setRedirectAttempts(prev => prev + 1);
+        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+        return;
+      }
+
+      // Check role requirement
+      if (requiredRole) {
+        const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        if (!roles.includes(user.role)) {
+          console.log(`❌ RouteGuard - User role ${user.role} doesn't match required roles: ${roles.join(', ')}`);
+          setRedirectAttempts(prev => prev + 1);
+          router.push(redirectTo);
+          return;
+        }
+      }
+
+      // Check permission requirement
+      if (requiredPermission && !hasPermission(requiredPermission)) {
+        console.log(`❌ RouteGuard - User lacks required permission: ${JSON.stringify(requiredPermission)}`);
+        setRedirectAttempts(prev => prev + 1);
         router.push(redirectTo);
         return;
       }
-    }
 
-    // Check permission requirement (simplified for now)
-    if (requiredPermission && !hasPermission(requiredPermission)) {
-      router.push(redirectTo);
-      return;
-    }
+      // User is authorized
+      console.log('✅ RouteGuard - User authorized');
+      setAuthorized(true);
+    };
 
-    // User is authorized
-    setAuthorized(true);
+    // Check authentication on route change
+    authCheck();
   }, [
     user,
     authLoading,
@@ -65,7 +106,9 @@ export function RouteGuard({
     requiredRole,
     router,
     redirectTo,
-    pathname
+    pathname,
+    redirectAttempts,
+    checkAuth
   ]);
 
   // Show loading state

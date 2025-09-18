@@ -20,19 +20,46 @@ export default function AdminLoginPage() {
 
   // Redirect if already logged in as admin
   useEffect(() => {
-    if (!authLoading && user) {
-      if (user.role === 'admin') {
-        console.log('✅ Admin already logged in, redirecting to dashboard');
-        router.push('/admin-hackton-dashboard');
-      } else {
-        console.log(`⚠️ User logged in with role: ${user.role}, but not admin`);
-        showAdminToast({
-          title: "تحذير",
-          description: `أنت مسجل دخول كـ ${user.role}. يرجى تسجيل الخروج أولاً للدخول كمسؤول.`,
-          variant: "destructive",
+    const verifyAdminStatus = async () => {
+      if (authLoading) return;
+      
+      try {
+        // Directly check admin status with the API
+        const response = await fetch('/api/admin/me', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
         });
+        
+        console.log('🔍 Admin login page - Admin check response status:', response.status);
+        
+        // If admin check is successful, redirect to dashboard
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.role === 'admin') {
+            console.log('✅ Admin already logged in, redirecting to dashboard');
+            router.push('/admin-hackton-dashboard');
+            return;
+          }
+        }
+        
+        // If user is logged in but not as admin
+        if (user && user.role !== 'admin') {
+          console.log(`⚠️ User logged in with role: ${user.role}, but not admin`);
+          showAdminToast({
+            title: "تحذير",
+            description: `أنت مسجل دخول كـ ${user.role}. يرجى تسجيل الخروج أولاً للدخول كمسؤول.`,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
       }
-    }
+    };
+    
+    verifyAdminStatus();
   }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
