@@ -54,13 +54,7 @@ const navItems = [
     href: "/participant-dashboard/events", 
     icon: Calendar,
     permission: { category: 'events', action: 'view' }
-  },
-  { 
-    name: "الجدول الزمني", 
-    href: "/participant-dashboard/schedule", 
-    icon: Calendar,
-    permission: { category: 'events', action: 'view' }
-  },
+  }
 ]
 
 export default function Sidebar() {
