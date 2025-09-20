@@ -51,13 +51,13 @@ export async function GET(
     const registrations = await prisma.$queryRaw`
       SELECT er.*, 
              p.id as participant_id, 
-             p.firstName, 
-             p.secondName, 
-             p.familyName, 
-             p.email, 
-             p.phoneNumber, 
-             p.isLeader, 
-             p.teamId
+             p."firstName", 
+             p."secondName", 
+             p."familyName", 
+             p."email", 
+             p."phoneNumber", 
+             p."isLeader", 
+             p."teamId"
       FROM "EventRegistration" er
       JOIN "Participant" p ON er."participantId" = p.id
       WHERE er."eventId" = ${eventId}
@@ -140,10 +140,10 @@ export async function PUT(
     const updatedRegistration = await prisma.$queryRaw`
       SELECT er.*, 
              p.id as participant_id, 
-             p.firstName, 
-             p.secondName, 
-             p.familyName, 
-             p.email
+             p."firstName", 
+             p."secondName", 
+             p."familyName", 
+             p."email"
       FROM "EventRegistration" er
       JOIN "Participant" p ON er."participantId" = p.id
       WHERE er.id = ${registrationId}

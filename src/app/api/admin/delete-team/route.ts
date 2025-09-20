@@ -14,14 +14,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    // First, delete participants associated with the team
+    // Get all participants in the team
+    const participants = await prisma.participant.findMany({
+      where: { teamId: teamId },
+      select: { id: true }
+    });
+    
+    const participantIds = participants.map(p => p.id);
+    
+    // 1. Delete all related records first
+    
+    // Delete TeamJoinRequests (both sent by team members and received by the team)
+    await prisma.teamJoinRequest.deleteMany({
+      where: {
+        OR: [
+          { participantId: { in: participantIds } },
+          { teamId: teamId }
+        ]
+      }
+    });
+    
+    // Delete MentorBookings for team participants
+    await prisma.mentorBooking.deleteMany({
+      where: {
+        participantId: { in: participantIds }
+      }
+    });
+    
+    // Delete MilestoneSubmissions for team participants
+    await prisma.milestoneSubmission.deleteMany({
+      where: {
+        participantId: { in: participantIds }
+      }
+    });
+    
+    // Delete EventRegistrations for team participants
+    await prisma.eventRegistration.deleteMany({
+      where: {
+        participantId: { in: participantIds }
+      }
+    });
+    
+    // 2. Now delete participants associated with the team
     await prisma.participant.deleteMany({
       where: {
         teamId: teamId,
       },
     });
 
-    // Then, delete the team
+    // 3. Finally, delete the team
     await prisma.team.delete({
       where: {
         id: teamId,
