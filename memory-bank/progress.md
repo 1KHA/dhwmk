@@ -43,6 +43,12 @@
 - **Prisma Client Initialization Fix (August 29, 2025):** Resolved PrismaClientInitializationError on Vercel by updating build script to include `prisma generate` and removing conflicting `PRISMA_GENERATE_SKIP_AUTOINSTALL` environment variables.
 
 ## 5. Recent Fixes & Improvements
+- **Enhanced Team Editing Functionality (September 2025):** Improved the team editing functionality in the admin dashboard:
+  - Updated the update-team API to support all team fields (name, track, idea details, etc.)
+  - Added support for changing team leaders with proper validation
+  - Implemented database transactions to ensure data consistency
+  - Enhanced the edit modal UI with organized sections, team leader selection dropdown, and proper form controls
+  - Improved user experience with responsive design and clear section headings
 - **Authentication Cookie Name Fix (September 2025):** Resolved a critical authentication issue where API routes were looking for 'auth-token' but login was setting 'token':
   - Updated 11 API routes to use the correct cookie name, including mentor bookings, availability, and participant routes
   - Fixed authentication issues in the admin-hackton-dashboard/mentors page and potentially other affected pages

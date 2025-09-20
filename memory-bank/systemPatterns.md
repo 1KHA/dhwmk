@@ -47,7 +47,10 @@ The application follows a standard client-server architecture built on the Next.
 
 ## 3. Component Relationships
 - **Public Registration:** `register-team/page.tsx` sends `FormData` to `/api/register-team`, which handles both text data and file uploads using Vercel Blob storage.
-- **Admin Dashboard:** Admin pages fetch data from `/api/admin/teams` and send modification requests to specific admin API routes (e.g., `/api/admin/delete-team`).
+- **Admin Dashboard:** 
+  - Admin pages fetch data from `/api/admin/teams` and send modification requests to specific admin API routes (e.g., `/api/admin/delete-team`).
+  - The teams page (`src/app/admin-hackton-dashboard/teams/page.tsx`) provides comprehensive team management with an enhanced edit modal that supports all team fields and leader changes.
+  - Team editing uses the enhanced `/api/admin/update-team` endpoint which supports all team fields and leader changes with database transactions to ensure data consistency.
 - **Participant Dashboard:**
   - `participant-dashboard/page.tsx` (Profile) fetches data from the secure `/api/participant/me` route.
   - `participant-dashboard/team/page.tsx` (Team Management) fetches data from the secure `/api/participant/team-details` route.

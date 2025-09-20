@@ -11,6 +11,19 @@ The current focus is on dual database configuration and critical authentication 
 
 ## 2. Recent Changes
 
+### Enhanced Team Editing Functionality
+- **Comprehensive Team Editing:** Improved the team editing functionality in the admin dashboard to support all team fields and leader changes
+- **API Enhancement:** Updated the `/api/admin/update-team` endpoint to support:
+  - All team fields (name, track, idea details, etc.)
+  - Team leader changes with proper validation
+  - Database transactions to ensure data consistency
+- **UI Improvements:** Enhanced the edit modal in the teams page with:
+  - Organized sections for team information, idea details, and additional info
+  - Team leader selection dropdown
+  - Proper form controls for different field types
+- **Data Consistency:** Implemented validation to ensure the new leader is a member of the team
+- **User Experience:** Improved form layout with responsive design and clear section headings
+
 ### Authentication Cookie Name Standardization
 - **Cookie Name Mismatch Fix:** Resolved a critical authentication issue where API routes were looking for 'auth-token' but login was setting 'token'
 - **Affected Routes:** Updated the following API routes to use the correct cookie name:
