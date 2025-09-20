@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash, Edit, Plus, Loader2 } from "lucide-react";
+import { Trash, Edit, Plus, Loader2, Save } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,8 @@ import { Checkbox } from "../../../../components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../components/ui/tabs";
 import { Alert, AlertDescription } from "../../../../components/ui/alert";
 import { Progress } from "../../../../components/ui/progress";
+import { Textarea } from "../../../../components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../components/ui/select";
 
 // Define types for our data
 interface Participant {
@@ -87,8 +89,10 @@ export default function TeamManagementPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isTeamEditModalOpen, setIsTeamEditModalOpen] = useState(false);
   const [editedParticipant, setEditedParticipant] = useState<Participant | null>(null);
   const [newParticipant, setNewParticipant] = useState(initialParticipantState);
+  const [editedTeam, setEditedTeam] = useState<Partial<TeamData> | null>(null);
 
   const fetchTeamDetails = async () => {
     try {
@@ -152,6 +156,27 @@ export default function TeamManagementPage() {
     }
   };
 
+  const handleUpdateTeam = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editedTeam) return;
+    try {
+      const response = await fetch('/api/participant/update-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editedTeam),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update team');
+      }
+      toast({ title: "تم التحديث بنجاح", description: "تم حفظ تغييرات الفريق." });
+      fetchTeamDetails();
+      setIsTeamEditModalOpen(false);
+    } catch (error) {
+      toast({ title: "خطأ في التحديث", description: (error as Error).message, variant: "destructive" });
+    }
+  };
+
   const handleAddParticipant = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -198,7 +223,7 @@ export default function TeamManagementPage() {
   const { currentUser } = teamData;
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-2 sm:p-4">
       <Tabs defaultValue="team-info" className="w-full" dir="rtl">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="team-info">معلومات الفريق</TabsTrigger>
@@ -212,12 +237,34 @@ export default function TeamManagementPage() {
             <CardTitle className="text-2xl">فريق: {teamData.teamName}</CardTitle>
             <CardDescription>تفاصيل الفريق والفكرة</CardDescription>
           </div>
-          {currentUser.isLeader && (
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <Plus className="ml-2 h-4 w-4" />
-              إضافة عضو
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {currentUser.isLeader && (
+              <Button onClick={() => {
+                setEditedTeam({
+                  teamName: teamData.teamName,
+                  ideaName: teamData.ideaName,
+                  challenge: teamData.challenge,
+                  ideaDescription: teamData.ideaDescription,
+                  challengeReason: teamData.challengeReason,
+                  ideaSolution: teamData.ideaSolution,
+                  ideaResults: teamData.ideaResults,
+                  ideaStage: teamData.ideaStage,
+                  hasParticipated: teamData.hasParticipated,
+                  participationDetails: teamData.participationDetails || '',
+                });
+                setIsTeamEditModalOpen(true);
+              }}>
+                <Edit className="ml-2 h-4 w-4" />
+                تعديل معلومات الفريق
+              </Button>
+            )}
+            {currentUser.isLeader && (
+              <Button onClick={() => setIsAddModalOpen(true)}>
+                <Plus className="ml-2 h-4 w-4" />
+                إضافة عضو
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
             <div className="space-y-6 text-right" dir="rtl">
@@ -301,9 +348,10 @@ export default function TeamManagementPage() {
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           <div className="overflow-x-auto rounded-lg border" dir="rtl">
-            <table className="w-full">
+            <div className="max-w-full overflow-x-auto">
+              <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="p-4 text-right font-medium text-muted-foreground">الاسم الكامل</th>
@@ -373,6 +421,7 @@ export default function TeamManagementPage() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -463,6 +512,154 @@ export default function TeamManagementPage() {
               <Button type="submit">إضافة العضو</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team Edit Modal */}
+      <Dialog open={isTeamEditModalOpen} onOpenChange={setIsTeamEditModalOpen}>
+        <DialogContent className="max-w-4xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">تعديل معلومات الفريق</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              قم بتعديل معلومات الفريق والفكرة
+            </DialogDescription>
+          </DialogHeader>
+          {editedTeam && (
+            <form onSubmit={handleUpdateTeam}>
+              <div className="grid grid-cols-1 gap-6 py-4 max-h-[70vh] overflow-y-auto px-4">
+                {/* Team Basic Information */}
+                <div className="space-y-4 border p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg">معلومات الفريق الأساسية</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="teamName">اسم الفريق</Label>
+                    <Input 
+                      id="teamName" 
+                      value={editedTeam.teamName || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, teamName: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ideaName">اسم الفكرة</Label>
+                    <Input 
+                      id="ideaName" 
+                      value={editedTeam.ideaName || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, ideaName: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="challenge">التحدي</Label>
+                    <Input 
+                      id="challenge" 
+                      value={editedTeam.challenge || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, challenge: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ideaStage">مرحلة الفكرة</Label>
+                    <Select 
+                      value={editedTeam.ideaStage || ''} 
+                      onValueChange={(value) => setEditedTeam({ ...editedTeam, ideaStage: value })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="اختر مرحلة الفكرة" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="فكرة">فكرة</SelectItem>
+                        <SelectItem value="نموذج أولي">نموذج أولي</SelectItem>
+                        <SelectItem value="منتج">منتج</SelectItem>
+                        <SelectItem value="شركة ناشئة">شركة ناشئة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Idea Details */}
+                <div className="space-y-4 border p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg">تفاصيل الفكرة</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="ideaDescription">وصف الفكرة</Label>
+                    <Textarea 
+                      id="ideaDescription" 
+                      value={editedTeam.ideaDescription || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, ideaDescription: e.target.value })}
+                      className="w-full min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="challengeReason">سبب اختيار التحدي</Label>
+                    <Textarea 
+                      id="challengeReason" 
+                      value={editedTeam.challengeReason || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, challengeReason: e.target.value })}
+                      className="w-full min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ideaSolution">الحل المقترح</Label>
+                    <Textarea 
+                      id="ideaSolution" 
+                      value={editedTeam.ideaSolution || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, ideaSolution: e.target.value })}
+                      className="w-full min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ideaResults">النتائج المتوقعة</Label>
+                    <Textarea 
+                      id="ideaResults" 
+                      value={editedTeam.ideaResults || ''} 
+                      onChange={(e) => setEditedTeam({ ...editedTeam, ideaResults: e.target.value })}
+                      className="w-full min-h-[100px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="space-y-4 border p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg">معلومات إضافية</h3>
+                  
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Checkbox 
+                      id="hasParticipated" 
+                      checked={editedTeam.hasParticipated} 
+                      onCheckedChange={(checked: boolean) => setEditedTeam({ ...editedTeam, hasParticipated: checked })}
+                    />
+                    <Label htmlFor="hasParticipated">هل شاركت الفكرة من قبل؟</Label>
+                  </div>
+
+                  {editedTeam.hasParticipated && (
+                    <div className="space-y-2">
+                      <Label htmlFor="participationDetails">تفاصيل المشاركة السابقة</Label>
+                      <Textarea 
+                        id="participationDetails" 
+                        value={editedTeam.participationDetails || ''} 
+                        onChange={(e) => setEditedTeam({ ...editedTeam, participationDetails: e.target.value })}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter className="mt-6">
+                <Button type="button" variant="outline" onClick={() => setIsTeamEditModalOpen(false)}>إلغاء</Button>
+                <Button type="submit">
+                  <Save className="ml-2 h-4 w-4" />
+                  حفظ التغييرات
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>
