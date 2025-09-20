@@ -3,23 +3,107 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
-    const { teamId, teamName, ideaName } = await req.json();
+    const { 
+      teamId, 
+      teamName, 
+      hackathonTrack,
+      ideaName,
+      ideaDescription,
+      challenge,
+      challengeReason,
+      ideaSolution,
+      ideaResults,
+      ideaStage,
+      hearAboutUs,
+      hasParticipated,
+      participationDetails,
+      attachmentsLink,
+      attachmentPath,
+      newLeaderId
+    } = await req.json();
 
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    const dataToUpdate: { teamName?: string; ideaName?: string } = {};
-    if (teamName) dataToUpdate.teamName = teamName;
-    if (ideaName) dataToUpdate.ideaName = ideaName;
-
-
-    const updatedTeam = await prisma.team.update({
+    // First, check if the team exists
+    const team = await prisma.team.findUnique({
       where: { id: teamId },
-      data: dataToUpdate,
+      include: { participants: true }
     });
 
-    return NextResponse.json(updatedTeam);
+    if (!team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // If changing leader, validate that the new leader is a member of the team
+    if (newLeaderId) {
+      const isTeamMember = team.participants.some(p => p.id === newLeaderId);
+      
+      if (!isTeamMember) {
+        return NextResponse.json({ 
+          error: 'The new leader must be a member of the team' 
+        }, { status: 400 });
+      }
+    }
+
+    // Build the data to update for the team
+    const dataToUpdate: any = {};
+    
+    // Team basic info
+    if (teamName !== undefined) dataToUpdate.teamName = teamName;
+    if (hackathonTrack !== undefined) dataToUpdate.hackathonTrack = hackathonTrack;
+    
+    // Idea details
+    if (ideaName !== undefined) dataToUpdate.ideaName = ideaName;
+    if (ideaDescription !== undefined) dataToUpdate.ideaDescription = ideaDescription;
+    if (challenge !== undefined) dataToUpdate.challenge = challenge;
+    if (challengeReason !== undefined) dataToUpdate.challengeReason = challengeReason;
+    if (ideaSolution !== undefined) dataToUpdate.ideaSolution = ideaSolution;
+    if (ideaResults !== undefined) dataToUpdate.ideaResults = ideaResults;
+    if (ideaStage !== undefined) dataToUpdate.ideaStage = ideaStage;
+    
+    // Additional info
+    if (hearAboutUs !== undefined) dataToUpdate.hearAboutUs = hearAboutUs;
+    if (hasParticipated !== undefined) dataToUpdate.hasParticipated = hasParticipated;
+    if (participationDetails !== undefined) dataToUpdate.participationDetails = participationDetails;
+    if (attachmentsLink !== undefined) dataToUpdate.attachmentsLink = attachmentsLink;
+    if (attachmentPath !== undefined) dataToUpdate.attachmentPath = attachmentPath;
+
+    // Start a transaction to update both team and participants if needed
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the team
+      const updatedTeam = await tx.team.update({
+        where: { id: teamId },
+        data: dataToUpdate,
+        include: { participants: true }
+      });
+
+      // If changing leader, update participant records
+      if (newLeaderId) {
+        // First, set all participants as non-leaders
+        await tx.participant.updateMany({
+          where: { teamId: teamId },
+          data: { isLeader: false }
+        });
+
+        // Then, set the new leader
+        await tx.participant.update({
+          where: { id: newLeaderId },
+          data: { isLeader: true }
+        });
+
+        // Refresh the team data to include updated participants
+        return await tx.team.findUnique({
+          where: { id: teamId },
+          include: { participants: true }
+        });
+      }
+
+      return updatedTeam;
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error updating team:', error);
     return NextResponse.json({ error: 'Failed to update team' }, { status: 500 });

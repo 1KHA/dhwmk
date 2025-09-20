@@ -93,7 +93,7 @@ export default function TeamsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isAutoTeamModalOpen, setIsAutoTeamModalOpen] = useState(false);
-  const [editedTeam, setEditedTeam] = useState<Partial<Team> | null>(null);
+  const [editedTeam, setEditedTeam] = useState<Partial<Team> & { newLeaderId?: string } | null>(null);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
   
   // Advanced filter states
@@ -610,7 +610,24 @@ export default function TeamsPage() {
                             className="p-1 rounded-md hover:bg-muted"
                             onClick={() => {
                               setSelectedTeam(team);
-                              setEditedTeam({ teamName: team.teamName, ideaName: team.ideaName });
+                              // Initialize all editable fields
+                              setEditedTeam({
+                                teamName: team.teamName,
+                                hackathonTrack: team.hackathonTrack,
+                                ideaName: team.ideaName,
+                                ideaDescription: team.ideaDescription,
+                                challenge: team.challenge,
+                                challengeReason: team.challengeReason,
+                                ideaSolution: team.ideaSolution,
+                                ideaResults: team.ideaResults,
+                                ideaStage: team.ideaStage,
+                                hearAboutUs: team.hearAboutUs,
+                                hasParticipated: team.hasParticipated,
+                                participationDetails: team.participationDetails,
+                                attachmentsLink: team.attachmentsLink,
+                                // Find current leader ID
+                                newLeaderId: team.participants.find(p => p.isLeader)?.id
+                              });
                               setIsEditModalOpen(true);
                             }}
                           >
@@ -853,36 +870,215 @@ export default function TeamsPage() {
 
       {/* Edit Team Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>تعديل الفريق: {selectedTeam?.teamName}</DialogTitle>
           </DialogHeader>
-          {editedTeam && (
-            <form onSubmit={handleUpdateTeam}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="teamName" className="text-right">
-                    اسم الفريق
+          {editedTeam && selectedTeam && (
+            <form onSubmit={handleUpdateTeam} className="space-y-6">
+              {/* Team Basic Information */}
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="font-semibold text-lg">معلومات الفريق الأساسية</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="teamName" className="block text-right font-medium">
+                      اسم الفريق
+                    </label>
+                    <input
+                      id="teamName"
+                      value={editedTeam.teamName || ''}
+                      onChange={(e) => setEditedTeam({ ...editedTeam, teamName: e.target.value })}
+                      className="w-full rounded-md border border-input p-2"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="hackathonTrack" className="block text-right font-medium">
+                      المسار
+                    </label>
+                    <select
+                      id="hackathonTrack"
+                      value={editedTeam.hackathonTrack || ''}
+                      onChange={(e) => setEditedTeam({ ...editedTeam, hackathonTrack: e.target.value })}
+                      className="w-full rounded-md border border-input p-2"
+                    >
+                      <option value="">اختر المسار</option>
+                      {ARABIC_TRACKS.map(track => (
+                        <option key={track} value={track}>{track}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="newLeaderId" className="block text-right font-medium">
+                    قائد الفريق
+                  </label>
+                  <select
+                    id="newLeaderId"
+                    value={editedTeam.newLeaderId || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, newLeaderId: e.target.value })}
+                    className="w-full rounded-md border border-input p-2"
+                  >
+                    <option value="">اختر قائد الفريق</option>
+                    {selectedTeam.participants.map(participant => (
+                      <option key={participant.id} value={participant.id}>
+                        {participant.fullName || `${participant.firstName || ''} ${participant.secondName || ''} ${participant.familyName || ''}`.trim() || participant.email}
+                        {participant.isLeader ? ' (القائد الحالي)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              {/* Idea Details */}
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="font-semibold text-lg">تفاصيل الفكرة</h3>
+                
+                <div className="space-y-2">
+                  <label htmlFor="ideaName" className="block text-right font-medium">
+                    اسم الفكرة
                   </label>
                   <input
-                    id="teamName"
-                    value={editedTeam.teamName || ''}
-                    onChange={(e) => setEditedTeam({ ...editedTeam, teamName: e.target.value })}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="ideaName" className="text-right">
-                    فكرة المشروع
-                  </label>
-                  <textarea
                     id="ideaName"
                     value={editedTeam.ideaName || ''}
                     onChange={(e) => setEditedTeam({ ...editedTeam, ideaName: e.target.value })}
-                    className="col-span-3"
+                    className="w-full rounded-md border border-input p-2"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="ideaDescription" className="block text-right font-medium">
+                    وصف الفكرة
+                  </label>
+                  <textarea
+                    id="ideaDescription"
+                    value={editedTeam.ideaDescription || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, ideaDescription: e.target.value })}
+                    className="w-full rounded-md border border-input p-2 min-h-[100px]"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="challenge" className="block text-right font-medium">
+                      التحدي
+                    </label>
+                    <input
+                      id="challenge"
+                      value={editedTeam.challenge || ''}
+                      onChange={(e) => setEditedTeam({ ...editedTeam, challenge: e.target.value })}
+                      className="w-full rounded-md border border-input p-2"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="ideaStage" className="block text-right font-medium">
+                      مرحلة الفكرة
+                    </label>
+                    <input
+                      id="ideaStage"
+                      value={editedTeam.ideaStage || ''}
+                      onChange={(e) => setEditedTeam({ ...editedTeam, ideaStage: e.target.value })}
+                      className="w-full rounded-md border border-input p-2"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="challengeReason" className="block text-right font-medium">
+                    سبب اختيار التحدي
+                  </label>
+                  <textarea
+                    id="challengeReason"
+                    value={editedTeam.challengeReason || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, challengeReason: e.target.value })}
+                    className="w-full rounded-md border border-input p-2 min-h-[80px]"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="ideaSolution" className="block text-right font-medium">
+                    الحل المقترح
+                  </label>
+                  <textarea
+                    id="ideaSolution"
+                    value={editedTeam.ideaSolution || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, ideaSolution: e.target.value })}
+                    className="w-full rounded-md border border-input p-2 min-h-[80px]"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="ideaResults" className="block text-right font-medium">
+                    النتائج المتوقعة
+                  </label>
+                  <textarea
+                    id="ideaResults"
+                    value={editedTeam.ideaResults || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, ideaResults: e.target.value })}
+                    className="w-full rounded-md border border-input p-2 min-h-[80px]"
                   />
                 </div>
               </div>
+              
+              {/* Additional Information */}
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="font-semibold text-lg">معلومات إضافية</h3>
+                
+                <div className="space-y-2">
+                  <label htmlFor="hearAboutUs" className="block text-right font-medium">
+                    من أين سمعت عنا
+                  </label>
+                  <input
+                    id="hearAboutUs"
+                    value={editedTeam.hearAboutUs || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, hearAboutUs: e.target.value })}
+                    className="w-full rounded-md border border-input p-2"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2 justify-end">
+                  <label htmlFor="hasParticipated" className="text-right font-medium">
+                    هل شاركت الفكرة من قبل؟
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="hasParticipated"
+                    checked={editedTeam.hasParticipated || false}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, hasParticipated: e.target.checked })}
+                    className="rounded border-gray-300"
+                  />
+                </div>
+                
+                {editedTeam.hasParticipated && (
+                  <div className="space-y-2">
+                    <label htmlFor="participationDetails" className="block text-right font-medium">
+                      تفاصيل المشاركة السابقة
+                    </label>
+                    <textarea
+                      id="participationDetails"
+                      value={editedTeam.participationDetails || ''}
+                      onChange={(e) => setEditedTeam({ ...editedTeam, participationDetails: e.target.value })}
+                      className="w-full rounded-md border border-input p-2 min-h-[80px]"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label htmlFor="attachmentsLink" className="block text-right font-medium">
+                    رابط المرفقات
+                  </label>
+                  <input
+                    id="attachmentsLink"
+                    value={editedTeam.attachmentsLink || ''}
+                    onChange={(e) => setEditedTeam({ ...editedTeam, attachmentsLink: e.target.value })}
+                    className="w-full rounded-md border border-input p-2"
+                  />
+                </div>
+              </div>
+              
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>إلغاء</Button>
                 <Button type="submit">حفظ التغييرات</Button>
