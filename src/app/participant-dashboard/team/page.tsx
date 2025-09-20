@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash, Edit, Plus, Loader2, Save } from "lucide-react";
+import { useAuthErrorHandler } from "@/hooks/useAuthErrorHandler";
 import {
   Dialog,
   DialogContent,
@@ -93,6 +94,7 @@ export default function TeamManagementPage() {
   const [editedParticipant, setEditedParticipant] = useState<Participant | null>(null);
   const [newParticipant, setNewParticipant] = useState(initialParticipantState);
   const [editedTeam, setEditedTeam] = useState<Partial<TeamData> | null>(null);
+  const { checkAndHandleAuthError } = useAuthErrorHandler();
 
   const fetchTeamDetails = async () => {
     try {
@@ -105,7 +107,11 @@ export default function TeamManagementPage() {
       const data: TeamData = await response.json();
       setTeamData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      // Check if it's an authentication error and handle it
+      const handled = await checkAndHandleAuthError(err);
+      if (!handled) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -128,10 +134,18 @@ export default function TeamManagementPage() {
         setIsDeleteModalOpen(false);
       } else {
         const errorData = await response.json();
-        toast({ title: "خطأ", description: errorData.error || "فشل الحذف", variant: "destructive" });
+        // Check if it's an authentication error
+        const authError = await checkAndHandleAuthError(response);
+        if (!authError) {
+          toast({ title: "خطأ", description: errorData.error || "فشل الحذف", variant: "destructive" });
+        }
       }
     } catch (error) {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء الحذف", variant: "destructive" });
+      // Check if it's an authentication error
+      const handled = await checkAndHandleAuthError(error);
+      if (!handled) {
+        toast({ title: "خطأ", description: "حدث خطأ أثناء الحذف", variant: "destructive" });
+      }
     }
   };
 
@@ -152,7 +166,11 @@ export default function TeamManagementPage() {
       fetchTeamDetails();
       setIsEditModalOpen(false);
     } catch (error) {
-      toast({ title: "خطأ في التحديث", description: (error as Error).message, variant: "destructive" });
+      // Check if it's an authentication error
+      const handled = await checkAndHandleAuthError(error);
+      if (!handled) {
+        toast({ title: "خطأ في التحديث", description: (error as Error).message, variant: "destructive" });
+      }
     }
   };
 
@@ -173,7 +191,11 @@ export default function TeamManagementPage() {
       fetchTeamDetails();
       setIsTeamEditModalOpen(false);
     } catch (error) {
-      toast({ title: "خطأ في التحديث", description: (error as Error).message, variant: "destructive" });
+      // Check if it's an authentication error
+      const handled = await checkAndHandleAuthError(error);
+      if (!handled) {
+        toast({ title: "خطأ في التحديث", description: (error as Error).message, variant: "destructive" });
+      }
     }
   };
 
@@ -194,7 +216,11 @@ export default function TeamManagementPage() {
         setIsAddModalOpen(false);
         setNewParticipant(initialParticipantState);
     } catch (error) {
-        toast({ title: "خطأ في الإضافة", description: (error as Error).message, variant: "destructive" });
+        // Check if it's an authentication error
+        const handled = await checkAndHandleAuthError(error);
+        if (!handled) {
+            toast({ title: "خطأ في الإضافة", description: (error as Error).message, variant: "destructive" });
+        }
     }
   };
 
