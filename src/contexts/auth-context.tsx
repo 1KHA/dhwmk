@@ -34,75 +34,174 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true)
       
-      // Check if user is authenticated by calling the appropriate endpoint based on role
-      // First try participant endpoint
-      let response = await fetch('/api/participant/me', {
-        credentials: 'include', // Include cookies
-      })
-
-      if (response.ok) {
-        const participantData = await response.json()
-        const userData: User = {
-          id: participantData.id,
-          email: participantData.email,
-          role: 'participant',
-          name: participantData.fullName,
-          fullName: participantData.fullName,
-          teamId: participantData.teamId,
-          teamName: participantData.team?.teamName,
-          isLeader: participantData.isLeader
-        }
-        setUser(userData)
-        return
-      }
-
-      // If participant fails, try mentor endpoint
-      response = await fetch('/api/mentor/me', {
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const mentorData = await response.json()
-        console.log('🔍 Auth Context - Mentor data received:', mentorData)
-        
-        if (mentorData.success && mentorData.role === 'mentor') {
-          const userData: User = {
-            id: mentorData.id,
-            email: mentorData.email,
-            role: 'mentor',
-            name: mentorData.name,
-            fullName: mentorData.name
+      // Try to get the stored role from localStorage to determine which endpoint to call
+      const storedUser = localStorage.getItem('user')
+      let userRole: UserRole | null = null
+      
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          if (parsedUser && parsedUser.role) {
+            userRole = parsedUser.role as UserRole
+            console.log('📋 Auth Context - Found stored user role:', userRole)
           }
-          console.log('✅ Auth Context - Setting mentor user:', userData)
+        } catch (e) {
+          console.error('Error parsing stored user:', e)
+        }
+      }
+      
+      // If we have a stored role, only call the appropriate endpoint
+      if (userRole) {
+        console.log(`🔍 Auth Context - Checking auth for role: ${userRole}`)
+        
+        if (userRole === 'participant') {
+          const response = await fetch('/api/participant/me', {
+            credentials: 'include',
+          })
+          
+          if (response.ok) {
+            const participantData = await response.json()
+            const userData: User = {
+              id: participantData.id,
+              email: participantData.email,
+              role: 'participant',
+              name: participantData.fullName,
+              fullName: participantData.fullName,
+              teamId: participantData.teamId,
+              teamName: participantData.team?.teamName,
+              isLeader: participantData.isLeader
+            }
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify({ role: 'participant' }))
+            return
+          }
+        } 
+        else if (userRole === 'mentor') {
+          const response = await fetch('/api/mentor/me', {
+            credentials: 'include',
+          })
+          
+          if (response.ok) {
+            const mentorData = await response.json()
+            console.log('🔍 Auth Context - Mentor data received:', mentorData)
+            
+            if (mentorData.success && mentorData.role === 'mentor') {
+              const userData: User = {
+                id: mentorData.id,
+                email: mentorData.email,
+                role: 'mentor',
+                name: mentorData.name,
+                fullName: mentorData.name
+              }
+              console.log('✅ Auth Context - Setting mentor user:', userData)
+              setUser(userData)
+              localStorage.setItem('user', JSON.stringify({ role: 'mentor' }))
+              return
+            }
+          }
+        }
+        else if (userRole === 'admin') {
+          const response = await fetch('/api/admin/me', {
+            credentials: 'include',
+          })
+          
+          if (response.ok) {
+            const adminData = await response.json()
+            console.log('🔍 Auth Context - Admin data received:', adminData)
+            
+            if (adminData.success && adminData.role === 'admin') {
+              const userData: User = {
+                id: adminData.id,
+                email: adminData.email || adminData.username,
+                role: 'admin',
+                name: adminData.name || adminData.username,
+                fullName: adminData.name || adminData.username
+              }
+              console.log('✅ Auth Context - Setting admin user:', userData)
+              setUser(userData)
+              localStorage.setItem('user', JSON.stringify({ role: 'admin' }))
+              return
+            }
+          }
+        }
+      } 
+      // If no stored role or stored role check failed, try all endpoints sequentially
+      else {
+        console.log('🔍 Auth Context - No stored role, checking all endpoints')
+        
+        // Try participant endpoint
+        let response = await fetch('/api/participant/me', {
+          credentials: 'include',
+        })
+        
+        if (response.ok) {
+          const participantData = await response.json()
+          const userData: User = {
+            id: participantData.id,
+            email: participantData.email,
+            role: 'participant',
+            name: participantData.fullName,
+            fullName: participantData.fullName,
+            teamId: participantData.teamId,
+            teamName: participantData.team?.teamName,
+            isLeader: participantData.isLeader
+          }
           setUser(userData)
+          localStorage.setItem('user', JSON.stringify({ role: 'participant' }))
           return
         }
-      }
-
-      // If both fail, try admin endpoint
-      response = await fetch('/api/admin/me', {
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const adminData = await response.json()
-        console.log('🔍 Auth Context - Admin data received:', adminData)
         
-        if (adminData.success && adminData.role === 'admin') {
-          const userData: User = {
-            id: adminData.id,
-            email: adminData.email || adminData.username,
-            role: 'admin',
-            name: adminData.name || adminData.username,
-            fullName: adminData.name || adminData.username
+        // If participant fails, try mentor endpoint
+        response = await fetch('/api/mentor/me', {
+          credentials: 'include',
+        })
+        
+        if (response.ok) {
+          const mentorData = await response.json()
+          console.log('🔍 Auth Context - Mentor data received:', mentorData)
+          
+          if (mentorData.success && mentorData.role === 'mentor') {
+            const userData: User = {
+              id: mentorData.id,
+              email: mentorData.email,
+              role: 'mentor',
+              name: mentorData.name,
+              fullName: mentorData.name
+            }
+            console.log('✅ Auth Context - Setting mentor user:', userData)
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify({ role: 'mentor' }))
+            return
           }
-          console.log('✅ Auth Context - Setting admin user:', userData)
-          setUser(userData)
-          return
+        }
+        
+        // If both fail, try admin endpoint
+        response = await fetch('/api/admin/me', {
+          credentials: 'include',
+        })
+        
+        if (response.ok) {
+          const adminData = await response.json()
+          console.log('🔍 Auth Context - Admin data received:', adminData)
+          
+          if (adminData.success && adminData.role === 'admin') {
+            const userData: User = {
+              id: adminData.id,
+              email: adminData.email || adminData.username,
+              role: 'admin',
+              name: adminData.name || adminData.username,
+              fullName: adminData.name || adminData.username
+            }
+            console.log('✅ Auth Context - Setting admin user:', userData)
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify({ role: 'admin' }))
+            return
+          }
         }
       }
-
+      
       // No valid authentication found
+      localStorage.removeItem('user')
       setUser(null)
     } catch (error) {
       console.error('Error checking auth status:', error)
@@ -141,6 +240,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             teamName: data.user.teamName,
             isLeader: data.user.isLeader
           }
+          
+          // Store the user role in localStorage to optimize future auth checks
+          localStorage.setItem('user', JSON.stringify({ role: data.user.role }))
+          
           setUser(userData)
           return true
         }
@@ -161,6 +264,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         credentials: 'include',
       })
+      
+      // Clear the stored user role
+      localStorage.removeItem('user')
+      
     } catch (error) {
       console.error('Logout error:', error)
     } finally {

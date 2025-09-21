@@ -26,64 +26,20 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    const verifyUserStatus = async () => {
-      if (authLoading) return;
-      
-      try {
-        // First try to check if user is a mentor
-        let response = await fetch('/api/mentor/me', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
-        console.log('🔍 Login page - Mentor check response status:', response.status);
-        
-        // If mentor check is successful, redirect to mentor dashboard
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.role === 'mentor') {
-            console.log('✅ Mentor already logged in, redirecting to dashboard');
-            router.push('/mentor-dashboard');
-            return;
-          }
-        }
-        
-        // If not a mentor, try participant
-        response = await fetch('/api/participant/me', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
-        console.log('🔍 Login page - Participant check response status:', response.status);
-        
-        // If participant check is successful, redirect to participant dashboard
-        if (response.ok) {
-          console.log('✅ Participant already logged in, redirecting to dashboard');
-          router.push('/participant-dashboard');
-          return;
-        }
-        
-        // If user object exists but API checks failed, clear auth state
-        if (user) {
-          console.log('⚠️ User object exists but API checks failed, possible stale state');
-          // Call logout endpoint to clear server-side session/cookies
-          await fetch('/api/logout', {
-            method: 'POST',
-            credentials: 'include',
-          });
-        }
-      } catch (error) {
-        console.error('Error checking user status:', error);
-      }
-    };
+    if (authLoading) return;
     
-    verifyUserStatus();
+    if (user) {
+      console.log('✅ User already logged in:', user.role);
+      
+      // Redirect based on user role
+      if (user.role === 'participant') {
+        router.push('/participant-dashboard');
+      } else if (user.role === 'mentor') {
+        router.push('/mentor-dashboard');
+      } else if (user.role === 'admin') {
+        router.push('/admin-hackton-dashboard');
+      }
+    }
   }, [user, authLoading, router])
   
   // Loader timer effect

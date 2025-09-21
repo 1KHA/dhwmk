@@ -66,7 +66,8 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
           setAuthorized(true);
         } else {
           console.log('❌ ParticipantRouteGuard - Authorization failed:', data);
-          throw new Error('غير مصرح. هذه الخدمة متاحة للمشاركين فقط.');
+          // Use a specific error message for role issues (403) vs authentication issues (401)
+          throw new Error('Invalid role: ' + (data.role || 'unknown') + ' (expected: participant)');
         }
       } catch (error: any) {
         setAuthorized(false);

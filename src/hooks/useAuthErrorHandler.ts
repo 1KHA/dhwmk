@@ -14,10 +14,12 @@ export const useAuthErrorHandler = () => {
   // Function to check and handle authentication errors
   const checkAndHandleAuthError = useCallback(async (error: any) => {
     // Check if the error is an authentication error (401)
+    // We specifically check for 401 status or token-related messages
+    // We exclude 403 errors which indicate permission issues, not authentication issues
     const isAuthError = error?.status === 401 || 
                         error?.response?.status === 401 || 
-                        error?.message?.includes('token') ||
-                        error?.message?.includes('غير مصرح');
+                        (error?.message?.includes('token') && !error?.message?.includes('Invalid role')) ||
+                        (error?.message?.includes('غير مصرح') && !error?.message?.includes('Invalid role'));
 
     if (isAuthError) {
       console.log('🔒 AuthErrorHandler - Authentication error detected:', error);
