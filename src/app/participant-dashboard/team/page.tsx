@@ -123,13 +123,13 @@ export default function TeamManagementPage() {
 
   const handleDeleteParticipant = async (participantId: string) => {
     try {
-      const response = await fetch('/api/admin/delete-participant', {
+      const response = await fetch('/api/participant/remove-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participantId }),
       });
       if (response.ok) {
-        toast({ title: "نجح", description: "تم حذف المشارك بنجاح" });
+        toast({ title: "نجح", description: "تم إزالة العضو من الفريق بنجاح" });
         fetchTeamDetails();
         setIsDeleteModalOpen(false);
       } else {
@@ -137,14 +137,14 @@ export default function TeamManagementPage() {
         // Check if it's an authentication error
         const authError = await checkAndHandleAuthError(response);
         if (!authError) {
-          toast({ title: "خطأ", description: errorData.error || "فشل الحذف", variant: "destructive" });
+          toast({ title: "خطأ", description: errorData.error || "فشل إزالة العضو", variant: "destructive" });
         }
       }
     } catch (error) {
       // Check if it's an authentication error
       const handled = await checkAndHandleAuthError(error);
       if (!handled) {
-        toast({ title: "خطأ", description: "حدث خطأ أثناء الحذف", variant: "destructive" });
+        toast({ title: "خطأ", description: "حدث خطأ أثناء إزالة العضو", variant: "destructive" });
       }
     }
   };
@@ -489,10 +489,10 @@ export default function TeamManagementPage() {
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">تأكيد الحذف</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              هل أنت متأكد أنك تريد حذف المشارك "{selectedParticipant?.fullName}"؟
-            </DialogDescription>
+              <DialogTitle className="text-xl font-semibold">تأكيد إزالة العضو</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                هل أنت متأكد أنك تريد إزالة العضو "{selectedParticipant?.fullName}" من الفريق؟
+              </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-3 mt-6">
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
@@ -501,7 +501,7 @@ export default function TeamManagementPage() {
               onClick={() => selectedParticipant && handleDeleteParticipant(selectedParticipant.id)}
               className="bg-red-600 hover:bg-red-700"
             >
-              حذف
+              إزالة
             </Button>
           </div>
         </DialogContent>

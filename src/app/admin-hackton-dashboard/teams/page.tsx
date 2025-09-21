@@ -18,6 +18,8 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Participant {
   id: string;
@@ -93,8 +95,13 @@ export default function TeamsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isAutoTeamModalOpen, setIsAutoTeamModalOpen] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [isRemoveMemberModalOpen, setIsRemoveMemberModalOpen] = useState(false);
   const [editedTeam, setEditedTeam] = useState<Partial<Team> & { newLeaderId?: string } | null>(null);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [participantEmail, setParticipantEmail] = useState("");
+  const [makeLeader, setMakeLeader] = useState(false);
   
   // Advanced filter states
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
@@ -116,7 +123,7 @@ export default function TeamsPage() {
           ...team,
           participants: team.participants.map((p: Participant) => ({
             ...p,
-            fullName: `${p.firstName} ${p.secondName} ${p.familyName}`,
+            fullName: p.fullName || `${p.firstName || ''} ${p.secondName || ''} ${p.familyName || ''}`.trim() || p.email,
           })),
         }));
         setTeams(teamsWithComputedNames);
@@ -262,6 +269,112 @@ export default function TeamsPage() {
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء رفض الفريق",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to handle removing a team member
+  const handleRemoveMember = async (participantId: string, teamId: string) => {
+    try {
+      const response = await fetch('/api/admin/remove-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ participantId }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "نجح",
+          description: "تم إزالة العضو من الفريق بنجاح",
+        });
+        fetchTeams(); // Refresh the list
+        setIsRemoveMemberModalOpen(false);
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "خطأ",
+          description: errorData.error || "فشل في إزالة العضو من الفريق",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إزالة العضو من الفريق",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to handle adding a team member
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeam || !participantEmail) return;
+
+    try {
+      // First, find the participant by email
+      const response = await fetch(`/api/admin/participants?email=${encodeURIComponent(participantEmail)}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast({
+          title: "خطأ",
+          description: errorData.error || "فشل في العثور على المشارك",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const participants = await response.json();
+      
+      if (participants.length === 0) {
+        toast({
+          title: "خطأ",
+          description: "لم يتم العثور على مشارك بهذا البريد الإلكتروني",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const participant = participants[0];
+      
+      // Now add the participant to the team
+      const addResponse = await fetch('/api/admin/add-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          teamId: selectedTeam.id, 
+          participantId: participant.id,
+          makeLeader: makeLeader
+        }),
+      });
+
+      if (addResponse.ok) {
+        toast({
+          title: "نجح",
+          description: "تمت إضافة العضو إلى الفريق بنجاح",
+        });
+        fetchTeams(); // Refresh the list
+        setIsAddMemberModalOpen(false);
+        setParticipantEmail("");
+        setMakeLeader(false);
+      } else {
+        const errorData = await addResponse.json();
+        toast({
+          title: "خطأ",
+          description: errorData.error || "فشل في إضافة العضو إلى الفريق",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إضافة العضو إلى الفريق",
         variant: "destructive",
       });
     }
@@ -649,7 +762,21 @@ export default function TeamsPage() {
                         <tr className="bg-muted/20">
                           <td colSpan={8} className="p-0">
                             <div className="p-4">
-                              <h4 className="font-bold mb-2">أعضاء الفريق:</h4>
+                              <div className="flex justify-between items-center mb-4">
+                                <h4 className="font-bold">أعضاء الفريق:</h4>
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => {
+                                    setSelectedTeam(team);
+                                    setParticipantEmail("");
+                                    setMakeLeader(false);
+                                    setIsAddMemberModalOpen(true);
+                                  }}
+                                >
+                                  <UserPlus className="ml-2 h-4 w-4" />
+                                  إضافة عضو
+                                </Button>
+                              </div>
                               <table className="w-full text-sm">
                                 <thead>
                                   <tr className="bg-muted/50">
@@ -659,6 +786,7 @@ export default function TeamsPage() {
                                     <th className="p-2 text-right font-semibold">التخصص</th>
                                     <th className="p-2 text-right font-semibold">الجامعة</th>
                                     <th className="p-2 text-center font-semibold">قائد الفريق</th>
+                                    <th className="p-2 text-center font-semibold">الإجراءات</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -675,6 +803,19 @@ export default function TeamsPage() {
                                             نعم
                                           </span>
                                         ) : "لا"}
+                                      </td>
+                                      <td className="p-2 text-center">
+                                        <button
+                                          className="p-1 rounded-md hover:bg-muted text-red-500"
+                                          title="إزالة العضو"
+                                          onClick={() => {
+                                            setSelectedParticipant(p);
+                                            setSelectedTeam(team);
+                                            setIsRemoveMemberModalOpen(true);
+                                          }}
+                                        >
+                                          <Trash className="h-4 w-4" />
+                                        </button>
                                       </td>
                                     </tr>
                                   ))}
@@ -865,6 +1006,68 @@ export default function TeamsPage() {
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
             <Button variant="destructive" onClick={() => selectedTeam && handleDeleteTeam(selectedTeam.id)}>حذف</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Member Confirmation Modal */}
+      <Dialog open={isRemoveMemberModalOpen} onOpenChange={setIsRemoveMemberModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد إزالة العضو</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد أنك تريد إزالة العضو "{selectedParticipant?.fullName}" من الفريق "{selectedTeam?.teamName}"؟
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRemoveMemberModalOpen(false)}>إلغاء</Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => selectedParticipant && selectedTeam && handleRemoveMember(selectedParticipant.id, selectedTeam.id)}
+            >
+              إزالة
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Member Modal */}
+      <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إضافة عضو إلى الفريق</DialogTitle>
+            <DialogDescription>
+              أدخل البريد الإلكتروني للمشارك لإضافته إلى الفريق "{selectedTeam?.teamName}"
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddMember}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="participantEmail">البريد الإلكتروني للمشارك</Label>
+                <Input
+                  id="participantEmail"
+                  type="email"
+                  placeholder="example@example.com"
+                  value={participantEmail}
+                  onChange={(e) => setParticipantEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="makeLeader"
+                  checked={makeLeader}
+                  onChange={(e) => setMakeLeader(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="makeLeader">تعيين كقائد للفريق</Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddMemberModalOpen(false)}>إلغاء</Button>
+              <Button type="submit">إضافة</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
