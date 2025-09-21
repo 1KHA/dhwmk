@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useMemo, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
@@ -8,6 +8,7 @@ import { Home, Users, Flag, Award, Star, Book, Calendar, ChevronLeft, ChevronRig
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { usePermissions } from "@/hooks/usePermissions"
+import { useSidebar } from "@/contexts/sidebar-context"
 
 const navItems = [
   { 
@@ -58,7 +59,7 @@ const navItems = [
 ]
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const { isCollapsed, toggleSidebar } = useSidebar()
   const [participantData, setParticipantData] = useState<{
     teamId: string | null;
     isLeader: boolean;
@@ -120,14 +121,15 @@ export default function Sidebar() {
   return (
     <motion.aside
       className={cn(
-        "fixed top-12 left-0 bg-card text-card-foreground border-r h-[calc(100vh-3rem)]",
+        "fixed top-12 left-0 bg-card text-card-foreground border-r h-[calc(100vh-3rem)] z-10",
         isCollapsed ? "w-16" : "w-64",
       )}
       animate={{ width: isCollapsed ? 64 : 256 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <div className="flex flex-col h-full text-left">
         <div className="flex items-center justify-between p-4 border-b">
-          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)}>
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>

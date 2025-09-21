@@ -4,6 +4,22 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../../components/participant/Sidebar";
 import TopBar from "../../../components/participant/TopBar";
 import ParticipantRouteGuard from "@/components/auth/ParticipantRouteGuard";
+import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
+
+// Main content wrapper that responds to sidebar state
+function MainContent({ children }: { children: React.ReactNode }) {
+  const { isCollapsed } = useSidebar();
+  
+  return (
+    <main 
+      className={`flex-1 p-6 transition-all duration-300 ease-in-out ${
+        isCollapsed ? "mr-16" : "mr-64"
+      }`}
+    >
+      {children}
+    </main>
+  );
+}
 
 export default function ParticipantDashboardLayout({
   children,
@@ -22,15 +38,17 @@ export default function ParticipantDashboardLayout({
 
   return (
     <ParticipantRouteGuard>
-      <div className="min-h-screen bg-background">
-        <TopBar />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-6 mr-64">
-            {children}
-          </main>
+      <SidebarProvider>
+        <div className="min-h-screen bg-background">
+          <TopBar />
+          <div className="flex">
+            <Sidebar />
+            <MainContent>
+              {children}
+            </MainContent>
+          </div>
         </div>
-      </div>
+      </SidebarProvider>
     </ParticipantRouteGuard>
   );
 }
