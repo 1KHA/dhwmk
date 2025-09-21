@@ -104,14 +104,14 @@ export async function GET() {
 
     // Get all submissions for the current participant
     const submissions = await prisma.$queryRaw`
-      SELECT milestoneId FROM "MilestoneSubmission" 
-      WHERE participantId = ${participant.id}
+      SELECT "milestoneId" FROM "MilestoneSubmission" 
+      WHERE "participantId" = ${participant.id}
     `;
 
     // Create a set of milestone IDs that the participant has submitted
     const submittedMilestoneIds = new Set(
       Array.isArray(submissions) 
-        ? submissions.map((sub: any) => sub.milestoneId) 
+        ? submissions.map((sub: any) => sub.milestoneId || sub["milestoneId"]) 
         : []
     );
 
