@@ -4,6 +4,7 @@ import { useState, useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useToast } from "../../../components/ui/use-toast";
 import { useAuthErrorHandler } from "@/hooks/useAuthErrorHandler";
+import { useAuth } from "@/contexts/auth-context";
 
 interface ParticipantRouteGuardProps {
   children: ReactNode;
@@ -13,24 +14,11 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  const { logout } = useAuth();
   const { checkAndHandleAuthError } = useAuthErrorHandler();
   const [authorized, setAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [redirectAttempts, setRedirectAttempts] = useState(0);
-
-  // Function to clear auth cookies
-  const clearAuthCookies = async () => {
-    try {
-      // Call logout endpoint to clear server-side session/cookies
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      console.log('🍪 ParticipantRouteGuard - Auth cookies cleared');
-    } catch (error) {
-      console.error('Error clearing auth cookies:', error);
-    }
-  };
 
   useEffect(() => {
     // Reset redirect attempts when pathname changes
@@ -43,8 +31,7 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
       try {
         // Prevent infinite redirect loops
         if (redirectAttempts > 2) {
-          console.log('⚠️ ParticipantRouteGuard - Too many redirect attempts, clearing auth state');
-          await clearAuthCookies();
+          console.log('⚠️ ParticipantRouteGuard - Too many redirect attempts, stopping redirect');
           setIsLoading(false);
           setAuthorized(false);
           return;
@@ -64,10 +51,7 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
         if (!response.ok) {
           console.log('❌ ParticipantRouteGuard - Response not OK:', response.status, response.statusText);
           
-          // Clear auth cookies on 401 Unauthorized
-          if (response.status === 401) {
-            await clearAuthCookies();
-          }
+          // Handle 401 Unauthorized in the catch block
           
           throw new Error('غير مصرح - لا يوجد token');
         }
@@ -82,7 +66,6 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
           setAuthorized(true);
         } else {
           console.log('❌ ParticipantRouteGuard - Authorization failed:', data);
-          await clearAuthCookies();
           throw new Error('غير مصرح. هذه الخدمة متاحة للمشاركين فقط.');
         }
       } catch (error: any) {
@@ -110,7 +93,7 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
 
     // Check authentication on route change
     authCheck();
-  }, [pathname, router, toast, redirectAttempts, checkAndHandleAuthError]);
+  }, [pathname, router, toast, redirectAttempts, checkAndHandleAuthError, logout]);
 
   // Show loading while checking authentication
   if (isLoading) {

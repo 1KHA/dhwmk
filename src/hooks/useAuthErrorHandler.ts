@@ -11,20 +11,6 @@ export const useAuthErrorHandler = () => {
   const { logout } = useAuth();
   const [redirectAttempts, setRedirectAttempts] = useState(0);
 
-  // Function to clear auth cookies
-  const clearAuthCookies = useCallback(async () => {
-    try {
-      // Call logout endpoint to clear server-side session/cookies
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      console.log('🍪 AuthErrorHandler - Auth cookies cleared');
-    } catch (error) {
-      console.error('Error clearing auth cookies:', error);
-    }
-  }, []);
-
   // Function to check and handle authentication errors
   const checkAndHandleAuthError = useCallback(async (error: any) => {
     // Check if the error is an authentication error (401)
@@ -38,15 +24,12 @@ export const useAuthErrorHandler = () => {
       
       // Prevent infinite redirect loops
       if (redirectAttempts > 2) {
-        console.log('⚠️ AuthErrorHandler - Too many redirect attempts, clearing auth state');
-        await clearAuthCookies();
+        console.log('⚠️ AuthErrorHandler - Too many redirect attempts, stopping redirect');
         return;
       }
-
-      // Clear auth cookies
-      await clearAuthCookies();
       
-      // Call the logout function from auth context to clear client-side state
+      // Call the logout function from auth context to clear client-side state and cookies
+      // This will make a single call to /api/logout instead of multiple calls
       logout();
       
       // Show toast notification
@@ -65,7 +48,7 @@ export const useAuthErrorHandler = () => {
     }
     
     return false;
-  }, [clearAuthCookies, logout, redirectAttempts, router, toast]);
+  }, [logout, redirectAttempts, router, toast]);
 
   return { checkAndHandleAuthError };
 };
