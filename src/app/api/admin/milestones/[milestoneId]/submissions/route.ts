@@ -51,9 +51,9 @@ export async function GET(
         t.id as teamId, 
         t.teamName
       FROM "MilestoneSubmission" ms
-      JOIN "Participant" p ON ms.participantId = p.id
-      JOIN "Team" t ON p.teamId = t.id
-      WHERE ms.milestoneId = ${milestoneId}
+      JOIN "Participant" p ON ms."participantId" = p.id
+      JOIN "Team" t ON p."teamId" = t.id
+      WHERE ms."milestoneId" = ${milestoneId}
       ORDER BY ms."submittedAt" DESC
     `;
 
