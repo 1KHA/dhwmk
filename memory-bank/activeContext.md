@@ -11,6 +11,27 @@ The current focus is on dual database configuration and critical authentication 
 
 ## 2. Recent Changes
 
+### Team Member Management Enhancement
+- **Participant Dashboard Team Member Removal:** Implemented the ability for team leaders to remove members from their team
+  - Created a new API endpoint `/api/participant/remove-member` that handles member removal with proper permissions checking
+  - Updated the participant dashboard UI to show a "Remove" button for each team member (except the leader themselves)
+  - Added a confirmation dialog to prevent accidental removals
+  - Implemented proper error handling and user feedback
+- **Admin Dashboard Team Member Management:** Enhanced the admin dashboard with comprehensive team member management
+  - Created new API endpoints:
+    - `/api/admin/remove-member` for removing members from teams
+    - `/api/admin/add-member` for adding existing participants to teams
+    - `/api/admin/participants` for searching participants by email
+  - Added an "Add Member" button to the expanded team view with a modal for adding members by email
+  - Added a "Remove" button for each team member in the expanded team view
+  - Implemented the ability to make a new member the team leader when adding them
+  - Added confirmation dialogs for both adding and removing members
+  - Enhanced error handling with descriptive error messages
+- **Data Consistency:** Ensured proper handling of team leadership when removing members
+  - When removing a team leader, another member is automatically promoted to leader
+  - Prevented removing the last member of a team
+  - Maintained data integrity with proper database transactions
+
 ### Enhanced Team Editing Functionality
 - **Comprehensive Team Editing:** Improved the team editing functionality in the admin dashboard to support all team fields and leader changes
 - **API Enhancement:** Updated the `/api/admin/update-team` endpoint to support:
