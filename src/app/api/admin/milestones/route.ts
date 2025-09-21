@@ -207,7 +207,24 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete the milestone
+    // First, check if there are any submissions for this milestone
+    const submissions = await prisma.$queryRaw`
+      SELECT COUNT(*) as count FROM "MilestoneSubmission" WHERE "milestoneId" = ${id}
+    `;
+    
+    const submissionCount = Array.isArray(submissions) && submissions.length > 0 ? 
+      Number(submissions[0].count) : 0;
+    
+    if (submissionCount > 0) {
+      // Delete all associated submissions first
+      await prisma.$executeRaw`
+        DELETE FROM "MilestoneSubmission" WHERE "milestoneId" = ${id}
+      `;
+      
+      console.log(`Deleted ${submissionCount} submissions for milestone ${id}`);
+    }
+
+    // Now it's safe to delete the milestone
     await prisma.$executeRaw`
       DELETE FROM "Milestone" WHERE id = ${id}
     `;
