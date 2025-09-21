@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       createdAt,
       updatedAt,
       team,
+      role, // Remove role field as it doesn't exist in the Participant model
       ...allowedUpdates
     } = updateData;
 

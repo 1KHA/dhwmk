@@ -58,6 +58,9 @@ interface Participant {
     teamName: string;
     status: string;
   };
+  
+  // Virtual fields (not in database schema)
+  role?: string; // This is a virtual field, not stored in the database
 }
 
 const educationOptions = [
