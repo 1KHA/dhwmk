@@ -60,8 +60,12 @@ export default function ParticipantRouteGuard({ children }: ParticipantRouteGuar
         
         console.log('🔍 ParticipantRouteGuard - Response data:', data);
         
+        // Log the full response data for debugging
+        console.log('🔍 ParticipantRouteGuard - Full response data:', JSON.stringify(data));
+        
         // Verify the user is a participant
-        if (data && data.role === 'participant') {
+        // If the role field is missing but we have a valid participant ID, assume it's a participant
+        if (data && (data.role === 'participant' || (data.id && !data.role))) {
           console.log('✅ ParticipantRouteGuard - Participant authorization successful');
           setAuthorized(true);
         } else {

@@ -61,10 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (response.ok) {
             const participantData = await response.json()
+            console.log('🔍 Auth Context - Participant data received:', participantData)
+            
+            // Ensure we have a role field, even if the API doesn't return one
+            const role = participantData.role || 'participant'
+            
             const userData: User = {
               id: participantData.id,
               email: participantData.email,
-              role: 'participant',
+              role: role,
               name: participantData.fullName,
               fullName: participantData.fullName,
               teamId: participantData.teamId,
@@ -72,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isLeader: participantData.isLeader
             }
             setUser(userData)
-            localStorage.setItem('user', JSON.stringify({ role: 'participant' }))
+            localStorage.setItem('user', JSON.stringify({ role: role }))
             return
           }
         } 
@@ -136,10 +141,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (response.ok) {
           const participantData = await response.json()
+          console.log('🔍 Auth Context - Participant data received:', participantData)
+          
+          // Ensure we have a role field, even if the API doesn't return one
+          const role = participantData.role || 'participant'
+          
           const userData: User = {
             id: participantData.id,
             email: participantData.email,
-            role: 'participant',
+            role: role,
             name: participantData.fullName,
             fullName: participantData.fullName,
             teamId: participantData.teamId,
@@ -147,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isLeader: participantData.isLeader
           }
           setUser(userData)
-          localStorage.setItem('user', JSON.stringify({ role: 'participant' }))
+          localStorage.setItem('user', JSON.stringify({ role: role }))
           return
         }
         

@@ -80,6 +80,8 @@ export async function GET(request: NextRequest) {
     const safeParticipant = {
       id: participant.id,
       email: participant.email || '',
+      // Explicitly add role field to ensure it's always present
+      role: 'participant',
       status: (participant as any).status || 'pending',
       teamId: participant.teamId,
       isLeader: participant.isLeader || false,
