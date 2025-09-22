@@ -51,19 +51,24 @@ export async function GET(request: NextRequest) {
     
     try {
       if (email) {
-        console.log("🔍 Finding participants by email:", email);
-        // Find participants by email (case insensitive)
+        console.log("🔍 Finding individual participants by email:", email);
+        // Find individual participants by email (case insensitive)
         participants = await prisma.participant.findMany({
           where: {
             email: {
               contains: email.toLowerCase()
-            }
+            },
+            teamId: null // Only include participants without a team
           }
         });
       } else {
-        console.log("🔍 Finding all participants");
-        // Return all participants when no email is provided
-        participants = await prisma.participant.findMany();
+        console.log("🔍 Finding all individual participants");
+        // Return only individual participants (without a team)
+        participants = await prisma.participant.findMany({
+          where: {
+            teamId: null // Only include participants without a team
+          }
+        });
       }
       console.log(`✅ Found ${participants.length} participants`);
     } catch (dbError) {
