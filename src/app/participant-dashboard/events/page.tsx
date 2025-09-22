@@ -329,9 +329,9 @@ export default function ParticipantEventsPage() {
   };
   
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">الفعاليات</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">الفعاليات</h1>
       </div>
       
       {loading ? (
@@ -343,11 +343,11 @@ export default function ParticipantEventsPage() {
           <p>{error}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {events.length > 0 ? (
             events.map((event) => (
               <Card key={event.id} className="overflow-hidden">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <div className="flex items-center gap-3">
@@ -383,8 +383,8 @@ export default function ParticipantEventsPage() {
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex justify-between">
-                    <div>
+                  <div className="mt-4 flex flex-col sm:flex-row sm:justify-between">
+                    <div className="mb-2 sm:mb-0">
                       {event.isRegistered ? (
                         <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" />
@@ -392,13 +392,14 @@ export default function ParticipantEventsPage() {
                         </Badge>
                       ) : null}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       {event.status === 'upcoming' && (
                         event.isRegistered ? (
                           <Button 
                             variant="outline" 
                             onClick={() => handleCancelRegistration(event.id)}
                             disabled={registrationLoading === event.id}
+                            className="w-full sm:w-auto"
                           >
                             {registrationLoading === event.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -410,6 +411,7 @@ export default function ParticipantEventsPage() {
                           <Button 
                             onClick={() => handleRegister(event.id)}
                             disabled={registrationLoading === event.id}
+                            className="w-full sm:w-auto"
                           >
                             {registrationLoading === event.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -422,6 +424,7 @@ export default function ParticipantEventsPage() {
                       <Button 
                         variant="outline" 
                         onClick={() => setSelectedEvent(event)}
+                        className="w-full sm:w-auto"
                       >
                         عرض التفاصيل
                       </Button>
@@ -447,13 +450,13 @@ export default function ParticipantEventsPage() {
           if (!open) setSelectedEvent(null);
         }}
       >
-        <DialogContent className="max-w-3xl" dir="rtl">
+        <DialogContent className="max-w-[95vw] sm:max-w-3xl" dir="rtl">
           <DialogHeader>
             <DialogTitle>تفاصيل الفعالية</DialogTitle>
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">معلومات الفعالية</h3>
                   <div className="space-y-2">
@@ -499,7 +502,7 @@ export default function ParticipantEventsPage() {
 
               <div>
                 <h3 className="font-semibold mb-2">معلومات إضافية</h3>
-                <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-gray-50 p-3 rounded">
                     <p className="text-sm text-gray-500">المسؤول</p>
                     <p className="font-medium">{selectedEvent.facilitator}</p>
@@ -533,6 +536,7 @@ export default function ParticipantEventsPage() {
                       variant="outline" 
                       onClick={() => handleCancelRegistration(selectedEvent.id)}
                       disabled={registrationLoading === selectedEvent.id}
+                      className="w-full sm:w-auto"
                     >
                       {registrationLoading === selectedEvent.id ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -543,6 +547,7 @@ export default function ParticipantEventsPage() {
                     <Button 
                       onClick={() => handleRegister(selectedEvent.id)}
                       disabled={registrationLoading === selectedEvent.id}
+                      className="w-full sm:w-auto"
                     >
                       {registrationLoading === selectedEvent.id ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />

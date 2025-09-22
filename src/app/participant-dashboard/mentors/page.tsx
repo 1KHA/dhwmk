@@ -388,9 +388,9 @@ export default function MentorsPage() {
   }
 
   return (
-    <div className="p-8" dir="rtl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-blue-800">الموجهون المتاحون</h1>
+    <div className="p-3 sm:p-8" dir="rtl">
+      <div className="flex justify-between items-center mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-800">الموجهون المتاحون</h1>
       </div>
 
       {/* My Booked Appointments Box */}
@@ -467,7 +467,7 @@ export default function MentorsPage() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 sm:mb-8">
         <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-gradient-to-br from-white to-blue-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -519,9 +519,9 @@ export default function MentorsPage() {
       </div>
 
       {/* Search */}
-      <Card className="mb-8 border-0 shadow-sm overflow-hidden">
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
+      <Card className="mb-6 sm:mb-8 border-0 shadow-sm overflow-hidden">
+        <CardContent className="pt-4 sm:pt-6">
+          <div className="flex flex-col gap-4 items-center">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-4 w-4" />
@@ -540,16 +540,17 @@ export default function MentorsPage() {
       {/* Mentors Table */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          <Table className="border-collapse">
-            <TableHeader>
-              <TableRow className="bg-blue-50 hover:bg-blue-50">
-                <TableHead>الاسم</TableHead>
-                <TableHead>التخصص</TableHead>
-                <TableHead>التقييم</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead className="text-left">المواعيد</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table className="border-collapse">
+              <TableHeader>
+                <TableRow className="bg-blue-50 hover:bg-blue-50">
+                  <TableHead>الاسم</TableHead>
+                  <TableHead className="hidden sm:table-cell">التخصص</TableHead>
+                  <TableHead className="hidden sm:table-cell">التقييم</TableHead>
+                  <TableHead className="hidden sm:table-cell">الحالة</TableHead>
+                  <TableHead className="text-left">المواعيد</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {filteredMentors.length > 0 ? (
                 filteredMentors.map((mentor) => (
@@ -562,14 +563,19 @@ export default function MentorsPage() {
                       <div className="text-sm text-gray-500 flex items-center gap-1">
                         <Phone className="h-3 w-3" /> {mentor.phone}
                       </div>
+                      <div className="sm:hidden text-xs text-gray-500 mt-1">
+                        <Badge className={mentor.isAvailableNow ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                          {mentor.isAvailableNow ? "متاح الآن" : "غير متاح حالياً"}
+                        </Badge>
+                      </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-gray-500" />
                         <span>{mentor.specialty}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {mentor.rating && mentor.rating > 0 ? (
                         <div className="flex items-center gap-1">
                           <Award className="h-4 w-4 text-yellow-500" />
@@ -579,7 +585,7 @@ export default function MentorsPage() {
                         <span className="text-gray-500">-</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {mentor.isAvailableNow ? (
                         <Badge className="bg-green-100 text-green-800">متاح الآن</Badge>
                       ) : (
@@ -587,22 +593,26 @@ export default function MentorsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex flex-col sm:flex-row items-center gap-2 justify-end">
                         <Button 
                           variant="outline" 
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1"
+                          size="sm"
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 flex items-center gap-1 w-full sm:w-auto text-xs sm:text-sm"
                           onClick={() => openAvailabilityDialog(mentor)}
                         >
                           <Calendar className="h-4 w-4" />
-                          <span>عرض المواعيد</span>
+                          <span className="hidden sm:inline">عرض المواعيد</span>
+                          <span className="sm:hidden">المواعيد</span>
                         </Button>
                         <Button 
                           variant="outline" 
-                          className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200 flex items-center gap-1"
+                          size="sm"
+                          className="bg-green-50 text-green-600 hover:bg-green-100 border-green-200 flex items-center gap-1 w-full sm:w-auto text-xs sm:text-sm"
                           onClick={() => fetchMentorBookings(mentor.id)}
                         >
                           <Users className="h-4 w-4" />
-                          <span>الحجوزات</span>
+                          <span className="hidden sm:inline">الحجوزات</span>
+                          <span className="sm:hidden">الحجوزات</span>
                         </Button>
                       </div>
                     </TableCell>
@@ -617,12 +627,13 @@ export default function MentorsPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* Availability Dialog */}
       <Dialog open={isAvailabilityDialogOpen} onOpenChange={setAvailabilityDialogOpen}>
-        <DialogContent className="max-w-6xl rounded-lg border-0 shadow-lg">
+        <DialogContent className="max-w-[95vw] sm:max-w-6xl rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>مواعيد توفر الموجه: {selectedMentor?.name}</DialogTitle>
             <DialogDescription>
@@ -706,7 +717,7 @@ export default function MentorsPage() {
 
       {/* Mentor Bookings Dialog */}
       <Dialog open={isMentorBookingsDialogOpen} onOpenChange={setMentorBookingsDialogOpen}>
-        <DialogContent className="max-w-4xl rounded-lg border-0 shadow-lg">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl rounded-lg border-0 shadow-lg">
           <DialogHeader>
             <DialogTitle>الجلسات المحجوزة مع الموجه</DialogTitle>
             <DialogDescription>

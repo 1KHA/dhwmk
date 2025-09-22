@@ -132,15 +132,15 @@ export default function JoinRequestsPage() {
   const processedRequests = joinRequests.filter(req => req.status !== 'pending');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">الدعوات المستلمة</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">الدعوات المستلمة</h1>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center flex flex-col items-center">
             <div className="flex items-center justify-center mb-2">
               <Clock className="h-5 w-5 text-yellow-500" />
             </div>
@@ -149,7 +149,7 @@ export default function JoinRequestsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center flex flex-col items-center">
             <div className="flex items-center justify-center mb-2">
               <Check className="h-5 w-5 text-green-500" />
             </div>
@@ -160,7 +160,7 @@ export default function JoinRequestsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center flex flex-col items-center">
             <div className="flex items-center justify-center mb-2">
               <X className="h-5 w-5 text-red-500" />
             </div>
@@ -171,7 +171,7 @@ export default function JoinRequestsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 sm:p-4 text-center flex flex-col items-center">
             <div className="flex items-center justify-center mb-2">
               <Users className="h-5 w-5 text-blue-500" />
             </div>
@@ -196,42 +196,42 @@ export default function JoinRequestsPage() {
             ) : error ? (
               <p className="text-center p-4 text-red-500">{error}</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <table className="w-full border-collapse min-w-[640px]">
                   <thead>
                     <tr className="bg-muted">
                       <th className="border p-2 text-right">الاسم</th>
                       <th className="border p-2 text-right">البريد الإلكتروني</th>
-                      <th className="border p-2 text-right">الجامعة</th>
-                      <th className="border p-2 text-right">التخصص</th>
-                      <th className="border p-2 text-right">المدينة</th>
-                      <th className="border p-2 text-right">تاريخ الطلب</th>
-                      <th className="border p-2 text-right">الرسالة</th>
+                      <th className="border p-2 text-right hidden md:table-cell">الجامعة</th>
+                      <th className="border p-2 text-right hidden md:table-cell">التخصص</th>
+                      <th className="border p-2 text-right hidden md:table-cell">المدينة</th>
+                      <th className="border p-2 text-right hidden sm:table-cell">تاريخ الطلب</th>
+                      <th className="border p-2 text-right hidden sm:table-cell">الرسالة</th>
                       <th className="border p-2 text-right">الإجراءات</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pendingRequests.map((request) => (
                       <tr key={request.id} className="hover:bg-muted/50">
-                        <td className="border p-2">{getDisplayName(request.participant)}</td>
-                        <td className="border p-2">{request.participant.email}</td>
-                        <td className="border p-2">{request.participant.university || 'غير متوفر'}</td>
-                        <td className="border p-2">
-                          {request.participant.universityMajor || request.participant.major || 'غير متوفر'}
-                        </td>
-                        <td className="border p-2">
-                          {request.participant.city || request.participant.residence || 'غير متوفر'}
-                        </td>
-                        <td className="border p-2">
-                          {new Date(request.createdAt).toLocaleDateString('ar-SA')}
-                        </td>
-                        <td className="border p-2">
-                          {request.message ? (
-                            <span className="text-sm">{request.message.substring(0, 50)}...</span>
-                          ) : (
-                            'لا توجد رسالة'
-                          )}
-                        </td>
+                      <td className="border p-2">{getDisplayName(request.participant)}</td>
+                      <td className="border p-2">{request.participant.email}</td>
+                      <td className="border p-2 hidden md:table-cell">{request.participant.university || 'غير متوفر'}</td>
+                      <td className="border p-2 hidden md:table-cell">
+                        {request.participant.universityMajor || request.participant.major || 'غير متوفر'}
+                      </td>
+                      <td className="border p-2 hidden md:table-cell">
+                        {request.participant.city || request.participant.residence || 'غير متوفر'}
+                      </td>
+                      <td className="border p-2 hidden sm:table-cell">
+                        {new Date(request.createdAt).toLocaleDateString('ar-SA')}
+                      </td>
+                      <td className="border p-2 hidden sm:table-cell">
+                        {request.message ? (
+                          <span className="text-sm">{request.message.substring(0, 50)}...</span>
+                        ) : (
+                          'لا توجد رسالة'
+                        )}
+                      </td>
                         <td className="border p-2">
                           <div className="flex gap-2 justify-center">
                             <button
@@ -277,14 +277,14 @@ export default function JoinRequestsPage() {
             <CardTitle>الطلبات المعالجة ({processedRequests.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full border-collapse min-w-[500px]">
                 <thead>
                   <tr className="bg-muted">
                     <th className="border p-2 text-right">الاسم</th>
-                    <th className="border p-2 text-right">البريد الإلكتروني</th>
+                    <th className="border p-2 text-right hidden sm:table-cell">البريد الإلكتروني</th>
                     <th className="border p-2 text-right">الحالة</th>
-                    <th className="border p-2 text-right">تاريخ الطلب</th>
+                    <th className="border p-2 text-right hidden sm:table-cell">تاريخ الطلب</th>
                     <th className="border p-2 text-right">الإجراءات</th>
                   </tr>
                 </thead>
@@ -292,9 +292,9 @@ export default function JoinRequestsPage() {
                   {processedRequests.map((request) => (
                     <tr key={request.id} className="hover:bg-muted/50">
                       <td className="border p-2">{getDisplayName(request.participant)}</td>
-                      <td className="border p-2">{request.participant.email}</td>
+                      <td className="border p-2 hidden sm:table-cell">{request.participant.email}</td>
                       <td className="border p-2">{getStatusBadge(request.status)}</td>
-                      <td className="border p-2">
+                      <td className="border p-2 hidden sm:table-cell">
                         {new Date(request.createdAt).toLocaleDateString('ar-SA')}
                       </td>
                       <td className="border p-2">
@@ -335,15 +335,15 @@ export default function JoinRequestsPage() {
 
       {/* View Request Details Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               تفاصيل طلب الانضمام: {selectedRequest && getDisplayName(selectedRequest.participant)}
             </DialogTitle>
           </DialogHeader>
           {selectedRequest && (
-            <div className="space-y-4 p-4 max-h-[70vh] overflow-y-auto text-right">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+            <div className="space-y-4 p-3 sm:p-4 max-h-[70vh] overflow-y-auto text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                 <p><strong>الاسم:</strong> {getDisplayName(selectedRequest.participant)}</p>
                 <p><strong>البريد الإلكتروني:</strong> {selectedRequest.participant.email}</p>
                 <p><strong>رقم التواصل:</strong> {selectedRequest.participant.contactNumber || selectedRequest.participant.phoneNumber || 'غير متوفر'}</p>
@@ -360,20 +360,20 @@ export default function JoinRequestsPage() {
               {selectedRequest.message && (
                 <div className="mt-4">
                   <p><strong>رسالة المتقدم:</strong></p>
-                  <div className="bg-muted p-3 rounded-md mt-2">
+                  <div className="bg-muted p-3 rounded-md mt-2 text-sm sm:text-base">
                     {selectedRequest.message}
                   </div>
                 </div>
               )}
             </div>
           )}
-          <DialogFooter>
-            <div className="flex gap-2">
+          <DialogFooter className="flex-col sm:flex-row">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               {selectedRequest?.status === 'pending' && (
                 <>
                   <Button 
                     variant="outline" 
-                    className="text-green-600 border-green-600 hover:bg-green-50"
+                    className="text-green-600 border-green-600 hover:bg-green-50 w-full sm:w-auto"
                     onClick={() => {
                       if (selectedRequest) {
                         handleJoinRequest(selectedRequest.id, 'accept');
@@ -386,7 +386,7 @@ export default function JoinRequestsPage() {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    className="text-red-600 border-red-600 hover:bg-red-50 w-full sm:w-auto"
                     onClick={() => {
                       if (selectedRequest) {
                         handleJoinRequest(selectedRequest.id, 'reject');
@@ -399,7 +399,7 @@ export default function JoinRequestsPage() {
                   </Button>
                 </>
               )}
-              <Button onClick={() => setIsViewModalOpen(false)}>إغلاق</Button>
+              <Button onClick={() => setIsViewModalOpen(false)} className="w-full sm:w-auto">إغلاق</Button>
             </div>
           </DialogFooter>
         </DialogContent>

@@ -225,7 +225,7 @@ export default function TeamManagementPage() {
   };
 
   if (loading) return (
-    <div className="space-y-4 p-8 text-center">
+    <div className="space-y-4 p-4 sm:p-8 text-center">
       <Progress value={40} className="w-full max-w-xl mx-auto" />
       <div className="flex items-center justify-center gap-2">
         <Loader2 className="h-5 w-5 animate-spin" />
@@ -235,13 +235,13 @@ export default function TeamManagementPage() {
   );
 
   if (error) return (
-    <Alert variant="destructive" className="mx-auto max-w-2xl m-4">
+    <Alert variant="destructive" className="mx-auto max-w-2xl m-2 sm:m-4">
       <AlertDescription>{error}</AlertDescription>
     </Alert>
   );
 
   if (!teamData) return (
-    <Alert className="mx-auto max-w-2xl m-4">
+    <Alert className="mx-auto max-w-2xl m-2 sm:m-4">
       <AlertDescription>لم يتم العثور على بيانات الفريق.</AlertDescription>
     </Alert>
   );
@@ -249,8 +249,8 @@ export default function TeamManagementPage() {
   const { currentUser } = teamData;
 
   return (
-    <div className="space-y-6 p-2 sm:p-4">
-      <Tabs defaultValue="team-info" className="w-full" dir="rtl">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-6" dir="rtl">
+      <Tabs defaultValue="team-info" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="team-info">معلومات الفريق</TabsTrigger>
           <TabsTrigger value="members">الأعضاء</TabsTrigger>
@@ -258,43 +258,46 @@ export default function TeamManagementPage() {
 
         <TabsContent value="team-info" className="mt-6">
           <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-2xl">فريق: {teamData.teamName}</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">فريق: {teamData.teamName}</CardTitle>
             <CardDescription>تفاصيل الفريق والفكرة</CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {currentUser.isLeader && (
-              <Button onClick={() => {
-                setEditedTeam({
-                  teamName: teamData.teamName,
-                  ideaName: teamData.ideaName,
-                  challenge: teamData.challenge,
-                  ideaDescription: teamData.ideaDescription,
-                  challengeReason: teamData.challengeReason,
-                  ideaSolution: teamData.ideaSolution,
-                  ideaResults: teamData.ideaResults,
-                  ideaStage: teamData.ideaStage,
-                  hasParticipated: teamData.hasParticipated,
-                  participationDetails: teamData.participationDetails || '',
-                });
-                setIsTeamEditModalOpen(true);
-              }}>
+              <Button 
+                onClick={() => {
+                  setEditedTeam({
+                    teamName: teamData.teamName,
+                    ideaName: teamData.ideaName,
+                    challenge: teamData.challenge,
+                    ideaDescription: teamData.ideaDescription,
+                    challengeReason: teamData.challengeReason,
+                    ideaSolution: teamData.ideaSolution,
+                    ideaResults: teamData.ideaResults,
+                    ideaStage: teamData.ideaStage,
+                    hasParticipated: teamData.hasParticipated,
+                    participationDetails: teamData.participationDetails || '',
+                  });
+                  setIsTeamEditModalOpen(true);
+                }}
+                className="w-full sm:w-auto"
+              >
                 <Edit className="ml-2 h-4 w-4" />
                 تعديل معلومات الفريق
               </Button>
             )}
             {currentUser.isLeader && (
-              <Button onClick={() => setIsAddModalOpen(true)}>
+              <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
                 <Plus className="ml-2 h-4 w-4" />
                 إضافة عضو
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent>
-            <div className="space-y-6 text-right" dir="rtl">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/10">
+        <CardContent className="p-3 sm:p-6">
+            <div className="space-y-4 sm:space-y-6 text-right">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4 border rounded-lg bg-muted/10">
                     <div className="space-y-2">
                         <Label>اسم الفكرة</Label>
                         <p className="font-medium">{teamData.ideaName}</p>
@@ -313,7 +316,7 @@ export default function TeamManagementPage() {
                     </div>
                 </div>
 
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/10">
+                <div className="space-y-4 p-3 sm:p-4 border rounded-lg bg-muted/10">
                     <div className="space-y-2">
                         <Label>وصف الفكرة</Label>
                         <p className="font-medium leading-relaxed">{teamData.ideaDescription}</p>
@@ -332,7 +335,7 @@ export default function TeamManagementPage() {
                     </div>
                 </div>
 
-                <div className="p-4 border rounded-lg bg-muted/10">
+                <div className="p-3 sm:p-4 border rounded-lg bg-muted/10">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <Label>هل شاركت الفكرة من قبل؟</Label>
@@ -365,19 +368,19 @@ export default function TeamManagementPage() {
 
         <TabsContent value="members" className="mt-6">
           <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle>أعضاء الفريق</CardTitle>
           {currentUser.isLeader && (
-            <Button onClick={() => setIsAddModalOpen(true)}>
+            <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
               <Plus className="ml-2 h-4 w-4" />
               إضافة عضو
             </Button>
           )}
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
-          <div className="overflow-x-auto rounded-lg border" dir="rtl">
-            <div className="w-full overflow-x-auto -mx-2 px-2">
-              <table className="w-full min-w-max">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-lg border">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full min-w-[1000px]">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="p-2 sm:p-4 text-right font-medium text-muted-foreground">الاسم الكامل</th>
@@ -456,11 +459,11 @@ export default function TeamManagementPage() {
 
       {/* Edit Participant Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl">
           <DialogHeader><DialogTitle>تعديل المشارك: {selectedParticipant?.fullName}</DialogTitle></DialogHeader>
           {editedParticipant && (
             <form onSubmit={handleUpdateParticipant}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 text-right max-h-[70vh] overflow-y-auto p-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 text-right max-h-[70vh] overflow-y-auto p-2 sm:p-4">
                 {Object.keys(fieldLabels).map((key) => {
                     const fieldKey = key as keyof typeof initialParticipantState;
                     if (fieldKey === 'canAttend') return null;
@@ -476,9 +479,9 @@ export default function TeamManagementPage() {
                     <Label htmlFor="canAttend-edit">{fieldLabels.canAttend}</Label>
                 </div>
               </div>
-              <DialogFooter className="mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>إلغاء</Button>
-                <Button type="submit">حفظ التغييرات</Button>
+              <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} className="w-full sm:w-auto">إلغاء</Button>
+                <Button type="submit" className="w-full sm:w-auto">حفظ التغييرات</Button>
               </DialogFooter>
             </form>
           )}
@@ -494,12 +497,12 @@ export default function TeamManagementPage() {
                 هل أنت متأكد أنك تريد إزالة العضو "{selectedParticipant?.fullName}" من الفريق؟
               </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>إلغاء</Button>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="w-full sm:w-auto">إلغاء</Button>
             <Button 
               variant="destructive" 
               onClick={() => selectedParticipant && handleDeleteParticipant(selectedParticipant.id)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
             >
               إزالة
             </Button>
@@ -509,7 +512,7 @@ export default function TeamManagementPage() {
       
       {/* Add Member Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-2xl" dir="rtl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">إضافة عضو جديد</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -533,9 +536,9 @@ export default function TeamManagementPage() {
                 <Label htmlFor="canAttend-add">{fieldLabels.canAttend}</Label>
               </div>
             </div>
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>إلغاء</Button>
-              <Button type="submit">إضافة العضو</Button>
+            <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} className="w-full sm:w-auto">إلغاء</Button>
+              <Button type="submit" className="w-full sm:w-auto">إضافة العضو</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -543,7 +546,7 @@ export default function TeamManagementPage() {
 
       {/* Team Edit Modal */}
       <Dialog open={isTeamEditModalOpen} onOpenChange={setIsTeamEditModalOpen}>
-        <DialogContent className="max-w-4xl" dir="rtl">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">تعديل معلومات الفريق</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -677,9 +680,9 @@ export default function TeamManagementPage() {
                   )}
                 </div>
               </div>
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setIsTeamEditModalOpen(false)}>إلغاء</Button>
-                <Button type="submit">
+              <DialogFooter className="mt-6 flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsTeamEditModalOpen(false)} className="w-full sm:w-auto">إلغاء</Button>
+                <Button type="submit" className="w-full sm:w-auto">
                   <Save className="ml-2 h-4 w-4" />
                   حفظ التغييرات
                 </Button>

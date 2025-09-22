@@ -152,17 +152,17 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6" dir="rtl">
-      <div className="flex flex-col gap-4">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6" dir="rtl">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold">الفرق المتاحة</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">الفرق المتاحة</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             تصفح الفرق المتاحة وأرسل طلب انضمام للفريق الذي يناسبك
           </p>
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md">
+        <div className="relative w-full sm:max-w-md">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="ابحث في الفرق..."
@@ -186,7 +186,7 @@ export default function TeamsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {filteredTeams.map((team) => (
             <Card key={team.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -241,7 +241,7 @@ export default function TeamsPage() {
 
       {/* Join Request Modal */}
       <Dialog open={isJoinModalOpen} onOpenChange={setIsJoinModalOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-[90vw] sm:max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle>طلب الانضمام للفريق</DialogTitle>
             <DialogDescription>
@@ -266,17 +266,19 @@ export default function TeamsPage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => setIsJoinModalOpen(false)}
               disabled={submitting}
+              className="w-full sm:w-auto"
             >
               إلغاء
             </Button>
             <Button
               onClick={handleJoinRequest}
               disabled={submitting}
+              className="w-full sm:w-auto"
             >
               {submitting ? (
                 <>

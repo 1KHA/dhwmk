@@ -184,24 +184,24 @@ export default function ParticipantDashboardPage() {
   const participant = isEditing ? editedParticipant! : participantData;
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold">ملفي الشخصي</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">ملفي الشخصي</h1>
           <p className="text-muted-foreground">مرحباً بك {participant.fullName}</p>
         </div>
         {!isEditing ? (
-          <Button onClick={startEditing}>
+          <Button onClick={startEditing} className="w-full sm:w-auto">
             <Edit className="ml-2 h-4 w-4" />
             تعديل بياناتي
           </Button>
         ) : (
-          <div className="space-x-2 rtl:space-x-reverse">
-            <Button variant="outline" onClick={cancelEditing}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={cancelEditing} className="flex-1 sm:flex-none">
               <X className="ml-2 h-4 w-4" />
               إلغاء
             </Button>
-            <Button onClick={(e) => handleUpdateParticipant(e as any)} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={(e) => handleUpdateParticipant(e as any)} className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none">
               <Save className="ml-2 h-4 w-4" />
               حفظ التغييرات
             </Button>
@@ -210,25 +210,28 @@ export default function ParticipantDashboardPage() {
       </div>
 
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="contact">
-                <Phone className="ml-2 h-4 w-4" />
-                معلومات التواصل
+            <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-8">
+              <TabsTrigger value="contact" className="text-xs sm:text-sm">
+                <Phone className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">معلومات التواصل</span>
+                <span className="xs:hidden">التواصل</span>
               </TabsTrigger>
-              <TabsTrigger value="academic">
-                <Book className="ml-2 h-4 w-4" />
-                معلومات أكاديمية
+              <TabsTrigger value="academic" className="text-xs sm:text-sm">
+                <Book className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">معلومات أكاديمية</span>
+                <span className="xs:hidden">أكاديمية</span>
               </TabsTrigger>
-              <TabsTrigger value="personal">
-                <User className="ml-2 h-4 w-4" />
-                معلومات شخصية
+              <TabsTrigger value="personal" className="text-xs sm:text-sm">
+                <User className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">معلومات شخصية</span>
+                <span className="xs:hidden">شخصية</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="personal" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">الاسم الأول</Label>
                   <Input
@@ -301,7 +304,7 @@ export default function ParticipantDashboardPage() {
             </TabsContent>
 
             <TabsContent value="academic" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="education">المؤهل التعليمي</Label>
                   {isEditing ? (
@@ -370,7 +373,7 @@ export default function ParticipantDashboardPage() {
             </TabsContent>
 
             <TabsContent value="contact" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="email">البريد الإلكتروني</Label>
                   <Input

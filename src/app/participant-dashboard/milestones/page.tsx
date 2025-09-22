@@ -206,9 +206,9 @@ export default function ParticipantMilestonesPage() {
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">التسليمات</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">التسليمات</h1>
       </div>
 
       {loading ? (
@@ -224,16 +224,16 @@ export default function ParticipantMilestonesPage() {
           {milestones.length > 0 ? (
             milestones.map((milestone) => (
               <Card key={milestone.id} className="overflow-hidden border-r-4 border-r-primary">
-                <div className="p-6">
-                  <div className="flex justify-between items-start">
+                <div className="p-3 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                     <div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <h3 className="text-xl font-semibold">{milestone.title}</h3>
                         {getStatusBadge(milestone.status, milestone.dueDate)}
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">{milestone.description}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm mt-2 sm:mt-0">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span>الموعد النهائي: {formatDate(milestone.dueDate)}</span>
                     </div>
@@ -251,7 +251,7 @@ export default function ParticipantMilestonesPage() {
                     </ul>
                   </div>
                   
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-6 flex justify-center sm:justify-end">
                     {milestone.hasSubmitted || milestone.status === "completed" ? (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle className="h-5 w-5" />
@@ -259,7 +259,7 @@ export default function ParticipantMilestonesPage() {
                       </div>
                     ) : (
                       <Button 
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                         onClick={() => openSubmissionDialog(milestone)}
                       >
                         <FileText className="h-4 w-4" />
@@ -282,7 +282,7 @@ export default function ParticipantMilestonesPage() {
 
       {/* File Upload Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
+        <DialogContent className="max-w-[90vw] sm:max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle>تسليم المشروع</DialogTitle>
             <DialogDescription>
@@ -333,12 +333,12 @@ export default function ParticipantMilestonesPage() {
             )}
           </div>
           
-          <DialogFooter className="sm:justify-start">
+          <DialogFooter className="flex-col sm:flex-row sm:justify-start gap-2">
             <Button
               type="submit"
               onClick={submitMilestone}
               disabled={!selectedFile || isSubmitting}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto order-1 sm:order-none"
             >
               {isSubmitting ? (
                 <>
@@ -357,6 +357,7 @@ export default function ParticipantMilestonesPage() {
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
               disabled={isSubmitting}
+              className="w-full sm:w-auto"
             >
               إلغاء
             </Button>
