@@ -1,9 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { createNotification } from '@/lib/notifications'
+import jwt from 'jsonwebtoken'
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Get the auth token from cookies
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value || cookieStore.get("auth-token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized: No token provided" }, { status: 401 });
+    }
+
+    // Verify the token and check if it's an admin
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id?: string, adminId?: string, role?: string };
+    } catch (error) {
+      return NextResponse.json({ error: "Unauthorized: Invalid token" }, { status: 401 });
+    }
+
+    // Check if it's an admin token (could be in adminId or role field)
+    if (!decodedToken || (!decodedToken.adminId && decodedToken.role !== 'admin')) {
+      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+    }
     const { participantId } = await request.json()
 
     if (!participantId) {
