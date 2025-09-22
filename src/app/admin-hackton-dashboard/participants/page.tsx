@@ -63,7 +63,9 @@ export default function ParticipantsPage() {
   const fetchIndividualParticipants = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/participants');
+      const response = await fetch('/api/admin/participants', {
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch individual participants');
       }
@@ -87,6 +89,7 @@ export default function ParticipantsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ participantId }),
       });
 
@@ -121,6 +124,7 @@ export default function ParticipantsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ participantId }),
       });
 
@@ -154,6 +158,7 @@ export default function ParticipantsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ participantId }),
       });
 
