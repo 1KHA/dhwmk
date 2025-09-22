@@ -1,25 +1,54 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Home, Users, Flag, Star, Book, Calendar } from "lucide-react";
 import Sidebar from "../../../components/participant/Sidebar";
 import TopBar from "../../../components/participant/TopBar";
 import ParticipantRouteGuard from "@/components/auth/ParticipantRouteGuard";
-import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
+import ResponsiveDashboardLayout from "../../../components/ResponsiveDashboardLayout";
+import { ResponsiveProvider } from "@/contexts/responsive-context";
 
-// Main content wrapper that responds to sidebar state
-function MainContent({ children }: { children: React.ReactNode }) {
-  const { isCollapsed } = useSidebar();
-  
-  return (
-    <main 
-      className={`flex-1 p-6 transition-all duration-300 ease-in-out ${
-        isCollapsed ? "mr-16" : "mr-64"
-      }`}
-    >
-      {children}
-    </main>
-  );
-}
+// Define navigation items for both sidebar and mobile navigation
+const navItems = [
+  { 
+    name: "لوحة التحكم", 
+    href: "/participant-dashboard", 
+    icon: Home,
+    permission: { category: 'dashboard', action: 'view' }
+  },
+  { 
+    name: "فريقي", 
+    href: "/participant-dashboard/team", 
+    icon: Flag,
+    permission: { category: 'users', action: 'view' },
+    showWhen: 'hasTeam' // Only show when participant has a team
+  },
+  { 
+    name: "الفرق", 
+    href: "/participant-dashboard/teams", 
+    icon: Users,
+    permission: { category: 'users', action: 'view' },
+    showWhen: 'noTeam' // Only show when participant doesn't have a team
+  },
+  { 
+    name: "التسليمات", 
+    href: "/participant-dashboard/milestones", 
+    icon: Star,
+    permission: { category: 'startups', action: 'view' }
+  },
+  { 
+    name: "الموجهون", 
+    href: "/participant-dashboard/mentors", 
+    icon: Book,
+    permission: { category: 'mentorship', action: 'view' }
+  },
+  { 
+    name: "الفعاليات", 
+    href: "/participant-dashboard/events", 
+    icon: Calendar,
+    permission: { category: 'events', action: 'view' }
+  }
+];
 
 export default function ParticipantDashboardLayout({
   children,
@@ -38,17 +67,17 @@ export default function ParticipantDashboardLayout({
 
   return (
     <ParticipantRouteGuard>
-      <SidebarProvider>
-        <div className="min-h-screen bg-background">
-          <TopBar />
-          <div className="flex">
-            <Sidebar />
-            <MainContent>
-              {children}
-            </MainContent>
-          </div>
-        </div>
-      </SidebarProvider>
+      <ResponsiveProvider>
+        <ResponsiveDashboardLayout
+          sidebar={<Sidebar />}
+          topbar={<TopBar />}
+          mobileNavItems={navItems}
+          userRole="المشارك"
+          logo={<span className="text-xl font-bold">منصة دِيَم</span>}
+        >
+          {children}
+        </ResponsiveDashboardLayout>
+      </ResponsiveProvider>
     </ParticipantRouteGuard>
   );
 }
