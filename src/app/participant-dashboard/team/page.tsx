@@ -378,7 +378,80 @@ export default function TeamManagementPage() {
           )}
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
-          <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-lg border">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-4">
+            {teamData.participants.map((participant) => {
+              const canDelete = currentUser.isLeader && currentUser.id !== participant.id;
+              
+              return (
+                <Card key={participant.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg">{participant.fullName}</h3>
+                        <p className="text-sm text-muted-foreground">{participant.email}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        {participant.isLeader && (
+                          <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">قائد</span>
+                        )}
+                        <span className={`px-2 py-1 rounded-full text-xs ${participant.canAttend ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {participant.canAttend ? 'يمكنه الحضور' : 'لا يمكنه الحضور'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">رقم الهوية:</span>
+                        <p>{participant.nationalId}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">رقم الهاتف:</span>
+                        <p>{participant.phoneNumber}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">الجنسية:</span>
+                        <p>{participant.nationality}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">الإقامة:</span>
+                        <p>{participant.residence}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">المؤهل:</span>
+                        <p>{participant.education}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">التخصص:</span>
+                        <p>{participant.major}</p>
+                      </div>
+                    </div>
+                    
+                    {canDelete && (
+                      <div className="mt-4 flex justify-end">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedParticipant(participant);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="text-xs"
+                        >
+                          <Trash className="h-3 w-3 mr-1" />
+                          إزالة العضو
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0 rounded-lg border">
             <div className="w-full overflow-x-auto">
               <table className="w-full min-w-[1000px]">
               <thead className="bg-muted/50">
