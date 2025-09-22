@@ -18,12 +18,13 @@ export async function POST(request: Request) {
     // Verify the token and check if it's an admin
     let decodedToken;
     try {
-      decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { adminId?: string };
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id?: string, adminId?: string, role?: string };
     } catch (error) {
       return NextResponse.json({ error: "Unauthorized: Invalid token" }, { status: 401 });
     }
 
-    if (!decodedToken || !decodedToken.adminId) {
+    // Check if it's an admin token (could be in adminId or role field)
+    if (!decodedToken || (!decodedToken.adminId && decodedToken.role !== 'admin')) {
       return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
     }
 
