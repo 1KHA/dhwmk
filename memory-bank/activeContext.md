@@ -11,6 +11,36 @@ The current focus is on dual database configuration and critical authentication 
 
 ## 2. Recent Changes
 
+### Search Functionality Enhancement
+- **Enhanced Participant Search:** Improved the search functionality in the admin dashboard participants page:
+  - Updated the API route (`/api/admin/participants/route.ts`) to search across multiple fields:
+    - Email, full name, first/second/family names
+    - Contact number, phone number
+    - University, major, city
+    - All searches are case-insensitive for better results
+  - Updated the search input UI with:
+    - More descriptive placeholder text
+    - Enter key support for immediate search
+    - Added a search button for better usability
+  - Implemented server-side sorting to show newest participants first
+
+- **Enhanced Team Search:** Improved the search functionality in the admin dashboard teams page:
+  - Updated the API route (`/api/admin/teams/route.ts`) to search across:
+    - Team fields: team name, idea name, track, description
+    - Team members: names and emails of all team members
+  - Updated the teams page to:
+    - Send search queries to the API instead of filtering client-side
+    - Added Enter key support and search button
+    - Improved the search placeholder text
+  - Removed redundant client-side filtering to rely on the more powerful server-side search
+
+### Registration Closure Implementation
+- **Hackathon Registration Closure:** Implemented a system to close registration for the hackathon:
+  - Modified the `/register-team` page to show "انتهى التسجيل" message when registration is closed
+  - Hidden the registration forms to prevent new submissions
+  - Created a configuration-based approach to easily toggle registration status
+  - Maintained the page structure while disabling the registration functionality
+
 ### Team Member Management Enhancement
 - **Participant Dashboard Team Member Removal:** Implemented the ability for team leaders to remove members from their team
   - Created a new API endpoint `/api/participant/remove-member` that handles member removal with proper permissions checking
@@ -125,7 +155,9 @@ The current focus is on dual database configuration and critical authentication 
   - Added success/error toast notifications for the export process
 
 ## 3. Next Steps
-- **Test Registration Form:** Verify that the updated registration form works correctly with new CSV questions
+- **Test Registration Closure:** Verify that the registration closure message displays correctly and forms are hidden
+- **Search Functionality Testing:** Test the enhanced search functionality across different browsers and devices
+- **Search Performance Optimization:** Monitor and optimize search performance for large datasets
 - **Deploy to Vercel:** All build issues have been resolved, ready for deployment
 - **Form Validation:** Ensure all new form fields have proper validation
 - **Admin Dashboard Updates:** Update admin interfaces to display new participant data fields
@@ -141,6 +173,18 @@ The current focus is on dual database configuration and critical authentication 
 - **Database Synchronization:** Create a tool to synchronize data between local and production databases
 
 ## 4. Key Learnings & Patterns
+
+### Search Functionality Patterns
+- **Server-Side vs. Client-Side Search:** Moving search functionality from client-side to server-side provides more powerful and efficient searching, especially for large datasets
+- **Multi-Field Search:** Implementing search across multiple fields provides a more intuitive user experience
+- **Case-Insensitive Search:** Using case-insensitive search improves search results and user experience
+- **Search UI Patterns:** Providing clear placeholder text, Enter key support, and a search button improves usability
+- **Search Feedback:** Providing immediate feedback on search results helps users understand what they're seeing
+
+### Registration Closure Pattern
+- **Configuration-Based Approach:** Using a configuration-based approach to toggle registration status makes it easy to open/close registration without code changes
+- **User Experience:** Providing a clear message when registration is closed helps users understand the current status
+- **Graceful Degradation:** Maintaining the page structure while disabling functionality provides a better user experience than a 404 error
 
 ### Dual Database Configuration
 - **Environment-Based Configuration:** Using environment variables to dynamically select database provider allows for seamless switching between development and production environments.

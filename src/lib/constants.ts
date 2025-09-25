@@ -2,6 +2,9 @@
 export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB in bytes
 export const MAX_FILE_SIZE_MB = 25; // 25MB for display purposes
 
+// Registration status
+export const REGISTRATION_CLOSED = process.env.REGISTRATION_CLOSED === "true";
+
 // Allowed file types for milestone submissions
 export const ALLOWED_FILE_TYPES = [
   "application/pdf",

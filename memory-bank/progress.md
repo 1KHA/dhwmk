@@ -43,6 +43,20 @@
 - **Prisma Client Initialization Fix (August 29, 2025):** Resolved PrismaClientInitializationError on Vercel by updating build script to include `prisma generate` and removing conflicting `PRISMA_GENERATE_SKIP_AUTOINSTALL` environment variables.
 
 ## 5. Recent Fixes & Improvements
+- **Enhanced Search Functionality (September 2025):** Significantly improved the search capabilities in the admin dashboard:
+  - **Participant Search:** Enhanced the API route to search across multiple fields (name, email, university, etc.)
+  - **Team Search:** Updated the API to search across team fields and team member details
+  - **UI Improvements:** Added better placeholder text, Enter key support, and search buttons
+  - **Server-Side Filtering:** Moved search logic from client-side to server-side for better performance
+  - **Results Sorting:** Implemented server-side sorting to show newest entries first
+  - **User Experience:** Improved the overall search experience with more intuitive controls
+
+- **Registration Closure Implementation (September 2025):** Implemented a system to close registration for the hackathon:
+  - Modified the `/register-team` page to show "انتهى التسجيل" message when registration is closed
+  - Hidden the registration forms to prevent new submissions
+  - Created a configuration-based approach to easily toggle registration status
+  - Maintained the page structure while disabling the registration functionality
+
 - **Enhanced Team Editing Functionality (September 2025):** Improved the team editing functionality in the admin dashboard:
   - Updated the update-team API to support all team fields (name, track, idea details, etc.)
   - Added support for changing team leaders with proper validation

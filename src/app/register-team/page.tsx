@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { REGISTRATION_CLOSED } from '@/lib/constants'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -481,11 +482,21 @@ export default function RegisterTeamPage() {
               نموذج تسجيل المشاركين
             </CardTitle>
             <CardDescription className="text-xl" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
-              سجل للمشاركة في الهاكاثون وكن جزءًا من التغيير
+              {REGISTRATION_CLOSED ? 'انتهى التسجيل في الهاكاثون' : 'سجل للمشاركة في الهاكاثون وكن جزءًا من التغيير'}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-10 pb-10">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            {REGISTRATION_CLOSED ? (
+              <div className="text-center py-12">
+                <h2 className="text-5xl font-bold mb-6" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
+                  انتهى التسجيل
+                </h2>
+                <p className="text-2xl mb-8" style={{ color: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}>
+                  نعتذر، لقد انتهت فترة التسجيل في الهاكاثون
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-8">
               {/* Registration Type Selection */}
               <div className="bg-gray-50/50 p-6 rounded-xl border-2 border-gray-100 space-y-6">
                 <h3 className="text-2xl font-bold pb-3 border-b-2 border-gray-200" style={{ color: '#620F10', fontFamily: 'Somar-Bold, Arial, sans-serif' }}>
@@ -689,7 +700,8 @@ export default function RegisterTeamPage() {
               >
                 {isSubmitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
               </Button>
-            </form>
+              </form>
+            )}
           </CardContent>
         </Card>
         </div>

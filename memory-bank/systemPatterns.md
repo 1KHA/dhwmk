@@ -19,6 +19,29 @@ The application follows a standard client-server architecture built on the Next.
 
 ## 2. Key Technical Decisions & Patterns
 
+### Enhanced Search Functionality
+- **Server-Side Search:** The system implements powerful server-side search functionality:
+  - **Participant Search:** The `/api/admin/participants` route supports searching across multiple fields:
+    - Email, full name, first/second/family names
+    - Contact number, phone number
+    - University, major, city
+  - **Team Search:** The `/api/admin/teams` route supports searching across:
+    - Team fields: team name, idea name, track, description
+    - Team members: names and emails of all team members
+  - **Case-Insensitive Search:** All searches are case-insensitive for better results
+  - **Search UI:** The admin dashboard provides intuitive search interfaces with:
+    - Descriptive placeholder text
+    - Enter key support for immediate search
+    - Search buttons for better usability
+  - **Results Sorting:** Server-side sorting shows newest entries first
+
+### Registration Closure System
+- **Configuration-Based Approach:** The system uses a configuration-based approach to control registration status:
+  - The `/register-team` page checks a configuration flag to determine if registration is open
+  - When registration is closed, the page displays "انتهى التسجيل" message
+  - Registration forms are hidden to prevent new submissions
+  - The page structure is maintained for a better user experience
+
 ### Dual Database Configuration
 - **Environment-Based Database Selection:** The system uses environment variables to dynamically select the database provider:
   - `DATABASE_TYPE=sqlite` for local development
