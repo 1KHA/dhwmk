@@ -287,12 +287,6 @@ export default function TeamManagementPage() {
                 تعديل معلومات الفريق
               </Button>
             )}
-            {currentUser.isLeader && (
-              <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة عضو
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
@@ -370,12 +364,6 @@ export default function TeamManagementPage() {
           <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle>أعضاء الفريق</CardTitle>
-          {currentUser.isLeader && (
-            <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
-              <Plus className="ml-2 h-4 w-4" />
-              إضافة عضو
-            </Button>
-          )}
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
           {/* Mobile Card View */}
