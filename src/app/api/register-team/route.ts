@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '25mb',
-    },
-  },
-};
 import { PrismaClient } from '@prisma/client'
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications'
 import { uploadToStorage } from '@/lib/supabase-storage'
