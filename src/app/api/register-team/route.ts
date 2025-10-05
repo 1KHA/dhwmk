@@ -231,17 +231,29 @@ export async function POST(request: NextRequest) {
     // Handle specific error types with more informative messages
     if (error instanceof Error) {
       // Check if it's a payload size error (413)
-      if (error.message && error.message.includes('413')) {
+      if (error.message && (error.message.includes('413') || error.message.includes('too large') || error.message.includes('Request Entity Too Large'))) {
+        console.error(`413 Payload Too Large Error detected: ${error.message}`);
         return NextResponse.json(
           { error: `File size too large. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB` },
-          { status: 413 }
+          { 
+            status: 413,
+            headers: {
+              'Content-Type': 'application/json'
+            } 
+          }
         );
       }
 
       // More specific error message if available
+      console.error(`General Error during registration: ${error.message}`);
       return NextResponse.json(
         { error: `Registration failed: ${error.message}` },
-        { status: 500 }
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
     }
     
