@@ -18,7 +18,8 @@
     "prisma:studio:prod": "cross-env DATABASE_TYPE=postgresql prisma studio",
     "db:check": "node scripts/check-db-config.js",
     "db:switch:local": "cross-env DATABASE_TYPE=sqlite node scripts/switch-db.js sqlite",
-    "db:switch:prod": "cross-env DATABASE_TYPE=postgresql node scripts/switch-db.js postgresql"
+    "db:switch:prod": "cross-env DATABASE_TYPE=postgresql node scripts/switch-db.js postgresql",
+    "storage:setup": "node scripts/setup-supabase-storage.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -37,6 +38,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@supabase/supabase-js": "^2.58.0",
     "@tanstack/react-table": "^8.21.3",
     "@types/formidable": "^3.4.5",
     "@types/moment": "^2.11.29",
