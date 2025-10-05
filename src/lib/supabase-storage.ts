@@ -1,13 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client with environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Default bucket name - make sure this bucket exists in your Supabase project
 const DEFAULT_BUCKET = 'uploads';
+
+// Lazy-initialize Supabase client only when needed
+function getSupabaseClient(): SupabaseClient {
+  // Check for environment variables in various formats
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error('Supabase URL is not defined in environment variables. Please set SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL.');
+  }
+
+  if (!supabaseKey) {
+    throw new Error('Supabase service role key is not defined in environment variables. Please set SUPABASE_SERVICE_ROLE_KEY.');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 /**
  * Uploads a file to Supabase storage
@@ -18,6 +29,9 @@ const DEFAULT_BUCKET = 'uploads';
  */
 export async function uploadToStorage(file: File | Buffer, filename: string, folder: string = ''): Promise<string> {
   try {
+    // Initialize Supabase client when the function is called
+    const supabase = getSupabaseClient();
+    
     // Create a path with folder if provided
     const path = folder ? `${folder}/${filename}` : filename;
     
@@ -64,6 +78,9 @@ export async function uploadToStorage(file: File | Buffer, filename: string, fol
  */
 export async function listStorageFiles(folder: string = '') {
   try {
+    // Initialize Supabase client when the function is called
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase.storage
       .from(DEFAULT_BUCKET)
       .list(folder);
@@ -74,12 +91,18 @@ export async function listStorageFiles(folder: string = '') {
     }
     
     // Map to a format similar to the one used by Vercel blob
-    return data.map(item => ({
-      url: supabase.storage.from(DEFAULT_BUCKET).getPublicUrl(`${folder}/${item.name}`).data.publicUrl,
-      pathname: `${folder}/${item.name}`,
-      size: item.metadata?.size,
-      uploadedAt: new Date(item.created_at || Date.now()).toISOString(),
-    }));
+    return data.map(item => {
+      const { data: { publicUrl } } = supabase.storage
+        .from(DEFAULT_BUCKET)
+        .getPublicUrl(`${folder}/${item.name}`);
+      
+      return {
+        url: publicUrl,
+        pathname: `${folder}/${item.name}`,
+        size: item.metadata?.size,
+        uploadedAt: new Date(item.created_at || Date.now()).toISOString(),
+      };
+    });
   } catch (error) {
     console.error('Error listing storage files:', error);
     throw new Error('Failed to list files from storage');
@@ -92,6 +115,9 @@ export async function listStorageFiles(folder: string = '') {
  */
 export async function deleteFromStorage(url: string) {
   try {
+    // Initialize Supabase client when the function is called
+    const supabase = getSupabaseClient();
+    
     // Extract path from URL
     const path = extractPathFromUrl(url);
     
