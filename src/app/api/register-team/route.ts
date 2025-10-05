@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     if (attachmentFile) {
         // Validate file size
         if (attachmentFile.size > MAX_FILE_SIZE) {
+            console.warn(`File size too large: ${attachmentFile.size} bytes (${attachmentFile.size / 1024 / 1024} MB), max is ${MAX_FILE_SIZE_MB}MB`);
             return NextResponse.json(
                 { error: `File size must be less than ${MAX_FILE_SIZE_MB}MB` },
                 { status: 400 }
@@ -40,7 +41,16 @@ export async function POST(request: NextRequest) {
         try {
             const filename = `${Date.now()}_${attachmentFile.name}`;
             // Upload file to Supabase storage in 'teams' folder
-            attachmentPath = await uploadToStorage(attachmentFile, filename, 'teams');
+            try {
+                attachmentPath = await uploadToStorage(attachmentFile, filename, 'teams');
+                console.log(`Team attachment uploaded successfully: ${filename}, size: ${attachmentFile.size / 1024 / 1024}MB, path: ${attachmentPath}`);
+            } catch (uploadError) {
+                console.error('Team attachment upload error:', uploadError);
+                return NextResponse.json(
+                    { error: 'Failed to upload attachment. Please try again.' },
+                    { status: 500 }
+                );
+            }
         } catch (error) {
             console.error('Error uploading attachment to Supabase storage:', error);
             return NextResponse.json(
@@ -217,8 +227,27 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Error registering:', error)
+
+    // Handle specific error types with more informative messages
+    if (error instanceof Error) {
+      // Check if it's a payload size error (413)
+      if (error.message && error.message.includes('413')) {
+        return NextResponse.json(
+          { error: `File size too large. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB` },
+          { status: 413 }
+        );
+      }
+
+      // More specific error message if available
+      return NextResponse.json(
+        { error: `Registration failed: ${error.message}` },
+        { status: 500 }
+      );
+    }
+    
+    // Generic error message if unknown error type
     return NextResponse.json(
-      { error: 'Failed to register' },
+      { error: 'Failed to register. Please try again.' },
       { status: 500 }
     )
   }

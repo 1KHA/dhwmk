@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
+      console.warn(`File size too large: ${file.size} bytes (${file.size / 1024 / 1024} MB), max is ${MAX_FILE_SIZE_MB}MB`);
       return NextResponse.json(
         { error: `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE_MB} ميجابايت` },
         { status: 400 }
@@ -146,7 +147,17 @@ export async function POST(request: NextRequest) {
     const fileName = `${timestamp}_${originalName}`;
     
     // Upload file to Supabase storage in 'milestones' folder
-    const filePath = await uploadToStorage(file, fileName, 'milestones');
+    let filePath;
+    try {
+      filePath = await uploadToStorage(file, fileName, 'milestones');
+      console.log(`File uploaded successfully: ${fileName}, size: ${file.size / 1024 / 1024}MB, path: ${filePath}`);
+    } catch (uploadError) {
+      console.error('File upload error:', uploadError);
+      return NextResponse.json(
+        { error: "حدث خطأ أثناء رفع الملف، يرجى المحاولة مرة أخرى" },
+        { status: 500 }
+      );
+    }
 
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
@@ -190,8 +201,27 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error submitting milestone:", error);
+
+    // Handle specific error types with more informative messages
+    if (error instanceof Error) {
+      // Check if it's a payload size error (413)
+      if (error.message && error.message.includes('413')) {
+        return NextResponse.json(
+          { error: `حجم الملف كبير جدًا، الحد الأقصى هو ${MAX_FILE_SIZE_MB} ميجابايت` },
+          { status: 413 }
+        );
+      }
+
+      // More specific error message if available
+      return NextResponse.json(
+        { error: `حدث خطأ أثناء تسليم المشروع: ${error.message}` },
+        { status: 500 }
+      );
+    }
+    
+    // Generic error message if unknown error type
     return NextResponse.json(
-      { error: "حدث خطأ أثناء تسليم المشروع" },
+      { error: "حدث خطأ أثناء تسليم المشروع، يرجى المحاولة مرة أخرى" },
       { status: 500 }
     );
   }

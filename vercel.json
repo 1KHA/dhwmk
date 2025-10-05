@@ -1,7 +1,8 @@
 {
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "bodySizeLimit": "25mb"
     }
   },
   "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
