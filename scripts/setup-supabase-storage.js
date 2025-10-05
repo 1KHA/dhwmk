@@ -43,7 +43,7 @@ async function setupSupabaseStorage() {
       // Create the bucket with public access
       const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
         public: true,
-        fileSizeLimit: 26214400, // 25MB in bytes
+        fileSizeLimit: 26214400, // 25MB in bytes (matching our app's MAX_FILE_SIZE)
       });
 
       if (createError) {
@@ -57,7 +57,7 @@ async function setupSupabaseStorage() {
       // Update bucket to ensure it has public access
       const { error: updateError } = await supabase.storage.updateBucket(BUCKET_NAME, {
         public: true,
-        fileSizeLimit: 26214400, // 25MB in bytes
+        fileSizeLimit: 26214400, // 25MB in bytes (matching our app's MAX_FILE_SIZE)
       });
 
       if (updateError) {
