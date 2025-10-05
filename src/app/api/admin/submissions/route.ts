@@ -10,66 +10,55 @@ export async function GET(request: NextRequest) {
     // Check if admin is authenticated (this would be implemented with proper auth)
     // For now, we'll skip this check for development purposes
 
-    // Fetch all submissions with participant, team, and milestone info
-    const submissions = await prisma.$queryRaw`
-      SELECT 
-        ms.id, 
-        ms.participantId, 
-        ms.milestoneId, 
-        ms.filePath, 
-        ms.fileName, 
-        ms.submittedAt, 
-        ms.reviewStatus, 
-        ms.reviewComment, 
-        ms.reviewedAt,
-        p.firstName, 
-        p.secondName, 
-        p.familyName, 
-        p.email,
-        t.id as teamId, 
-        t.teamName,
-        m.title as milestoneTitle,
-        m."dueDate" as milestoneDueDate
-      FROM "MilestoneSubmission" ms
-      JOIN "Participant" p ON ms."participantId" = p.id
-      JOIN "Team" t ON p."teamId" = t.id
-      JOIN "Milestone" m ON ms."milestoneId" = m.id
-      ORDER BY ms."submittedAt" DESC
-    `;
+    // Fetch all submissions with participant, team, and milestone info using Prisma
+    const submissions = await prisma.milestoneSubmission.findMany({
+      include: {
+        participant: {
+          include: {
+            team: true
+          }
+        },
+        milestone: true
+      },
+      orderBy: {
+        submittedAt: 'desc'
+      }
+    });
 
-    // Transform the raw data to a more structured format
-    const formattedSubmissions = Array.isArray(submissions) ? submissions.map(sub => ({
+    // Transform the data to match the expected format
+    const formattedSubmissions = submissions.map(sub => ({
       id: sub.id,
       participantId: sub.participantId,
       milestoneId: sub.milestoneId,
       filePath: sub.filePath,
       fileName: sub.fileName,
-      submittedAt: sub.submittedAt,
+      submittedAt: sub.submittedAt.toISOString(),
       reviewStatus: sub.reviewStatus,
       reviewComment: sub.reviewComment,
-      reviewedAt: sub.reviewedAt,
+      reviewedAt: sub.reviewedAt ? sub.reviewedAt.toISOString() : null,
       participant: {
-        id: sub.participantId,
-        firstName: sub.firstName,
-        secondName: sub.secondName,
-        familyName: sub.familyName,
-        email: sub.email,
-        teamId: sub.teamId,
+        id: sub.participant.id,
+        firstName: sub.participant.firstName || '',
+        secondName: sub.participant.secondName || '',
+        familyName: sub.participant.familyName || '',
+        email: sub.participant.email,
+        teamId: sub.participant.teamId || '',
         team: {
-          id: sub.teamId,
-          teamName: sub.teamName
+          id: sub.participant.team?.id || '',
+          teamName: sub.participant.team?.teamName || 'لا يوجد فريق'
         }
       },
       milestone: {
-        id: sub.milestoneId,
-        title: sub.milestoneTitle,
-        dueDate: sub.milestoneDueDate
+        id: sub.milestone.id,
+        title: sub.milestone.title,
+        dueDate: sub.milestone.dueDate.toISOString()
       }
-    })) : [];
+    }));
 
     return NextResponse.json(formattedSubmissions);
   } catch (error) {
     console.error("Error fetching all submissions:", error);
+    console.error("Error details:", error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: "حدث خطأ أثناء جلب التسليمات" },
       { status: 500 }
