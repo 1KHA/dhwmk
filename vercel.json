@@ -1,12 +1,14 @@
 {
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30,
-      "bodySizeLimit": "25mb"
+      "maxDuration": 30
     }
   },
   "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
   "env": {
     "DATABASE_TYPE": "postgresql"
+  },
+  "bodyParser": {
+    "sizeLimit": "25mb"
   }
 }
