@@ -1,6 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { X } from 'lucide-react'
+import { 
+  startChunkedUpload, 
+  DEFAULT_CHUNK_SIZE,
+  shouldUseChunkedUpload, 
+  UploadProgressInfo 
+} from "@/lib/chunked-upload";
+import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from "@/lib/constants";
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -58,6 +66,8 @@ export default function RegisterTeamPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
+  const [isUsingChunkedUpload, setIsUsingChunkedUpload] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressInfo | null>(null)
   const [mounted, setMounted] = useState(false)
   const [showLoader, setShowLoader] = useState(true)
   const [loaderVisible, setLoaderVisible] = useState(true)
@@ -206,6 +216,9 @@ export default function RegisterTeamPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    
+    // Reset upload progress
+    setUploadProgress(null)
 
     // Validate phone numbers are exactly 10 digits
     if (!formState.leaderInfo.contactNumber || formState.leaderInfo.contactNumber.length !== 10) {
@@ -233,6 +246,26 @@ export default function RegisterTeamPage() {
       }
     }
 
+    try {
+      // If there's an attachment file and it's large, use chunked upload
+      if (attachmentFile && (shouldUseChunkedUpload(attachmentFile) || isUsingChunkedUpload)) {
+        await handleChunkedSubmit()
+      } else {
+        await handleRegularSubmit()
+      }
+    } catch (error) {
+      console.error('Submission error:', error)
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء إرسال النموذج',
+        variant: 'destructive',
+      })
+      setIsSubmitting(false)
+    }
+  }
+
+  // Regular submission without chunked upload
+  const handleRegularSubmit = async (): Promise<void> => {
     const formData = new FormData()
     
     // Add registration type and team info
@@ -265,6 +298,18 @@ export default function RegisterTeamPage() {
         body: formData,
       })
 
+      // Handle 413 error specifically
+      if (response.status === 413 && attachmentFile) {
+        setIsUsingChunkedUpload(true)
+        toast({
+          title: 'الملف كبير جداً',
+          description: 'جاري التحويل إلى وضع التحميل المجزأ...',
+        })
+        
+        // Retry with chunked upload
+        return handleChunkedSubmit()
+      }
+
       const data = await response.json()
 
       if (response.ok) {
@@ -282,9 +327,109 @@ export default function RegisterTeamPage() {
         })
       }
     } catch (error) {
+      console.error('Regular submission error:', error)
       toast({
         title: 'خطأ',
         description: 'حدث خطأ أثناء إرسال النموذج',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Chunked upload submission for large files
+  const handleChunkedSubmit = async (): Promise<void> => {
+    if (!attachmentFile) {
+      return handleRegularSubmit()
+    }
+
+    try {
+      // First submit the form data without the attachment
+      const formData = new FormData()
+      
+      // Add registration type and team info
+      formData.append('registrationType', formState.registrationType)
+      formData.append('isTeamRegistration', formState.registrationType === 'team' ? 'true' : 'false')
+      formData.append('hackathonTrack', formState.hackathonTrack)
+      
+      if (formState.registrationType === 'team') {
+        formData.append('teamName', formState.teamName)
+        formData.append('ideaDescription', formState.ideaDescription)
+        formData.append('hearAboutUs', formState.hearAboutUs)
+        formData.append('memberCount', formState.memberCount.toString())
+      }
+
+      // Add participant data
+      formData.append('leaderInfo', JSON.stringify(formState.leaderInfo))
+      if (formState.registrationType === 'team') {
+        formData.append('members', JSON.stringify(formState.members.slice(0, formState.memberCount - 1)))
+      }
+      
+      // For chunked upload, we'll handle the attachment separately
+      formData.append('isChunkedUpload', 'true')
+
+      // Submit the form data
+      const response = await fetch('/api/register-team', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        toast({
+          title: 'خطأ',
+          description: data.error || 'فشل إرسال النموذج',
+          variant: 'destructive',
+        })
+        setIsSubmitting(false)
+        return
+      }
+      
+      // If form submission succeeded, upload the file in chunks
+      const { teamId } = data
+      
+      // Create additional data for the chunked upload
+      const additionalData = {
+        teamId: teamId || 'temp',
+        teamName: formState.teamName || '',
+      }
+      
+      // Upload the file in chunks
+      await startChunkedUpload({
+        file: attachmentFile,
+        endpoint: "/api/upload-chunk",
+        additionalData,
+        onProgress: (progress) => {
+          setUploadProgress(progress)
+        },
+        onError: (error) => {
+          console.error("Chunked upload error:", error)
+          toast({
+            title: 'خطأ في تحميل الملف',
+            description: 'فشل تحميل المرفق. سيتم التسجيل بدون مرفق.',
+            variant: 'destructive',
+          })
+        },
+        onComplete: () => {
+          // Show celebration on successful upload
+          localStorage.removeItem('registrationForm')
+          setShowCelebration(true)
+          // Redirect after 3 seconds
+          setTimeout(() => {
+            router.push('/')
+          }, 3000)
+        },
+        chunkSize: DEFAULT_CHUNK_SIZE,
+        retryAttempts: 3
+      })
+      
+    } catch (error) {
+      console.error('Chunked upload error:', error)
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحميل المرفق',
         variant: 'destructive',
       })
     } finally {
@@ -624,13 +769,87 @@ export default function RegisterTeamPage() {
                     <Input 
                       id="attachments-file" 
                       type="file" 
-                      onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          const file = e.target.files[0];
+                          
+                          // Reset progress
+                          setUploadProgress(null);
+                          
+                          // Validate file size
+                          if (file.size > MAX_FILE_SIZE) {
+                            toast({
+                              title: 'تنبيه',
+                              description: `حجم الملف كبير (${(file.size / (1024 * 1024)).toFixed(2)} MB). سيتم استخدام التحميل المجزأ.`,
+                            });
+                            setIsUsingChunkedUpload(true);
+                          } else {
+                            setIsUsingChunkedUpload(false);
+                          }
+                          
+                          setAttachmentFile(file);
+                        }
+                      }}
                       className="h-11 border-2 border-gray-200 focus:border-[#620F10] rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#620F10] file:text-white hover:file:bg-[#4a0c0d]"
                       style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}
                     />
                     <p className="text-sm mt-2" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
-                      ارفاق المتوفر من شعار، ملف تعريفي، الخ.
+                      ارفاق المتوفر من شعار، ملف تعريفي، الخ. (الحد الأقصى: {MAX_FILE_SIZE_MB} ميجابايت)
                     </p>
+                    
+                    {/* Display selected file information */}
+                    {attachmentFile && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded-md flex items-center justify-between">
+                        <div className="flex-1 truncate">
+                          <p className="text-sm" style={{ color: '#620F10', fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                            {attachmentFile.name} 
+                            <span className="text-xs mr-2 text-gray-600">
+                              ({(attachmentFile.size / (1024 * 1024)).toFixed(2)} MB)
+                            </span>
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setAttachmentFile(null);
+                            setUploadProgress(null);
+                            setIsUsingChunkedUpload(false);
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Display chunked upload notice if applicable */}
+                    {isUsingChunkedUpload && attachmentFile && (
+                      <div className="mt-2 p-2 bg-blue-50 text-blue-600 rounded-md">
+                        <p className="text-sm" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          سيتم استخدام التحميل المجزأ لهذا الملف نظرًا لحجمه الكبير.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* File upload progress indicator */}
+                    {uploadProgress && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>جاري تحميل الملف...</span>
+                          <span>{uploadProgress.percentComplete}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div 
+                            className="bg-primary h-2.5 rounded-full" 
+                            style={{ width: `${uploadProgress.percentComplete}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          قطعة {uploadProgress.uploadedChunks} من {uploadProgress.totalChunks}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -687,7 +906,7 @@ export default function RegisterTeamPage() {
                 }}
                 disabled={isSubmitting || !isFormValid()}
               >
-                {isSubmitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
+                {isSubmitting ? (uploadProgress ? `جاري رفع الملف (${uploadProgress.percentComplete}%)` : 'جاري الإرسال...') : 'إرسال التسجيل'}
               </Button>
             </form>
           </CardContent>

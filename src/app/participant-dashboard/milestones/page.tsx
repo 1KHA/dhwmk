@@ -10,6 +10,14 @@ import { useEffect, useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from "@/lib/constants";
+import { 
+  startChunkedUpload, 
+  DEFAULT_CHUNK_SIZE,
+  shouldUseChunkedUpload, 
+  UploadProgressInfo 
+} from "@/lib/chunked-upload";
 
 // Define the Milestone type
 type Milestone = {
@@ -44,6 +52,8 @@ export default function ParticipantMilestonesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressInfo | null>(null);
+  const [isUsingChunkedUpload, setIsUsingChunkedUpload] = useState(false);
 
   // Fetch milestones from API
   useEffect(() => {
@@ -126,14 +136,40 @@ export default function ParticipantMilestonesPage() {
     setIsDialogOpen(true);
   };
 
-  // Handle file selection
+  // Handle file selection with validation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Reset previous errors and progress
+      setSubmissionStatus(null);
+      setUploadProgress(null);
+      
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        setSubmissionStatus({
+          success: false,
+          message: `حجم الملف كبير جدًا. الحد الأقصى هو ${MAX_FILE_SIZE_MB} ميجابايت. سيتم استخدام التحميل المجزأ.`
+        });
+        setIsUsingChunkedUpload(true);
+      } else {
+        setIsUsingChunkedUpload(false);
+      }
+      
+      // Validate file type
+      if (!ALLOWED_FILE_TYPES.includes(file.type) && file.type !== "") {
+        setSubmissionStatus({
+          success: false,
+          message: "نوع الملف غير مدعوم"
+        });
+        return; // Don't set the file if type is invalid
+      }
+      
+      setSelectedFile(file);
     }
   };
 
-  // Submit a milestone
+  // Submit a milestone (with support for chunked uploads)
   const submitMilestone = async () => {
     if (!selectedMilestone || !selectedFile) {
       setSubmissionStatus({
@@ -145,20 +181,21 @@ export default function ParticipantMilestonesPage() {
 
     setIsSubmitting(true);
     setSubmissionStatus(null);
+    setUploadProgress(null);
 
     try {
-      const formData = new FormData();
-      formData.append("milestoneId", selectedMilestone.id);
-      formData.append("file", selectedFile);
+      let result: SubmissionResponse;
 
-      const response = await fetch("/api/participant/submit-milestone", {
-        method: "POST",
-        body: formData,
-      });
+      // Determine if we need to use chunked upload
+      if (shouldUseChunkedUpload(selectedFile) || isUsingChunkedUpload) {
+        // Use chunked upload for large files
+        result = await handleChunkedUpload();
+      } else {
+        // Use regular upload for small files
+        result = await handleRegularUpload();
+      }
 
-      const result: SubmissionResponse = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setSubmissionStatus({
           success: true,
           message: result.message || "تم تسليم المشروع بنجاح"
@@ -170,6 +207,9 @@ export default function ParticipantMilestonesPage() {
             ? { ...m, hasSubmitted: true, submissionCount: m.submissionCount + 1 } 
             : m
         ));
+
+        // Reset upload progress
+        setUploadProgress(null);
 
         // Close the dialog after a delay
         setTimeout(() => {
@@ -203,6 +243,72 @@ export default function ParticipantMilestonesPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle regular (non-chunked) upload
+  const handleRegularUpload = async (): Promise<SubmissionResponse> => {
+    const formData = new FormData();
+    formData.append("milestoneId", selectedMilestone!.id);
+    formData.append("file", selectedFile!);
+
+    const response = await fetch("/api/participant/submit-milestone", {
+      method: "POST",
+      body: formData,
+    });
+
+    // Handle 413 error specifically
+    if (response.status === 413) {
+      setIsUsingChunkedUpload(true);
+      setSubmissionStatus({
+        success: false,
+        message: "الملف كبير جداً، جاري التحويل إلى وضع التحميل المجزأ..."
+      });
+      
+      // Retry with chunked upload
+      return handleChunkedUpload();
+    }
+
+    return await response.json();
+  };
+
+  // Handle chunked upload
+  const handleChunkedUpload = async (): Promise<SubmissionResponse> => {
+    return new Promise((resolve, reject) => {
+      if (!selectedFile || !selectedMilestone) {
+        reject(new Error("ملف أو مرحلة غير محددة"));
+        return;
+      }
+
+      // Additional data to include with each chunk
+      const additionalData = {
+        milestoneId: selectedMilestone.id
+      };
+
+      startChunkedUpload({
+        file: selectedFile,
+        endpoint: "/api/upload-chunk",
+        additionalData,
+        onProgress: (progress) => {
+          setUploadProgress(progress);
+        },
+        onError: (error) => {
+          console.error("Chunked upload error:", error);
+          reject(error);
+        },
+        onComplete: (result) => {
+          resolve({
+            success: true,
+            message: "تم تسليم المشروع بنجاح",
+            ...result
+          });
+        },
+        // Smaller chunk size for potentially slower connections
+        chunkSize: DEFAULT_CHUNK_SIZE,
+        retryAttempts: 3
+      }).catch(error => {
+        reject(error);
+      });
+    });
   };
 
   return (
@@ -312,15 +418,38 @@ export default function ParticipantMilestonesPage() {
             {selectedFile && (
               <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                 <FileText className="h-4 w-4 text-primary" />
-                <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
+                <span className="text-sm flex-1 truncate">
+                  {selectedFile.name} 
+                  <span className="text-xs text-muted-foreground">
+                    ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </span>
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSelectedFile(null)}
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setUploadProgress(null);
+                    setIsUsingChunkedUpload(false);
+                  }}
                   className="h-6 w-6"
                 >
                   <X className="h-4 w-4" />
                 </Button>
+              </div>
+            )}
+
+            {/* File upload progress indicator */}
+            {uploadProgress && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span>جاري تحميل الملف...</span>
+                  <span>{uploadProgress.percentComplete}%</span>
+                </div>
+                <Progress value={uploadProgress.percentComplete} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">
+                  قطعة {uploadProgress.uploadedChunks} من {uploadProgress.totalChunks}
+                </p>
               </div>
             )}
 
@@ -329,6 +458,14 @@ export default function ParticipantMilestonesPage() {
                 submissionStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
               }`}>
                 <p className="text-sm">{submissionStatus.message}</p>
+              </div>
+            )}
+
+            {isUsingChunkedUpload && !uploadProgress && !submissionStatus?.success && (
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-md">
+                <p className="text-sm">
+                  سيتم استخدام التحميل المجزأ لهذا الملف نظرًا لحجمه الكبير.
+                </p>
               </div>
             )}
           </div>
