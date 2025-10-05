@@ -4,7 +4,7 @@ import crypto from "crypto";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
-import { uploadToBlob } from '@/lib/blob-storage';
+import { uploadToStorage } from '@/lib/supabase-storage';
 import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from '@/lib/constants';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -145,8 +145,8 @@ export async function POST(request: NextRequest) {
     const originalName = file.name;
     const fileName = `${timestamp}_${originalName}`;
     
-    // Upload file to blob storage in 'milestones' folder
-    const filePath = await uploadToBlob(file, fileName, 'milestones');
+    // Upload file to Supabase storage in 'milestones' folder
+    const filePath = await uploadToStorage(file, fileName, 'milestones');
 
     // Create a new milestone submission in the database
     const submission = await prisma.$executeRaw`
