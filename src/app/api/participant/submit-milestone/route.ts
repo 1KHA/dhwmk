@@ -4,8 +4,6 @@ import crypto from "crypto";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { notifyAllAdmins, NotificationTemplates } from '@/lib/notifications';
-import { uploadToStorage } from '@/lib/supabase-storage';
-import { MAX_FILE_SIZE, MAX_FILE_SIZE_MB, ALLOWED_FILE_TYPES } from '@/lib/constants';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -20,19 +18,9 @@ interface JwtPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if the request is multipart/form-data
-    const contentType = request.headers.get("content-type") || "";
-    if (!contentType.includes("multipart/form-data")) {
-      return NextResponse.json(
-        { error: "يجب أن يكون الطلب من نوع multipart/form-data" },
-        { status: 400 }
-      );
-    }
-
-    // Get the form data
-    const formData = await request.formData();
-    const milestoneId = formData.get("milestoneId") as string;
-    const file = formData.get("file") as File;
+    // Get JSON body with file metadata (file already uploaded to Supabase)
+    const body = await request.json();
+    const { milestoneId, filePath, fileName } = body;
 
     // Validate inputs
     if (!milestoneId) {
@@ -42,25 +30,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!file) {
+    if (!filePath || !fileName) {
       return NextResponse.json(
-        { error: "الملف مطلوب" },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE_MB} ميجابايت` },
-        { status: 400 }
-      );
-    }
-
-    // Validate file type
-    if (!ALLOWED_FILE_TYPES.includes(file.type) && file.type !== "") {
-      return NextResponse.json(
-        { error: "نوع الملف غير مدعوم" },
+        { error: "معلومات الملف مطلوبة" },
         { status: 400 }
       );
     }
@@ -140,18 +112,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a unique filename
-    const timestamp = Date.now();
-    const originalName = file.name;
-    const fileName = `${timestamp}_${originalName}`;
-    
-    // Upload file to Supabase storage in 'milestones' folder
-    const filePath = await uploadToStorage(file, fileName, 'milestones');
-
     // Create a new milestone submission in the database
+    // File is already uploaded to Supabase, we just store the metadata
     const submission = await prisma.$executeRaw`
       INSERT INTO "MilestoneSubmission" (id, "participantId", "milestoneId", "filePath", "fileName", "submittedAt")
-      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${originalName}, ${new Date().toISOString()}::timestamp)
+      VALUES (${crypto.randomUUID()}, ${participant.id}, ${milestoneId}, ${filePath}, ${fileName}, ${new Date().toISOString()}::timestamp)
     `;
 
     // Update the milestone submission count

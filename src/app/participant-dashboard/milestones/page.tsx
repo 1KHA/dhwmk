@@ -10,6 +10,8 @@ import { useEffect, useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { uploadFileToSupabase } from "@/lib/supabase-client";
+import { MAX_FILE_SIZE_MB } from "@/lib/constants";
 
 // Define the Milestone type
 type Milestone = {
@@ -143,17 +145,47 @@ export default function ParticipantMilestonesPage() {
       return;
     }
 
+    // Validate file size (25MB max)
+    const maxSize = MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (selectedFile.size > maxSize) {
+      setSubmissionStatus({
+        success: false,
+        message: `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE_MB} ميجابايت`
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmissionStatus(null);
 
     try {
-      const formData = new FormData();
-      formData.append("milestoneId", selectedMilestone.id);
-      formData.append("file", selectedFile);
+      // Step 1: Upload file directly to Supabase Storage
+      setSubmissionStatus({
+        success: true,
+        message: "جاري رفع الملف..."
+      });
+
+      const { filePath, publicUrl } = await uploadFileToSupabase(
+        selectedFile,
+        'milestones'
+      );
+
+      // Step 2: Send metadata to API to create submission record
+      setSubmissionStatus({
+        success: true,
+        message: "جاري حفظ التسليم..."
+      });
 
       const response = await fetch("/api/participant/submit-milestone", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          milestoneId: selectedMilestone.id,
+          filePath: publicUrl,
+          fileName: selectedFile.name,
+        }),
       });
 
       const result: SubmissionResponse = await response.json();
@@ -198,7 +230,7 @@ export default function ParticipantMilestonesPage() {
       console.error("Error submitting milestone:", err);
       setSubmissionStatus({
         success: false,
-        message: "حدث خطأ أثناء الاتصال بالخادم"
+        message: err instanceof Error ? err.message : "حدث خطأ أثناء الاتصال بالخادم"
       });
     } finally {
       setIsSubmitting(false);
