@@ -1,0 +1,647 @@
+/*
+ * Pixel-perfect recreation of the landing image (public/dhnew001.png, 3840x13116).
+ * Unit system: 1u = 1px of the original image = calc(100cqw / 3840).
+ * Every coordinate below is taken directly from pixel measurements of the image,
+ * so the page renders identically to the image at any viewport width.
+ */
+
+@font-face {
+  font-family: "DHLSomar";
+  src: url("./assets/fonts/ArbFONTS-Somar-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DHLSomar";
+  src: url("./assets/fonts/ArbFONTS-Somar-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+.dhl-viewport {
+  container-type: inline-size;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+.dhl {
+  --u: calc(100cqw / 3840);
+  --maroon: #620f10;
+  --card-maroon: #752c2d;
+  --jcard-maroon: #864747;
+  --gold: #fccd8d;
+  --blue: #50c2e8;
+  --prize-blue: #6baee0;
+  --gray-text: #494b4c;
+
+  position: relative;
+  width: 100%;
+  margin: 0;
+  font-family: "DHLSomar", "Somar-Bold", sans-serif;
+  font-weight: 500;
+  direction: rtl;
+}
+
+.dhl *,
+.dhl *::before,
+.dhl *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.dhl img {
+  display: block;
+  max-width: none; /* undo Tailwind preflight clamp */
+}
+
+/* ---------- shared ---------- */
+
+.dhl-diamond {
+  display: inline-block;
+  flex: none;
+  width: calc(72 * var(--u));
+  height: calc(72 * var(--u));
+  background: var(--blue);
+  transform: rotate(45deg);
+}
+
+.dhl-sect-title {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: calc(60 * var(--u));
+  font-weight: 700;
+  font-size: calc(172 * var(--u));
+  line-height: 1;
+}
+
+/* ---------- header ---------- */
+
+.dhl-header {
+  position: relative;
+  height: calc(456 * var(--u));
+  background: #ffffff;
+}
+
+.dhl-logos {
+  position: absolute;
+  top: calc(105 * var(--u));
+  right: calc(284 * var(--u));
+  width: calc(1377 * var(--u));
+  height: calc(285 * var(--u));
+}
+
+/* ---------- hero ---------- */
+
+.dhl-hero {
+  position: relative;
+  height: calc(2364 * var(--u));
+  background: var(--maroon);
+  overflow: hidden;
+}
+
+.dhl-orn-tl {
+  position: absolute;
+  top: calc(6 * var(--u));
+  left: calc(140 * var(--u));
+  width: calc(780 * var(--u));
+  height: calc(378 * var(--u));
+}
+.dhl-orn-bl {
+  position: absolute;
+  top: calc(1884 * var(--u));
+  left: 0;
+  width: calc(800 * var(--u));
+  height: calc(460 * var(--u));
+}
+.dhl-orn-br {
+  position: absolute;
+  top: calc(1884 * var(--u));
+  right: 0;
+  width: calc(440 * var(--u));
+  height: calc(460 * var(--u));
+}
+
+.dhl-hero-title {
+  position: absolute;
+  top: calc(340 * var(--u));
+  right: calc(696 * var(--u));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(198 * var(--u));
+  line-height: calc(200 * var(--u));
+  white-space: nowrap;
+}
+.dhl-hero-num {
+  font-size: calc(270 * var(--u));
+  line-height: 1;
+}
+
+.dhl-hero-mark {
+  position: absolute;
+  top: calc(366 * var(--u));
+  right: calc(436 * var(--u));
+  width: calc(219 * var(--u));
+  height: calc(381 * var(--u));
+}
+
+.dhl-hero-badge {
+  position: absolute;
+  top: calc(606 * var(--u));
+  right: calc(690 * var(--u));
+  width: calc(825 * var(--u));
+  height: calc(146 * var(--u));
+  background: var(--gold);
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(96 * var(--u));
+  line-height: calc(146 * var(--u));
+  text-align: center;
+  border-radius: calc(6 * var(--u));
+}
+
+.dhl-hero-par {
+  position: absolute;
+  top: calc(860 * var(--u));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(88 * var(--u));
+  line-height: calc(83 * var(--u));
+}
+
+.dhl-hero-countdown-label {
+  position: absolute;
+  top: calc(1098 * var(--u));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(116 * var(--u));
+  line-height: calc(120 * var(--u));
+}
+
+.dhl-panel-glow {
+  position: absolute;
+  top: calc(1674 * var(--u));
+  left: calc(1050 * var(--u));
+  width: calc(1780 * var(--u));
+  height: calc(66 * var(--u));
+  z-index: 2;
+}
+
+.dhl-panel {
+  position: absolute;
+  top: calc(1714 * var(--u));
+  left: calc(1082 * var(--u));
+  width: calc(1717 * var(--u));
+  height: calc(340 * var(--u));
+  background: #651415;
+  border-radius: calc(24 * var(--u));
+}
+
+/* groups are transparent wrappers; children anchor to the panel itself */
+.dhl-panel-group {
+  position: static;
+}
+
+.dhl-panel-icon {
+  position: absolute;
+}
+.dhl-panel-cal {
+  top: calc(72 * var(--u));
+  right: calc(86 * var(--u));
+  width: calc(172 * var(--u));
+  height: calc(176 * var(--u));
+}
+.dhl-panel-clock {
+  top: calc(87 * var(--u));
+  right: calc(964 * var(--u));
+  width: calc(165 * var(--u));
+  height: calc(165 * var(--u));
+}
+
+.dhl-panel-text {
+  position: absolute;
+  top: calc(52 * var(--u));
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(104 * var(--u));
+  line-height: calc(110 * var(--u));
+  text-align: right;
+  white-space: nowrap;
+}
+.dhl-panel-group:nth-child(1) .dhl-panel-text {
+  right: calc(313 * var(--u));
+}
+.dhl-panel-group:nth-child(2) .dhl-panel-text {
+  right: calc(1160 * var(--u));
+  top: calc(52 * var(--u));
+}
+
+.dhl-hero-univ {
+  position: absolute;
+  top: calc(2086 * var(--u));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(87 * var(--u));
+  line-height: calc(96 * var(--u));
+}
+
+/* ---------- ready ---------- */
+
+.dhl-ready {
+  position: relative;
+  height: calc(1216 * var(--u));
+  background: #ffffff;
+}
+
+.dhl-ready-head {
+  position: absolute;
+  top: calc(456 * var(--u));
+  right: calc(279 * var(--u));
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(161 * var(--u));
+  line-height: calc(170 * var(--u));
+}
+
+.dhl-ready-par {
+  position: absolute;
+  top: calc(668 * var(--u));
+  right: calc(284 * var(--u));
+  color: var(--maroon);
+  font-weight: 500;
+  font-size: calc(88 * var(--u));
+  line-height: calc(84 * var(--u));
+  text-align: right;
+}
+
+.dhl-ready-btn {
+  position: absolute;
+  top: calc(909 * var(--u));
+  right: calc(279 * var(--u));
+  width: calc(470 * var(--u));
+  height: calc(138 * var(--u));
+  background: var(--gold);
+  color: var(--maroon);
+  font-weight: 500;
+  font-size: calc(115 * var(--u));
+  line-height: calc(112 * var(--u));
+  text-align: center;
+  text-decoration: none;
+  border-radius: calc(10 * var(--u));
+}
+
+.dhl-banner {
+  padding: 0 calc(30 * var(--u)) calc(56 * var(--u)) 0;
+  position: absolute;
+  top: calc(463 * var(--u));
+  left: calc(279 * var(--u));
+  width: calc(1776 * var(--u));
+  height: calc(567 * var(--u));
+  background: #f5fcfe;
+  border-radius: calc(24 * var(--u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(56 * var(--u));
+}
+
+.dhl-banner-text {
+  color: var(--blue);
+  font-weight: 700;
+  font-size: calc(166 * var(--u));
+  line-height: 1;
+}
+
+.dhl-banner-sar {
+  width: calc(111 * var(--u));
+  height: calc(123 * var(--u));
+}
+
+/* ---------- tracks ---------- */
+
+.dhl-tracks {
+  position: relative;
+  height: calc(1036 * var(--u));
+  background: var(--maroon);
+}
+
+.dhl-tracks-title {
+  top: calc(80 * var(--u));
+  right: calc(289 * var(--u));
+  color: #ffffff;
+}
+
+.dhl-track-card {
+  position: absolute;
+  top: calc(344 * var(--u));
+  width: calc(1067 * var(--u));
+  height: calc(460 * var(--u));
+  background: var(--card-maroon);
+  border-radius: calc(20 * var(--u));
+}
+.dhl-track-1 {
+  left: calc(2494 * var(--u));
+}
+.dhl-track-2 {
+  left: calc(1386 * var(--u));
+}
+.dhl-track-3 {
+  left: calc(278 * var(--u));
+}
+
+.dhl-track-icon {
+  position: absolute;
+  top: calc(60 * var(--u));
+}
+.dhl-track-1 .dhl-track-icon {
+  left: calc(747 * var(--u));
+  width: calc(98 * var(--u));
+  height: calc(98 * var(--u));
+}
+.dhl-track-2 .dhl-track-icon {
+  left: calc(817 * var(--u));
+  width: calc(95 * var(--u));
+  height: calc(95 * var(--u));
+}
+.dhl-track-3 .dhl-track-icon {
+  left: calc(792 * var(--u));
+  width: calc(64 * var(--u));
+  height: calc(98 * var(--u));
+}
+
+.dhl-track-card p {
+  position: absolute;
+  top: calc(176 * var(--u));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(92 * var(--u));
+  line-height: calc(104 * var(--u));
+}
+
+/* ---------- prizes ---------- */
+
+.dhl-prizes {
+  position: relative;
+  height: calc(1780 * var(--u));
+  background: #ffffff;
+}
+
+.dhl-prizes-title {
+  top: calc(174 * var(--u));
+  right: calc(289 * var(--u));
+  color: var(--maroon);
+}
+
+.dhl-prize-card {
+  position: absolute;
+  width: calc(1072 * var(--u));
+  background: linear-gradient(180deg, #f3f9fc 0%, #bcdbf2 100%);
+  border-radius: calc(14 * var(--u)) calc(14 * var(--u)) 0 0;
+}
+.dhl-prize-2 {
+  left: calc(2485 * var(--u));
+  top: calc(713 * var(--u));
+  height: calc(871 * var(--u));
+}
+.dhl-prize-1 {
+  left: calc(1385 * var(--u));
+  top: calc(400 * var(--u));
+  height: calc(1184 * var(--u));
+}
+.dhl-prize-3 {
+  left: calc(285 * var(--u));
+  top: calc(777 * var(--u));
+  height: calc(807 * var(--u));
+}
+
+.dhl-prize-name {
+  position: absolute;
+  bottom: calc(430 * var(--u));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(224 * var(--u));
+  line-height: 1;
+}
+
+.dhl-prize-amount {
+  position: absolute;
+  bottom: calc(216 * var(--u));
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(14 * var(--u));
+  color: var(--prize-blue);
+  font-weight: 700;
+  font-size: calc(220 * var(--u));
+  line-height: 1;
+}
+
+.dhl-prize-sar {
+  width: calc(117 * var(--u));
+  height: calc(129 * var(--u));
+}
+
+/* ---------- target ---------- */
+
+.dhl-target {
+  position: relative;
+  height: calc(690 * var(--u));
+  background: #f9f9f9;
+}
+
+.dhl-orn-target {
+  position: absolute;
+  top: calc(258 * var(--u));
+  left: 0;
+  width: calc(710 * var(--u));
+  height: calc(430 * var(--u));
+}
+
+.dhl-target-title {
+  position: absolute;
+  top: calc(218 * var(--u));
+  right: calc(294 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(84 * var(--u));
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(172 * var(--u));
+  line-height: 1.1;
+}
+
+.dhl-target-text {
+  white-space: nowrap;
+  position: absolute;
+  top: calc(230 * var(--u));
+  right: calc(1552 * var(--u));
+  color: var(--gray-text);
+  font-weight: 500;
+  font-size: calc(108 * var(--u));
+  line-height: 1.3;
+}
+
+/* ---------- conditions ---------- */
+
+.dhl-conds {
+  position: relative;
+  height: calc(2586 * var(--u));
+  background: #ffffff;
+}
+
+.dhl-conds-title {
+  top: calc(262 * var(--u));
+  right: calc(289 * var(--u));
+  color: var(--maroon);
+  font-size: calc(163 * var(--u));
+}
+
+.dhl-cond-card {
+  position: absolute;
+  width: calc(1067 * var(--u));
+  height: calc(478 * var(--u));
+  background: #f1f1f1;
+  border-radius: calc(16 * var(--u));
+}
+.dhl-cond-1 { left: calc(2494 * var(--u)); top: calc(711 * var(--u)); }
+.dhl-cond-2 { left: calc(1386 * var(--u)); top: calc(711 * var(--u)); }
+.dhl-cond-3 { left: calc(278 * var(--u)); top: calc(711 * var(--u)); }
+.dhl-cond-4 { left: calc(2494 * var(--u)); top: calc(1259 * var(--u)); }
+.dhl-cond-5 { left: calc(1386 * var(--u)); top: calc(1259 * var(--u)); }
+.dhl-cond-6 { left: calc(278 * var(--u)); top: calc(1259 * var(--u)); }
+.dhl-cond-7 { left: calc(1939 * var(--u)); top: calc(1799 * var(--u)); }
+.dhl-cond-8 { left: calc(826 * var(--u)); top: calc(1799 * var(--u)); }
+
+.dhl-cond-check {
+  position: absolute;
+  top: calc(87 * var(--u));
+  right: calc(74 * var(--u));
+  width: calc(85 * var(--u));
+  height: calc(86 * var(--u));
+}
+
+.dhl-cond-card p {
+  padding: calc(108 * var(--u)) calc(185 * var(--u)) 0 calc(45 * var(--u));
+  color: var(--gray-text);
+  font-weight: 500;
+  font-size: calc(65 * var(--u));
+  line-height: calc(74 * var(--u));
+  text-align: right;
+}
+
+/* ---------- journey ---------- */
+
+.dhl-journey {
+  position: relative;
+  height: calc(2552 * var(--u));
+  background: var(--maroon);
+}
+
+.dhl-journey-title {
+  top: calc(117 * var(--u));
+  right: calc(289 * var(--u));
+  color: #ffffff;
+}
+
+.dhl-jcard {
+  position: absolute;
+  width: calc(1613 * var(--u));
+  height: calc(353 * var(--u));
+  background: var(--jcard-maroon);
+  border: calc(3 * var(--u)) solid rgba(255, 255, 255, 0.75);
+  border-radius: calc(24 * var(--u));
+  padding: calc(38 * var(--u)) calc(143 * var(--u)) 0;
+}
+.dhl-jcard-1 { left: calc(1948 * var(--u)); top: calc(405 * var(--u)); }
+.dhl-jcard-2 { left: calc(278 * var(--u)); top: calc(821 * var(--u)); }
+.dhl-jcard-3 { left: calc(1948 * var(--u)); top: calc(1219 * var(--u)); }
+.dhl-jcard-4 { left: calc(278 * var(--u)); top: calc(1635 * var(--u)); }
+.dhl-jcard-5 { left: calc(1948 * var(--u)); top: calc(2010 * var(--u)); }
+
+/* badge sits centered on the START edge (right in RTL) of each card */
+.dhl-jbadge {
+  position: absolute;
+  top: 50%;
+  right: calc(-56 * var(--u));
+  width: calc(107 * var(--u));
+  height: calc(107 * var(--u));
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(92 * var(--u));
+}
+.dhl-jbadge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--blue);
+  border-radius: calc(8 * var(--u));
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+.dhl-jcard-head {
+  color: var(--blue);
+  font-weight: 700;
+  font-size: calc(102 * var(--u));
+  line-height: calc(110 * var(--u));
+}
+.dhl-jcard-head small {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: calc(70 * var(--u));
+}
+
+.dhl-jcard-dates {
+  margin-top: calc(6 * var(--u));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(86 * var(--u));
+  line-height: calc(88 * var(--u));
+}
+
+/* ---------- bottom ---------- */
+
+.dhl-bottom {
+  position: relative;
+  height: calc(436 * var(--u));
+  background: #ffffff;
+}
+
+.dhl-bottom-text {
+  position: absolute;
+  top: calc(244 * var(--u));
+  right: calc(285 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(52 * var(--u));
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(113 * var(--u));
+  line-height: 1.2;
+}
