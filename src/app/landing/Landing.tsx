@@ -1,6 +1,11 @@
 import "./landing.css";
 
+import ImageCarousel from "./components/ImageCarousel";
+import FAQSection from "./components/FAQSection";
+
 import logos from "./assets/logos.png";
+import footer from "./assets/footer.png";
+import mobfot from "./assets/mobfot.png";
 import heroMark from "./assets/hero-mark.png";
 import ornTopLeft from "./assets/orn-top-left.png";
 import ornBottomLeft from "./assets/orn-bottom-left.png";
@@ -197,6 +202,20 @@ export default function Landing() {
             المشاريع الفائزة في النسخة الثانية من جائزة مايدة محي الدين ناظر للابتكار <Diamond />
           </h2>
         </section>
+
+        {/* ===== Winning projects carousel ===== */}
+        <ImageCarousel />
+
+        {/* ===== FAQ ===== */}
+        <FAQSection />
+
+        {/* ===== Footer ===== */}
+        <div className="dhl-footer">
+          <picture>
+            <source media="(max-width: 520px)" srcSet={mobfot.src} />
+            <img src={footer.src} alt="Footer" />
+          </picture>
+        </div>
       </main>
     </div>
   );

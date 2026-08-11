@@ -15,10 +15,19 @@ src/app/landing/
 ├── page.tsx        # Next.js route (metadata + render)
 ├── Landing.tsx     # All markup (server component, no state)
 ├── landing.css     # All styles (scoped with .dhl- prefix)
+├── components/
+│   ├── ImageCarousel.tsx  # Winning-projects carousel (auto-rotate + drag), ported from the home page
+│   └── FAQSection.tsx     # Expandable FAQ, ported from the home page
 ├── assets/         # Cropped image assets from the original artwork
-│   └── fonts/      # Somar Bold / Medium (referenced via @font-face in landing.css)
+│   ├── carousel/   # 01/02/03.png carousel slides
+│   └── fonts/      # Somar Bold / Medium / Light (referenced via @font-face in landing.css)
 └── README.md
 ```
+
+The page is the complete landing experience: the pixel-perfect recreation of the artwork
+(header → hero → prizes → conditions → journey), followed by the interactive second half
+ported 1:1 from the original home page — the winning-projects carousel, the FAQ accordion,
+and the footer image.
 
 ## How the pixel-perfect scaling works
 
