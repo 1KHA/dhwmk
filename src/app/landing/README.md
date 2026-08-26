@@ -26,8 +26,9 @@ src/app/landing/
 
 The page is the complete landing experience: the pixel-perfect recreation of the artwork
 (header → hero → prizes → conditions → journey), followed by the interactive second half
-ported 1:1 from the original home page — the winning-projects carousel, the FAQ accordion,
-and the footer image.
+ported 1:1 from the original home page — the winning-projects carousel and the FAQ accordion —
+and a pixel-perfect coded recreation of the footer (real text and links: mailto/tel, with the
+logo and ornament as cropped assets).
 
 ## How the pixel-perfect scaling works
 

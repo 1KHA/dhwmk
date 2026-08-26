@@ -1033,14 +1033,78 @@
   }
 }
 
-/* --- footer --- */
+/* --- footer (recreated from footer.png, 3840x538) --- */
 
 .dhl-footer {
+  position: relative;
   width: 100%;
+  height: calc(538 * var(--u));
+  background: var(--maroon);
+  overflow: hidden;
 }
 
-.dhl-footer img {
-  width: 100%;
-  height: auto;
-  display: block;
+.dhl-f-logo {
+  position: absolute;
+  top: calc(137 * var(--u));
+  left: calc(274 * var(--u));
+  width: calc(269 * var(--u));
+  height: calc(243 * var(--u));
+}
+
+.dhl-f-orn {
+  position: absolute;
+  top: calc(46 * var(--u));
+  right: 0;
+  width: calc(796 * var(--u));
+  height: calc(492 * var(--u));
+}
+
+.dhl-f-head {
+  position: absolute;
+  top: calc(62 * var(--u));
+  right: calc(934 * var(--u));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(78 * var(--u));
+  line-height: 1;
+}
+
+.dhl-f-mail-icon {
+  position: absolute;
+  top: calc(203 * var(--u));
+  right: calc(934 * var(--u));
+  width: calc(91 * var(--u));
+  height: calc(73 * var(--u));
+}
+
+.dhl-f-email {
+  position: absolute;
+  top: calc(196 * var(--u));
+  right: calc(1078 * var(--u));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(90 * var(--u));
+  line-height: calc(80 * var(--u));
+  direction: ltr;
+  text-decoration: none;
+}
+
+.dhl-f-phone-icon {
+  position: absolute;
+  top: calc(310 * var(--u));
+  right: calc(948 * var(--u));
+  width: calc(63 * var(--u));
+  height: calc(58 * var(--u));
+}
+
+.dhl-f-phone {
+  position: absolute;
+  top: calc(305 * var(--u));
+  right: calc(1077 * var(--u));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(90 * var(--u));
+  line-height: calc(76 * var(--u));
+  direction: ltr;
+  text-decoration: none;
 }

@@ -4,8 +4,10 @@ import ImageCarousel from "./components/ImageCarousel";
 import FAQSection from "./components/FAQSection";
 
 import logos from "./assets/logos.png";
-import footer from "./assets/footer.png";
-import mobfot from "./assets/mobfot.png";
+import footerLogo from "./assets/footer-logo.png";
+import footerOrn from "./assets/footer-orn.png";
+import iconMail from "./assets/icon-mail.png";
+import iconPhone from "./assets/icon-phone.png";
 import heroMark from "./assets/hero-mark.png";
 import ornTopLeft from "./assets/orn-top-left.png";
 import ornBottomLeft from "./assets/orn-bottom-left.png";
@@ -210,12 +212,15 @@ export default function Landing() {
         <FAQSection />
 
         {/* ===== Footer ===== */}
-        <div className="dhl-footer">
-          <picture>
-            <source media="(max-width: 520px)" srcSet={mobfot.src} />
-            <img src={footer.src} alt="Footer" />
-          </picture>
-        </div>
+        <footer className="dhl-footer">
+          <img className="dhl-f-logo" src={footerLogo.src} alt="شركة وادي مكة للتقنية - الجهة المنظمة" />
+          <img className="dhl-f-orn" src={footerOrn.src} alt="" aria-hidden="true" />
+          <h2 className="dhl-f-head">للتواصل</h2>
+          <img className="dhl-f-mail-icon" src={iconMail.src} alt="" aria-hidden="true" />
+          <a className="dhl-f-email" href="mailto:Nomow@wadimakka.sa">Nomow@wadimakka.sa</a>
+          <img className="dhl-f-phone-icon" src={iconPhone.src} alt="" aria-hidden="true" />
+          <a className="dhl-f-phone" href="tel:+966545671998">966545671998</a>
+        </footer>
       </main>
     </div>
   );
