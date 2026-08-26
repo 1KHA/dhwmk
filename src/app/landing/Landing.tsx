@@ -3,17 +3,14 @@ import "./landing.css";
 import ImageCarousel from "./components/ImageCarousel";
 import FAQSection from "./components/FAQSection";
 import CountdownTimer from "./components/CountdownTimer";
+import SiteHeader from "./components/SiteHeader";
+import SiteFooter from "./components/SiteFooter";
+import Icon from "./components/Icon";
 
-import footerLogo from "./assets/footer-logo.png";
-import iconMail from "./assets/icon-mail.png";
-import iconPhone from "./assets/icon-phone.png";
 import heroMark from "./assets/hero-mark.png";
 import glow from "./assets/glow.png";
 import iconCalendar from "./assets/icon-calendar.png";
 import iconClock from "./assets/icon-clock.png";
-import iconTrack1 from "./assets/icon-track1.png";
-import iconTrack2 from "./assets/icon-track2.png";
-import iconTrack3 from "./assets/icon-track3.png";
 import iconCheck from "./assets/icon-check.png";
 import sarBanner from "./assets/sar-banner.png";
 import sarPrize from "./assets/sar-prize.png";
@@ -29,19 +26,6 @@ const Diamond = ({ className = "" }: { className?: string }) => (
   <span className={`dhl-diamond ${className}`} aria-hidden="true" />
 );
 
-/*
- * Decorative glyphs from public/pattern (one file per icon in /pattern/icons).
- * Painted through a CSS mask so each can be tinted to its section; every icon
- * is used exactly once on the page.
- */
-const Icon = ({ name, className }: { name: string; className: string }) => (
-  <span
-    className={`dhl-ico ${className}`}
-    style={{ "--ico": `url(/pattern/icons/${name}.svg)` } as React.CSSProperties}
-    aria-hidden="true"
-  />
-);
-
 const REGISTER_URL = "/register-team";
 
 /* Deadline the hero timer counts down to (local time). */
@@ -52,13 +36,7 @@ export default function Landing() {
     <div className="dhl-viewport">
       <main className="dhl" dir="rtl" lang="ar">
         {/* ===== Header ===== */}
-        <header className="dhl-header">
-          <div className="dhl-logos">
-            <img src="/logos/03.png" width={2196} height={982} alt="هيئة تنمية البحث والتطوير والابتكار" />
-            <img src="/logos/02.png" width={792} height={792} alt="جامعة دار الحكمة" />
-            <img src="/logos/01.png" width={678} height={953} alt="مؤسسة صالح عبدالله كامل الإنسانية" />
-          </div>
-        </header>
+        <SiteHeader />
 
         {/* ===== Hero ===== */}
         <section className="dhl-hero">
@@ -129,15 +107,15 @@ export default function Landing() {
             المسارات <Diamond />
           </h2>
           <div className="dhl-track-card dhl-track-1">
-            <img className="dhl-track-icon" src={iconTrack2.src} alt="" aria-hidden="true" />
-            <p>إثراء تجربة ضيوف الرحمن<br />في المدن المقدسة</p>
-          </div>
-          <div className="dhl-track-card dhl-track-2">
-            <img className="dhl-track-icon" src={iconTrack3.src} alt="" aria-hidden="true" />
+            <img className="dhl-track-icon" src="/icons/icon03.png" alt="" aria-hidden="true" />
             <p>تعزيز الدمج المجتمعي<br />لكبار السن والمكفوفين</p>
           </div>
+          <div className="dhl-track-card dhl-track-2">
+            <img className="dhl-track-icon" src="/icons/icon02.png" alt="" aria-hidden="true" />
+            <p>إثراء تجربة ضيوف الرحمن<br />في المدن المقدسة</p>
+          </div>
           <div className="dhl-track-card dhl-track-3">
-            <img className="dhl-track-icon" src={iconTrack1.src} alt="" aria-hidden="true" />
+            <img className="dhl-track-icon" src="/icons/icon01.png" alt="" aria-hidden="true" />
             <p>الحلول الاجتماعية<br />المستدامة</p>
           </div>
         </section>
@@ -221,7 +199,7 @@ export default function Landing() {
         {/* ===== Bottom band ===== */}
         <section className="dhl-bottom">
           <h2 className="dhl-bottom-text">
-            المشاريع الفائزة في النسخة الثانية من جائزة مايدة محي الدين ناظر للابتكار <Diamond />
+            المشاريع الفائزة في النسخة الثالثة من جائزة مايدة محي الدين ناظر للابتكار <Diamond />
           </h2>
         </section>
 
@@ -232,15 +210,7 @@ export default function Landing() {
         <FAQSection />
 
         {/* ===== Footer ===== */}
-        <footer className="dhl-footer">
-          <img className="dhl-f-logo" src={footerLogo.src} alt="شركة وادي مكة للتقنية - الجهة المنظمة" />
-          <Icon name="link" className="dhl-ico-footer" />
-          <h2 className="dhl-f-head">للتواصل</h2>
-          <img className="dhl-f-mail-icon" src={iconMail.src} alt="" aria-hidden="true" />
-          <a className="dhl-f-email" href="mailto:Nomow@wadimakka.sa">Nomow@wadimakka.sa</a>
-          <img className="dhl-f-phone-icon" src={iconPhone.src} alt="" aria-hidden="true" />
-          <a className="dhl-f-phone" href="tel:+966545671998">966545671998</a>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );

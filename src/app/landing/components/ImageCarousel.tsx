@@ -54,7 +54,8 @@ export default function ImageCarousel({ slides = WINNERS, autoRotateInterval = 5
 
   const stageRef = useRef<HTMLDivElement>(null);
   const pointer = useRef<{ id: number; x: number; t: number; moved: boolean } | null>(null);
-  const lastDragMoved = useRef(false);
+  /* When the last drag actually moved; a click landing right after it is not a "tap". */
+  const lastDragEnd = useRef(0);
 
   const go = useCallback((i: number) => setIndex(((i % n) + n) % n), [n]);
   const next = useCallback(() => setIndex((i) => (i + 1) % n), [n]);
@@ -119,17 +120,14 @@ export default function ImageCarousel({ slides = WINNERS, autoRotateInterval = 5
       if (dx > 0) next();
       else prev();
     }
-    lastDragMoved.current = p.moved;
+    lastDragEnd.current = p.moved ? performance.now() : 0;
     pointer.current = null;
     setDrag(0);
     setDragging(false);
   };
 
   const onCardClick = (i: number, offset: number) => {
-    if (lastDragMoved.current) {
-      lastDragMoved.current = false;
-      return;
-    }
+    if (performance.now() - lastDragEnd.current < 300) return;
     if (offset === 0) setLightbox(i);
     else go(i);
   };

@@ -724,6 +724,14 @@
   text-align: right;
 }
 
+/* card 6 carries a much longer condition; the artwork sets it in a smaller size
+   with tighter leading (6 lines, 60u pitch) so it still fits the same box */
+.dhl-cond-6 p {
+  padding: calc(84 * var(--u)) calc(238 * var(--u)) 0 calc(56 * var(--u));
+  font-size: calc(57 * var(--u));
+  line-height: calc(60 * var(--u));
+}
+
 /* ---------- journey ---------- */
 
 .dhl-journey {

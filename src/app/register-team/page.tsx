@@ -13,6 +13,8 @@ import { Checkbox } from '@/../../components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useToast } from '@/../../components/ui/use-toast'
 import Loader from '@/components/ui/loader'
+import SiteHeader from '@/app/landing/components/SiteHeader'
+import SiteFooter from '@/app/landing/components/SiteFooter'
 
 interface Participant {
   fullName: string
@@ -468,10 +470,8 @@ export default function RegisterTeamPage() {
         className={`min-h-screen transition-opacity duration-500 ${contentVisible ? 'opacity-100' : 'opacity-0'} ${showCelebration ? 'pointer-events-none' : ''}`}
         style={{ backgroundColor: '#620F10', fontFamily: 'Somar-Medium, Arial, sans-serif' }}
       >
-      {/* Header Image Section */}
-      <div className="w-full">
-        <img src="/header.png" alt="Header" className="w-full h-auto" />
-      </div>
+      {/* Header (shared with the landing page) */}
+      <SiteHeader standalone />
       
       {/* Form Section */}
       <div className="py-16 px-4 sm:px-6 lg:px-8">
@@ -547,14 +547,14 @@ export default function RegisterTeamPage() {
                         <SelectValue placeholder="اختر المسار..." />
                       </SelectTrigger>
                       <SelectContent className="text-right" dir="rtl">
-                        <SelectItem value="إحياء اللغة العربية بحلول رقمية مبتكرة" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
-                          إحياء اللغة العربية بحلول رقمية مبتكرة
+                        <SelectItem value="تعزيز الدمج المجتمعي لكبار السن والمكفوفين" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          تعزيز الدمج المجتمعي لكبار السن والمكفوفين
                         </SelectItem>
-                        <SelectItem value="تحسين جودة الحياة لكبار السن والمكفوفين" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
-                          تحسين جودة الحياة لكبار السن والمكفوفين
+                        <SelectItem value="إثراء تجربة ضيوف الرحمن في المدن المقدسة" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          إثراء تجربة ضيوف الرحمن في المدن المقدسة
                         </SelectItem>
-                        <SelectItem value="تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
-                          تطوير كفاءة العاملين بقطاع السياحة الدينية (الحج والعمرة)
+                        <SelectItem value="الحلول الاجتماعية المستدامة" className="text-lg py-3 text-right" style={{ fontFamily: 'Somar-Light, Arial, sans-serif' }}>
+                          الحلول الاجتماعية المستدامة
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -707,18 +707,8 @@ export default function RegisterTeamPage() {
         </div>
       </div>
       
-      {/* Footer Image */}
-      <div className="w-full">
-        <picture>
-          <source media="(max-width: 520px)" srcSet="/mobfot.png" />
-          <img 
-            src="/footer.png" 
-            alt="Footer" 
-            className="w-full h-auto"
-            style={{ display: "block" }}
-          />
-        </picture>
-      </div>
+      {/* Footer (shared with the landing page) */}
+      <SiteFooter standalone />
       </div>
     </>
   )
