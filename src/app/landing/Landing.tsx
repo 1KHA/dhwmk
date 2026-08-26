@@ -59,7 +59,7 @@ export default function Landing() {
           <img className="dhl-orn-br" src={ornBottomRight.src} alt="" aria-hidden="true" />
 
           <h1 className="dhl-hero-title">
-            جائزة مايدة محي الدين ناظر للابتكار <span className="dhl-hero-num">3</span>
+            جائزة مايدة محي الدين ناظر للابتكار <span className="dhl-hero-num">4</span>
           </h1>
           <img className="dhl-hero-mark" src={heroMark.src} alt="" aria-hidden="true" />
           <div className="dhl-hero-badge">هاكاثون الابتكار</div>
