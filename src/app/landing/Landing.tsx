@@ -5,14 +5,9 @@ import FAQSection from "./components/FAQSection";
 import CountdownTimer from "./components/CountdownTimer";
 
 import footerLogo from "./assets/footer-logo.png";
-import footerOrn from "./assets/footer-orn.png";
 import iconMail from "./assets/icon-mail.png";
 import iconPhone from "./assets/icon-phone.png";
 import heroMark from "./assets/hero-mark.png";
-import ornTopLeft from "./assets/orn-top-left.png";
-import ornBottomLeft from "./assets/orn-bottom-left.png";
-import ornBottomRight from "./assets/orn-bottom-right.png";
-import ornTarget from "./assets/orn-target.png";
 import glow from "./assets/glow.png";
 import iconCalendar from "./assets/icon-calendar.png";
 import iconClock from "./assets/icon-clock.png";
@@ -34,10 +29,23 @@ const Diamond = ({ className = "" }: { className?: string }) => (
   <span className={`dhl-diamond ${className}`} aria-hidden="true" />
 );
 
+/*
+ * Decorative glyphs from public/pattern (one file per icon in /pattern/icons).
+ * Painted through a CSS mask so each can be tinted to its section; every icon
+ * is used exactly once on the page.
+ */
+const Icon = ({ name, className }: { name: string; className: string }) => (
+  <span
+    className={`dhl-ico ${className}`}
+    style={{ "--ico": `url(/pattern/icons/${name}.svg)` } as React.CSSProperties}
+    aria-hidden="true"
+  />
+);
+
 const REGISTER_URL = "/register-team";
 
 /* Deadline the hero timer counts down to (local time). */
-const COUNTDOWN_TARGET = "2026-10-05T00:00:00";
+const COUNTDOWN_TARGET = "2026-09-24T23:59:59";
 
 export default function Landing() {
   return (
@@ -54,9 +62,9 @@ export default function Landing() {
 
         {/* ===== Hero ===== */}
         <section className="dhl-hero">
-          <img className="dhl-orn-tl" src={ornTopLeft.src} alt="" aria-hidden="true" />
-          <img className="dhl-orn-bl" src={ornBottomLeft.src} alt="" aria-hidden="true" />
-          <img className="dhl-orn-br" src={ornBottomRight.src} alt="" aria-hidden="true" />
+          <Icon name="burst" className="dhl-ico-hero-burst" />
+          <Icon name="arches" className="dhl-ico-hero-arches" />
+          <Icon name="arcs" className="dhl-ico-hero-arcs" />
 
           <h1 className="dhl-hero-title">
             جائزة مايدة محي الدين ناظر للابتكار <span className="dhl-hero-num">4</span>
@@ -81,7 +89,7 @@ export default function Landing() {
               <img className="dhl-panel-icon dhl-panel-cal" src={iconCalendar.src} alt="" aria-hidden="true" />
               <div className="dhl-panel-text">
                 <div>أعمال الهاكاثون</div>
-                <div>05 - 09&nbsp; أكتوبر</div>
+                <div>04 - 08&nbsp; أكتوبر</div>
               </div>
             </div>
             <div className="dhl-panel-group">
@@ -116,25 +124,27 @@ export default function Landing() {
 
         {/* ===== Tracks ===== */}
         <section className="dhl-tracks">
+          <Icon name="bars" className="dhl-ico-tracks" />
           <h2 className="dhl-sect-title dhl-tracks-title">
             المسارات <Diamond />
           </h2>
           <div className="dhl-track-card dhl-track-1">
-            <img className="dhl-track-icon" src={iconTrack1.src} alt="" aria-hidden="true" />
-            <p>إحيـاء اللغة العربيـة<br />بحلول رقمية مبتكرة</p>
+            <img className="dhl-track-icon" src={iconTrack2.src} alt="" aria-hidden="true" />
+            <p>إثراء تجربة ضيوف الرحمن<br />في المدن المقدسة</p>
           </div>
           <div className="dhl-track-card dhl-track-2">
-            <img className="dhl-track-icon" src={iconTrack2.src} alt="" aria-hidden="true" />
-            <p>تطـوير كفـاءة العاملين بقـطاع<br />السياحة الدينية (الحج والعمرة)</p>
+            <img className="dhl-track-icon" src={iconTrack3.src} alt="" aria-hidden="true" />
+            <p>تعزيز الدمج المجتمعي<br />لكبار السن والمكفوفين</p>
           </div>
           <div className="dhl-track-card dhl-track-3">
-            <img className="dhl-track-icon" src={iconTrack3.src} alt="" aria-hidden="true" />
-            <p>تحسيـن جـودة الحيـاة<br />لكبار السن والمكفوفين</p>
+            <img className="dhl-track-icon" src={iconTrack1.src} alt="" aria-hidden="true" />
+            <p>الحلول الاجتماعية<br />المستدامة</p>
           </div>
         </section>
 
         {/* ===== Prizes ===== */}
         <section className="dhl-prizes">
+          <Icon name="pinwheel" className="dhl-ico-dark dhl-ico-prizes" />
           <h2 className="dhl-sect-title dhl-prizes-title">
             الجوائز <Diamond />
           </h2>
@@ -155,7 +165,7 @@ export default function Landing() {
 
         {/* ===== Target audience ===== */}
         <section className="dhl-target">
-          <img className="dhl-orn-target" src={ornTarget.src} alt="" aria-hidden="true" />
+          <Icon name="chevron" className="dhl-ico-dark dhl-ico-target" />
           <h2 className="dhl-target-title">
             <Diamond /> الفئة المستهدفة
           </h2>
@@ -164,6 +174,7 @@ export default function Landing() {
 
         {/* ===== Conditions ===== */}
         <section className="dhl-conds">
+          <Icon name="bars2" className="dhl-ico-dark dhl-ico-conds" />
           <h2 className="dhl-sect-title dhl-conds-title">
             شروط قبول المشاريع في هاكاثون الابتكار <Diamond />
           </h2>
@@ -186,15 +197,16 @@ export default function Landing() {
 
         {/* ===== Participant journey ===== */}
         <section className="dhl-journey">
+          <Icon name="cube" className="dhl-ico-journey" />
           <h2 className="dhl-sect-title dhl-journey-title">
             رحلة المشترك <Diamond />
           </h2>
           {[
-            { cls: "dhl-jcard-1", n: "1", title: "التسجيل", note: "", dates: <>31 أغسطس- 2 أكتوبر<br />2025 م</> },
-            { cls: "dhl-jcard-2", n: "2", title: "الفـرز والترشـيح", note: "", dates: <>14 سبتمبر – 2 أكتوبر<br />2025 م</> },
-            { cls: "dhl-jcard-3", n: "3", title: "أعمال الهاكاثون", note: "(حضوري)", dates: <>5&nbsp; أكتوبر – 6 أكتوبر<br />2025 م</> },
-            { cls: "dhl-jcard-4", n: "4", title: "التوجيه والإرشاد", note: "(افتراضي)", dates: <>7 أكتوبر – 8 أكتوبر<br />2025 م</> },
-            { cls: "dhl-jcard-5", n: "5", title: "الحفــل الختامــي", note: "", dates: <>9&nbsp; أكتوبر<br />2025 م</> },
+            { cls: "dhl-jcard-1", n: "1", title: "الاستقطاب والتسجيل", note: "", dates: <>1 - 24 سبتمبر<br />2026 م</> },
+            { cls: "dhl-jcard-2", n: "2", title: "الفـرز والترشـيح", note: "", dates: <>13 - 30 سبتمبر<br />2026 م</> },
+            { cls: "dhl-jcard-3", n: "3", title: " القبول والرفض", note: "(الموعد النهائي)", dates: <>30 سبتمبر<br />2026 م</> },
+            { cls: "dhl-jcard-4", n: "4", title: "تشغيل الهاكاثون", note: "(حضوري)", dates: <>4 - 8 أكتوبر<br />2026 م</> },
+            { cls: "dhl-jcard-5", n: "5", title: "الحفــل الختامــي", note: "", dates: <>8&nbsp; أكتوبر<br />2026 م</> },
           ].map((s) => (
             <div key={s.cls} className={`dhl-jcard ${s.cls}`}>
               <span className="dhl-jbadge">{s.n}</span>
@@ -222,7 +234,7 @@ export default function Landing() {
         {/* ===== Footer ===== */}
         <footer className="dhl-footer">
           <img className="dhl-f-logo" src={footerLogo.src} alt="شركة وادي مكة للتقنية - الجهة المنظمة" />
-          <img className="dhl-f-orn" src={footerOrn.src} alt="" aria-hidden="true" />
+          <Icon name="link" className="dhl-ico-footer" />
           <h2 className="dhl-f-head">للتواصل</h2>
           <img className="dhl-f-mail-icon" src={iconMail.src} alt="" aria-hidden="true" />
           <a className="dhl-f-email" href="mailto:Nomow@wadimakka.sa">Nomow@wadimakka.sa</a>

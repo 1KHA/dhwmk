@@ -79,6 +79,31 @@
   line-height: 1;
 }
 
+/*
+ * Decorative glyphs (public/pattern/icons/*.svg, split from pattern.svg). The
+ * element sets `--ico` to its icon; it is painted through a CSS mask so the same
+ * glyph can be white on maroon or maroon on light. Each glyph appears once.
+ */
+.dhl-ico {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background: #ffffff;
+  opacity: 0.3;
+  -webkit-mask-image: var(--ico);
+  mask-image: var(--ico);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.dhl-ico-dark {
+  background: var(--maroon);
+  opacity: 0.1;
+}
+
 /* ---------- header ---------- */
 
 .dhl-header {
@@ -112,26 +137,29 @@
   overflow: hidden;
 }
 
-.dhl-orn-tl {
-  position: absolute;
-  top: calc(6 * var(--u));
-  left: calc(140 * var(--u));
-  width: calc(780 * var(--u));
-  height: calc(378 * var(--u));
+/* a sun bleeding off the top-left corner */
+.dhl-ico-hero-burst {
+  top: calc(-140 * var(--u));
+  left: calc(-160 * var(--u));
+  width: calc(640 * var(--u));
+  height: calc(652 * var(--u));
+  opacity: 0.28;
 }
-.dhl-orn-bl {
-  position: absolute;
-  top: calc(1884 * var(--u));
-  left: 0;
-  width: calc(800 * var(--u));
-  height: calc(460 * var(--u));
+/* arches rising from the bottom-left edge */
+.dhl-ico-hero-arches {
+  bottom: calc(-60 * var(--u));
+  left: calc(230 * var(--u));
+  width: calc(342 * var(--u));
+  height: calc(620 * var(--u));
+  opacity: 0.35;
 }
-.dhl-orn-br {
-  position: absolute;
-  top: calc(1884 * var(--u));
-  right: 0;
-  width: calc(440 * var(--u));
-  height: calc(460 * var(--u));
+/* ripples radiating out of the bottom-right corner (the arcs' centre sits on the corner) */
+.dhl-ico-hero-arcs {
+  bottom: calc(-20 * var(--u));
+  right: calc(-20 * var(--u));
+  width: calc(720 * var(--u));
+  height: calc(720 * var(--u));
+  opacity: 0.28;
 }
 
 .dhl-hero-title {
@@ -460,6 +488,13 @@
   background: var(--maroon);
 }
 
+.dhl-ico-tracks {
+  top: calc(80 * var(--u));
+  left: calc(300 * var(--u));
+  width: calc(400 * var(--u));
+  height: calc(215 * var(--u));
+}
+
 .dhl-tracks-title {
   top: calc(80 * var(--u));
   right: calc(289 * var(--u));
@@ -488,19 +523,21 @@
   position: absolute;
   top: calc(60 * var(--u));
 }
+/* each glyph keeps its own aspect ratio; `left` keeps the icon on the same
+   centre line the artwork uses for that card */
 .dhl-track-1 .dhl-track-icon {
-  left: calc(747 * var(--u));
-  width: calc(98 * var(--u));
-  height: calc(98 * var(--u));
-}
-.dhl-track-2 .dhl-track-icon {
-  left: calc(817 * var(--u));
+  left: calc(748 * var(--u));
   width: calc(95 * var(--u));
   height: calc(95 * var(--u));
 }
-.dhl-track-3 .dhl-track-icon {
-  left: calc(792 * var(--u));
+.dhl-track-2 .dhl-track-icon {
+  left: calc(832 * var(--u));
   width: calc(64 * var(--u));
+  height: calc(98 * var(--u));
+}
+.dhl-track-3 .dhl-track-icon {
+  left: calc(775 * var(--u));
+  width: calc(98 * var(--u));
   height: calc(98 * var(--u));
 }
 
@@ -522,6 +559,13 @@
   position: relative;
   height: calc(1780 * var(--u));
   background: #ffffff;
+}
+
+.dhl-ico-prizes {
+  top: calc(220 * var(--u));
+  left: calc(300 * var(--u));
+  width: calc(360 * var(--u));
+  height: calc(355 * var(--u));
 }
 
 .dhl-prizes-title {
@@ -592,12 +636,12 @@
   background: #f9f9f9;
 }
 
-.dhl-orn-target {
-  position: absolute;
-  top: calc(258 * var(--u));
-  left: 0;
-  width: calc(710 * var(--u));
-  height: calc(430 * var(--u));
+.dhl-ico-target {
+  top: calc(270 * var(--u));
+  left: calc(60 * var(--u));
+  width: calc(216 * var(--u));
+  height: calc(400 * var(--u));
+  opacity: 0.14;
 }
 
 .dhl-target-title {
@@ -630,6 +674,14 @@
   position: relative;
   height: calc(2586 * var(--u));
   background: #ffffff;
+}
+
+.dhl-ico-conds {
+  top: calc(1940 * var(--u));
+  right: calc(300 * var(--u));
+  width: calc(460 * var(--u));
+  height: calc(191 * var(--u));
+  transform: rotate(-6deg);
 }
 
 .dhl-conds-title {
@@ -678,6 +730,13 @@
   position: relative;
   height: calc(2552 * var(--u));
   background: var(--maroon);
+}
+
+.dhl-ico-journey {
+  top: calc(410 * var(--u));
+  left: calc(640 * var(--u));
+  width: calc(380 * var(--u));
+  height: calc(343 * var(--u));
 }
 
 .dhl-journey-title {
@@ -779,144 +838,386 @@
   font-display: swap;
 }
 
-/* --- carousel --- */
+/* --- winners carousel --- */
+/* Coverflow deck of the winning-team posters (4:5). Card transforms are set
+   inline by ImageCarousel.tsx; everything else lives here. Reads RTL: the next
+   card waits on the left. */
 
-.dhl-carousel {
-  width: 100%;
-  padding: 6rem 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #ffffff;
-  min-height: 800px;
+.dhl-wc {
+  --wc-card: clamp(200px, 24vw, 400px);
+  --wc-arrow: clamp(40px, 4vw, 56px);
   position: relative;
+  width: 100%;
+  padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(2.5rem, 4vw, 4rem);
+  background: #ffffff;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.dhl-car-track {
+.dhl-wc-stage {
+  position: relative;
+  height: calc(var(--wc-card) * 1.25 + 4rem);
+  perspective: 1400px;
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+}
+.dhl-wc-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.dhl-wc-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 0.25rem;
+  width: calc(var(--wc-card) * 2);
+  height: calc(var(--wc-card) * 0.5);
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(98, 15, 16, 0.22), rgba(98, 15, 16, 0) 65%);
+  pointer-events: none;
+}
+
+.dhl-wc-card {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  width: var(--wc-card);
+  aspect-ratio: 4 / 5;
+  margin: 0 0 0 calc(var(--wc-card) / -2);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f4efe9;
+  box-shadow: 0 18px 40px -14px rgba(40, 10, 10, 0.45), 0 2px 6px rgba(0, 0, 0, 0.08);
+  filter: saturate(0.8) brightness(0.88);
+  transition:
+    transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.6s ease,
+    filter 0.6s ease,
+    box-shadow 0.3s ease;
+  will-change: transform;
+  cursor: pointer;
+}
+.dhl-wc-stage.is-dragging .dhl-wc-card {
+  transition: filter 0.6s ease, box-shadow 0.3s ease;
+}
+.dhl-wc-card.is-active {
+  filter: none;
+  box-shadow:
+    0 30px 60px -20px rgba(40, 10, 10, 0.55),
+    0 0 0 3px #ffffff,
+    0 0 0 6px var(--gold);
+}
+.dhl-wc-stage:focus-visible .dhl-wc-card.is-active {
+  box-shadow:
+    0 30px 60px -20px rgba(40, 10, 10, 0.55),
+    0 0 0 3px #ffffff,
+    0 0 0 6px var(--blue);
+}
+
+.dhl-wc-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  transition: transform 0.5s ease;
+}
+.dhl-wc-card.is-active:hover img {
+  transform: scale(1.03);
+}
+
+/* "open" hint that fades in on the active card */
+.dhl-wc-zoom {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(98, 15, 16, 0.85);
+  color: #ffffff;
+  font-size: 20px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.dhl-wc-card.is-active .dhl-wc-zoom {
+  display: flex;
+}
+.dhl-wc-card.is-active:hover .dhl-wc-zoom {
+  opacity: 1;
+  transform: none;
+}
+
+.dhl-wc-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 20;
+  width: var(--wc-arrow);
+  height: var(--wc-arrow);
+  border-radius: 50%;
+  border: 0;
+  background: var(--maroon);
+  color: #ffffff;
+  font-size: calc(var(--wc-arrow) * 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  max-width: 100vw;
-  width: 100%;
+  box-shadow: 0 8px 20px -6px rgba(98, 15, 16, 0.6);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.dhl-wc-arrow:hover {
+  background: #7a1a1b;
+  transform: translateY(-50%) scale(1.08);
+}
+.dhl-wc-arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
+.dhl-wc-arrow-next {
+  left: calc(50% - var(--wc-card) * 1.18 - var(--wc-arrow) - 0.75rem);
+}
+.dhl-wc-arrow-prev {
+  right: calc(50% - var(--wc-card) * 1.18 - var(--wc-arrow) - 0.75rem);
+}
+
+.dhl-wc-caption {
+  margin: 1.25rem auto 0;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  line-height: 1.3;
+  animation: dhl-wc-caption 0.5s ease both;
+}
+.dhl-wc-count {
+  color: var(--gray-text);
+  font-weight: 500;
+  font-size: 0.7em;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes dhl-wc-caption {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dhl-wc-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+  padding: 0 1rem;
+}
+.dhl-wc-chip {
   position: relative;
+  overflow: hidden;
+  padding: 0.55em 1.3em;
+  border-radius: 999px;
+  border: 2px solid rgba(98, 15, 16, 0.25);
+  background: #ffffff;
+  color: var(--maroon);
+  font: inherit;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
-
-.dhl-car-image {
+.dhl-wc-chip:hover {
+  border-color: var(--maroon);
+  transform: translateY(-2px);
+}
+.dhl-wc-chip.is-active {
+  background: var(--maroon);
+  border-color: var(--maroon);
+  color: #ffffff;
+}
+.dhl-wc-chip-text {
   position: relative;
-  flex-shrink: 0;
-  overflow: visible;
-  transition: all 0.4s ease-in-out;
-}
-
-.dhl-car-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  pointer-events: none;
-  transition: opacity 0.4s ease-in-out;
-}
-
-.dhl-car-left,
-.dhl-car-right {
-  width: 720px;
-  height: 540px;
-  opacity: 0.8;
   z-index: 1;
 }
-.dhl-car-left {
-  transform: scale(0.9) translateY(0px) translateX(25%);
+.dhl-wc-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 0;
+  background: rgba(252, 205, 141, 0.38);
+  animation: dhl-wc-progress linear forwards;
 }
-.dhl-car-right {
-  transform: scale(0.9) translateY(0px) translateX(-25%);
-}
-
-.dhl-car-center {
-  width: 800px;
-  height: 600px;
-  transform: scale(1) translateY(-40px);
-  opacity: 1;
-  z-index: 3;
-}
-
-.dhl-carousel[data-fade="fadeOut"] .dhl-car-image {
-  opacity: 0;
-}
-
-.dhl-car-left:hover {
-  opacity: 0.95;
-  transform: scale(0.95) translateY(-10px) translateX(25%);
-}
-.dhl-car-right:hover {
-  opacity: 0.95;
-  transform: scale(0.95) translateY(-10px) translateX(-25%);
-}
-.dhl-car-center:hover {
-  transform: scale(1.05) translateY(-50px);
-}
-
-@media (max-width: 768px) {
-  .dhl-carousel {
-    padding: 4rem 0;
-    min-height: 500px;
+@keyframes dhl-wc-progress {
+  from {
+    width: 0;
   }
-  .dhl-car-track {
-    gap: 3rem;
-  }
-  .dhl-car-left,
-  .dhl-car-right {
-    width: 432px;
-    height: 324px;
-  }
-  .dhl-car-left {
-    transform: scale(0.9) translateY(0px) translateX(40%);
-  }
-  .dhl-car-right {
-    transform: scale(0.9) translateY(0px) translateX(-40%);
-  }
-  .dhl-car-center {
-    width: 480px;
-    height: 360px;
-    transform: scale(1) translateY(-30px);
-  }
-  .dhl-car-left:hover {
-    transform: scale(0.95) translateY(-5px) translateX(40%);
-  }
-  .dhl-car-right:hover {
-    transform: scale(0.95) translateY(-5px) translateX(-40%);
-  }
-  .dhl-car-center:hover {
-    transform: scale(1.02) translateY(-35px);
+  to {
+    width: 100%;
   }
 }
 
-@media (max-width: 480px) {
-  .dhl-carousel {
-    padding: 3rem 0;
-    min-height: 400px;
+/* full-screen poster viewer (portalled to <body>) */
+.dhl-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 4.5rem;
+  background: rgba(30, 6, 6, 0.9);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: "DHLSomar", "Somar-Bold", sans-serif;
+  animation: dhl-lb-in 0.25s ease both;
+}
+@keyframes dhl-lb-in {
+  from {
+    opacity: 0;
   }
-  .dhl-car-track {
-    gap: 2rem;
+  to {
+    opacity: 1;
   }
-  .dhl-car-left,
-  .dhl-car-right {
-    width: 324px;
-    height: 243px;
+}
+.dhl-lb-figure {
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  animation: dhl-lb-pop 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes dhl-lb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
   }
-  .dhl-car-left {
-    transform: scale(0.9) translateY(0px) translateX(30%);
+  to {
+    opacity: 1;
+    transform: none;
   }
-  .dhl-car-right {
-    transform: scale(0.9) translateY(0px) translateX(-30%);
+}
+.dhl-lb-figure img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 9rem);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.dhl-lb-figure figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+}
+.dhl-lb-figure figcaption span {
+  color: #fccd8d;
+  font-weight: 500;
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+}
+.dhl-lb-close,
+.dhl-lb-arrow {
+  position: absolute;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.dhl-lb-close:hover,
+.dhl-lb-arrow:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.dhl-lb-close {
+  top: 1rem;
+  inset-inline-start: 1rem;
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
+}
+.dhl-lb-arrow {
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  font-size: 26px;
+  transform: translateY(-50%);
+}
+.dhl-lb-arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+}
+.dhl-lb-arrow-next {
+  left: 1rem;
+}
+.dhl-lb-arrow-prev {
+  right: 1rem;
+}
+
+@media (max-width: 640px) {
+  .dhl-wc {
+    --wc-card: min(60vw, 260px);
+    --wc-arrow: 40px;
   }
-  .dhl-car-center {
-    width: 360px;
-    height: 270px;
-    transform: scale(1) translateY(-20px);
+  .dhl-wc-arrow-next {
+    left: 0.5rem;
+  }
+  .dhl-wc-arrow-prev {
+    right: 0.5rem;
+  }
+  .dhl-lb {
+    padding: 4rem 0.75rem 3rem;
+  }
+  .dhl-lb-arrow {
+    top: auto;
+    bottom: 0.75rem;
+    width: 44px;
+    height: 44px;
+    transform: none;
+  }
+  .dhl-lb-arrow:hover {
+    transform: scale(1.08);
+  }
+  .dhl-lb-figure img {
+    max-height: calc(100vh - 11rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dhl-wc-card,
+  .dhl-wc-card img,
+  .dhl-wc-arrow,
+  .dhl-wc-chip {
+    transition: none;
+  }
+  .dhl-wc-caption,
+  .dhl-lb,
+  .dhl-lb-figure {
+    animation: none;
   }
 }
 
@@ -1173,12 +1474,13 @@
   height: calc(243 * var(--u));
 }
 
-.dhl-f-orn {
-  position: absolute;
-  top: calc(46 * var(--u));
-  right: 0;
-  width: calc(796 * var(--u));
-  height: calc(492 * var(--u));
+.dhl-ico-footer {
+  top: calc(108 * var(--u));
+  right: calc(260 * var(--u));
+  width: calc(330 * var(--u));
+  height: calc(321 * var(--u));
+  opacity: 0.35;
+  transform: rotate(-12deg);
 }
 
 .dhl-f-head {
