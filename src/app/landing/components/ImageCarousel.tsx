@@ -97,8 +97,9 @@ export default function ImageCarousel({ slides = WINNERS, autoRotateInterval = 5
   /* ---- pointer drag / swipe ---- */
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
+    /* the arrows are real buttons — leave their own click handling alone */
+    if ((e.target as HTMLElement).closest("button")) return;
     pointer.current = { id: e.pointerId, x: e.clientX, t: performance.now(), moved: false };
-    stageRef.current?.setPointerCapture(e.pointerId);
     setDragging(true);
     setDrag(0);
   };
@@ -106,7 +107,13 @@ export default function ImageCarousel({ slides = WINNERS, autoRotateInterval = 5
     const p = pointer.current;
     if (!p || e.pointerId !== p.id) return;
     const dx = e.clientX - p.x;
-    if (Math.abs(dx) > 6) p.moved = true;
+    if (!p.moved) {
+      if (Math.abs(dx) <= 6) return;
+      p.moved = true;
+      /* capture only once a real drag starts: capturing on pointerdown would
+         retarget the follow-up click to the stage and swallow card/button clicks */
+      stageRef.current?.setPointerCapture(e.pointerId);
+    }
     setDrag(dx);
   };
   const endDrag = (e: React.PointerEvent) => {
