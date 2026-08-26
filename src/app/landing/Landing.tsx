@@ -97,7 +97,7 @@ export default function Landing() {
           </p>
           <a className="dhl-ready-btn" href={REGISTER_URL} data-reveal style={{ "--reveal-delay": "240ms" } as React.CSSProperties}>سجل الآن</a>
 
-          <div className="dhl-banner" data-reveal="scale" style={{ "--reveal-delay": "200ms" } as React.CSSProperties}>
+          <div className="dhl-banner" data-reveal style={{ "--reveal-delay": "200ms" } as React.CSSProperties}>
             <Diamond />
             <span className="dhl-banner-text">جوائز بقيمة 200,000</span>
             <img className="dhl-banner-sar" src={sarBanner.src} alt="ريال سعودي" />

@@ -156,38 +156,73 @@
    inline script in Landing.tsx has confirmed JS by adding .dhl-js — and are
    revealed by RevealObserver when they scroll into view. Variants pick the
    direction; --reveal-delay staggers siblings. */
+/* The reveal drives the `translate` property (not `transform`) so it composes
+   with the hover `scale` below and with the hero keyframes. */
 .dhl.dhl-js [data-reveal] {
   opacity: 0;
-  transform: translateY(calc(56 * var(--u)));
+  translate: 0 calc(56 * var(--u));
   transition:
     opacity 0.8s ease-out var(--reveal-delay, 0ms),
-    transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
+    translate 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms),
+    scale 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.35s ease;
+  will-change: opacity, translate;
 }
 .dhl.dhl-js [data-reveal="fade"] {
-  transform: none;
-}
-.dhl.dhl-js [data-reveal="scale"] {
-  transform: scale(0.92);
+  translate: none;
 }
 .dhl.dhl-js [data-reveal="left"] {
-  transform: translateX(calc(-120 * var(--u)));
+  translate: calc(-120 * var(--u)) 0;
 }
 .dhl.dhl-js [data-reveal="right"] {
-  transform: translateX(calc(120 * var(--u)));
+  translate: calc(120 * var(--u)) 0;
 }
 .dhl.dhl-js [data-reveal].is-in {
   opacity: 1;
-  transform: none;
+  translate: none;
   will-change: auto;
 }
 /* "group" containers stay visible themselves; their children's own keyframe
    entrances (the FAQ) are held until the container scrolls into view. */
 .dhl.dhl-js [data-reveal="group"] {
   opacity: 1;
-  transform: none;
+  translate: none;
   transition: none;
   will-change: auto;
+}
+
+/* Boxes zoom slightly on hover (via the `scale` property, independent of the
+   reveal translate and the hero transform keyframes). */
+.dhl-track-card,
+.dhl-prize-card,
+.dhl-cond-card,
+.dhl-jcard,
+.dhl-banner,
+.dhl-panel,
+.dhl-cd-unit {
+  transition: scale 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.35s ease;
+}
+.dhl-track-card:hover,
+.dhl-prize-card:hover,
+.dhl-cond-card:hover,
+.dhl-jcard:hover,
+.dhl-banner:hover,
+.dhl-panel:hover,
+.dhl-cd-unit:hover {
+  scale: 1.04;
+  z-index: 5;
+  box-shadow: 0 calc(30 * var(--u)) calc(60 * var(--u)) calc(-20 * var(--u)) rgba(0, 0, 0, 0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dhl-track-card:hover,
+  .dhl-prize-card:hover,
+  .dhl-cond-card:hover,
+  .dhl-jcard:hover,
+  .dhl-banner:hover,
+  .dhl-panel:hover,
+  .dhl-cd-unit:hover {
+    scale: none;
+  }
 }
 .dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-title-row,
 .dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-category {
@@ -209,7 +244,7 @@
   }
   .dhl.dhl-js [data-reveal] {
     opacity: 1;
-    transform: none;
+    translate: none;
     transition: none;
   }
   .dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-title-row,
@@ -633,26 +668,24 @@
   left: calc(278 * var(--u));
 }
 
+/* Same 98u square for every icon; the image fits inside it at its own aspect
+   ratio (no stretching). `left` keeps each icon on the centre line the
+   artwork uses for that card. */
 .dhl-track-icon {
   position: absolute;
   top: calc(60 * var(--u));
+  width: calc(98 * var(--u));
+  height: calc(98 * var(--u));
+  object-fit: contain;
 }
-/* each glyph keeps its own aspect ratio; `left` keeps the icon on the same
-   centre line the artwork uses for that card */
 .dhl-track-1 .dhl-track-icon {
-  left: calc(748 * var(--u));
-  width: calc(95 * var(--u));
-  height: calc(95 * var(--u));
+  left: calc(747 * var(--u));
 }
 .dhl-track-2 .dhl-track-icon {
-  left: calc(832 * var(--u));
-  width: calc(64 * var(--u));
-  height: calc(98 * var(--u));
+  left: calc(815 * var(--u));
 }
 .dhl-track-3 .dhl-track-icon {
   left: calc(775 * var(--u));
-  width: calc(98 * var(--u));
-  height: calc(98 * var(--u));
 }
 
 .dhl-track-card p {
