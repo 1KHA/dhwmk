@@ -18,6 +18,19 @@
   font-display: swap;
 }
 
+/*
+ * The static Somar OTFs draw the Latin lowercase "k" as a capital K shape, so a
+ * mail address like wadimakkah renders as "wadimaKKah". The variable Somar file
+ * has a proper lowercase alphabet, so Latin text (the footer's e-mail and phone)
+ * uses this face; declaring the full 100-900 range lets the browser hit any weight.
+ */
+@font-face {
+  font-family: "DHLSomarLatin";
+  src: url("./assets/fonts/alfont_com_SomarGX.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 .dhl-viewport {
   container-type: inline-size;
   width: 100%;
@@ -1710,11 +1723,13 @@
 
 .dhl-f-email {
   position: absolute;
-  top: calc(196 * var(--u));
+  top: calc(202 * var(--u));
   right: calc(1078 * var(--u));
   color: #ffffff;
+  /* Latin face (see @font-face note above); 60u here matches the 90u static face optically */
+  font-family: "DHLSomarLatin", "DHLSomar", sans-serif;
   font-weight: 700;
-  font-size: calc(90 * var(--u));
+  font-size: calc(60 * var(--u));
   line-height: calc(80 * var(--u));
   direction: ltr;
   text-decoration: none;
@@ -1730,11 +1745,12 @@
 
 .dhl-f-phone {
   position: absolute;
-  top: calc(305 * var(--u));
+  top: calc(311 * var(--u));
   right: calc(1077 * var(--u));
   color: #ffffff;
+  font-family: "DHLSomarLatin", "DHLSomar", sans-serif;
   font-weight: 700;
-  font-size: calc(90 * var(--u));
+  font-size: calc(60 * var(--u));
   line-height: calc(76 * var(--u));
   direction: ltr;
   text-decoration: none;
