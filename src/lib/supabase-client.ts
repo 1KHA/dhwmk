@@ -1,14 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-// Client-side Supabase client using anon key (safe for browser)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Client-side Supabase client using anon key (safe for browser).
+// Created lazily: this module is also evaluated on the server while Next
+// prerenders pages that import it, so it must not throw at import time when
+// the env vars are absent (e.g. during `next build`).
+let client: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+function getSupabase(): SupabaseClient {
+  if (client) return client;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase environment variables: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+    );
+  }
+  client = createClient(supabaseUrl, supabaseAnonKey);
+  return client;
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Upload a file directly to Supabase Storage from the browser
@@ -29,7 +38,7 @@ export async function uploadFileToSupabase(
     const filePath = `${folder}/${fileName}`;
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { data, error } = await getSupabase().storage
       .from('uploads')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -42,7 +51,7 @@ export async function uploadFileToSupabase(
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = getSupabase().storage
       .from('uploads')
       .getPublicUrl(filePath);
 
@@ -62,7 +71,7 @@ export async function uploadFileToSupabase(
  */
 export async function deleteFileFromSupabase(filePath: string): Promise<void> {
   try {
-    const { error } = await supabase.storage
+    const { error } = await getSupabase().storage
       .from('uploads')
       .remove([filePath]);
 
