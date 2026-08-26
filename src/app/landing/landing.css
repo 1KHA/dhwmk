@@ -91,8 +91,16 @@
   position: absolute;
   top: calc(105 * var(--u));
   right: calc(284 * var(--u));
-  width: calc(1377 * var(--u));
   height: calc(285 * var(--u));
+  display: flex;
+  align-items: center;
+  direction: ltr;
+  gap: calc(60 * var(--u));
+}
+
+.dhl-logos img {
+  height: 100%;
+  width: auto;
 }
 
 /* ---------- hero ---------- */
@@ -256,6 +264,120 @@
   font-weight: 500;
   font-size: calc(87 * var(--u));
   line-height: calc(96 * var(--u));
+}
+
+/* --- hero countdown (live timer in the space the artwork reserves for it) --- */
+
+.dhl-cd {
+  position: absolute;
+  top: calc(1262 * var(--u));
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 3;
+
+  /*
+   * `--cu` is the countdown's own unit. On wide screens it is exactly `--u`, so the
+   * timer is drawn at the design scale (at 1920px it matches the home page timer
+   * 1:1). Below ~880px it stops shrinking with the artwork so the digits stay
+   * readable, and it never scales past 1.4x `--u` so it always fits the gap the
+   * artwork reserves between the label and the date panel.
+   */
+  --cu: clamp(var(--u), 0.23px, calc(var(--u) * 1.4));
+  --digit-height: calc(96 * var(--cu));
+}
+
+.dhl-cd-grid {
+  display: flex;
+  justify-content: center;
+  gap: calc(48 * var(--cu));
+  flex-wrap: wrap;
+}
+
+.dhl-cd-unit {
+  min-width: calc(240 * var(--cu));
+  padding: calc(32 * var(--cu));
+  background: #fff2e9;
+  border: calc(2 * var(--cu)) solid #fff2e9;
+  border-radius: calc(32 * var(--cu));
+  box-shadow: 0 calc(16 * var(--cu)) calc(64 * var(--cu)) rgba(0, 0, 0, 0.1);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(calc(60 * var(--cu))) scale(0.9);
+  animation: dhl-cd-in 0.8s ease-out forwards;
+}
+.dhl-cd-unit:nth-child(1) { animation-delay: 0.3s; }
+.dhl-cd-unit:nth-child(2) { animation-delay: 0.4s; }
+.dhl-cd-unit:nth-child(3) { animation-delay: 0.5s; }
+.dhl-cd-unit:nth-child(4) { animation-delay: 0.6s; }
+
+.dhl-cd-digits {
+  display: flex;
+  justify-content: center;
+  margin-bottom: calc(16 * var(--cu));
+}
+
+.dhl-cd-window {
+  position: relative;
+  width: calc(48 * var(--cu));
+  height: calc(96 * var(--cu));
+  overflow: hidden;
+}
+
+.dhl-cd-column {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dhl-cd-digit {
+  height: calc(96 * var(--cu));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: calc(80 * var(--cu));
+  line-height: 1;
+  color: #761814;
+}
+
+.dhl-cd-label {
+  font-weight: 500;
+  font-size: calc(61 * var(--cu));
+  line-height: calc(92 * var(--cu));
+  color: #666666;
+}
+
+.dhl-cd-expired {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: calc(64 * var(--cu));
+  line-height: calc(80 * var(--cu));
+  opacity: 0;
+  transform: translateY(calc(40 * var(--cu)));
+  animation: dhl-cd-in 1s ease-out forwards;
+}
+
+@keyframes dhl-cd-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dhl-cd-unit,
+  .dhl-cd-expired {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .dhl-cd-column {
+    transition: none;
+  }
 }
 
 /* ---------- ready ---------- */

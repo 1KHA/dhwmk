@@ -16,6 +16,7 @@ src/app/landing/
 ├── Landing.tsx     # All markup (server component, no state)
 ├── landing.css     # All styles (scoped with .dhl- prefix)
 ├── components/
+│   ├── CountdownTimer.tsx # Live hero countdown (rolling digits), ported from the home page
 │   ├── ImageCarousel.tsx  # Winning-projects carousel (auto-rotate + drag), ported from the home page
 │   └── FAQSection.tsx     # Expandable FAQ, ported from the home page
 ├── assets/         # Cropped image assets from the original artwork
@@ -43,13 +44,23 @@ logo and ornament as cropped assets).
 1. Copy the whole `src/app/landing/` folder into the target Next.js (App Router) project's `app/` dir.
 2. That's it — fonts and images are imported relatively from inside the folder.
    - Requires a bundler that handles static image imports and CSS `url()` assets (Next.js does both out of the box).
-3. If the target project's global CSS injects aggressive resets, the component already guards against
+3. Two constants at the top of `Landing.tsx` are the things you normally change:
+   `REGISTER_URL` (the "سجل الآن" button) and `COUNTDOWN_TARGET` (the hero countdown deadline).
+4. If the target project's global CSS injects aggressive resets, the component already guards against
    the common ones (e.g. Tailwind preflight's `img { max-width: 100% }` is undone with `max-width: none`).
-4. The "سجل الآن" button links to `/register-team` — change `REGISTER_URL` in `Landing.tsx` as needed.
+5. The page is otherwise dependency-free — only React and the bundler are required.
 
 ## Notes
 
-- The empty maroon area under "الوقت المتبقي على إغلاق التسجيل" mirrors the original image, which
-  reserves that space for a live countdown overlay. Mount your countdown component there if needed
-  (absolute position, `top: calc(1250 * var(--u))`, centered).
+- The maroon area under "الوقت المتبقي على إغلاق التسجيل" — which the original artwork leaves empty
+  for an overlay — holds the live countdown (`components/CountdownTimer.tsx`). It is the same
+  rolling-digit timer as the original home page: at 1920px it renders pixel-identically to it
+  (120px cards, 24px gaps, 2.5rem digits).
+  - Its deadline is `COUNTDOWN_TARGET` in `Landing.tsx`; past that moment it shows
+    "انتهى وقت التسجيل!" exactly like the home page does.
+  - Sizing uses its own unit, `--cu`, defined in `landing.css` as
+    `clamp(var(--u), 0.23px, calc(var(--u) * 1.4))`: it tracks the artwork scale on wide screens,
+    stops shrinking below ~880px so the digits stay readable, and can never grow past 1.4×
+    the artwork scale, which is what keeps it inside the gap between the label and the date panel
+    at every width (verified from 320px to 2560px).
 - The page is RTL (`dir="rtl"`) and uses the Somar font family bundled in `assets/fonts/`.

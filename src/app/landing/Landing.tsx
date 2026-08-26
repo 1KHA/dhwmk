@@ -2,8 +2,8 @@ import "./landing.css";
 
 import ImageCarousel from "./components/ImageCarousel";
 import FAQSection from "./components/FAQSection";
+import CountdownTimer from "./components/CountdownTimer";
 
-import logos from "./assets/logos.png";
 import footerLogo from "./assets/footer-logo.png";
 import footerOrn from "./assets/footer-orn.png";
 import iconMail from "./assets/icon-mail.png";
@@ -36,13 +36,20 @@ const Diamond = ({ className = "" }: { className?: string }) => (
 
 const REGISTER_URL = "/register-team";
 
+/* Deadline the hero timer counts down to (local time). */
+const COUNTDOWN_TARGET = "2026-10-05T00:00:00";
+
 export default function Landing() {
   return (
     <div className="dhl-viewport">
       <main className="dhl" dir="rtl" lang="ar">
         {/* ===== Header ===== */}
         <header className="dhl-header">
-          <img className="dhl-logos" src={logos.src} alt="جامعة دار الحكمة | هيئة تنمية البحث والتطوير والابتكار | مؤسسة صالح عبدالله كامل الإنسانية" />
+          <div className="dhl-logos">
+            <img src="/logos/03.png" width={2196} height={982} alt="هيئة تنمية البحث والتطوير والابتكار" />
+            <img src="/logos/02.png" width={792} height={792} alt="جامعة دار الحكمة" />
+            <img src="/logos/01.png" width={678} height={953} alt="مؤسسة صالح عبدالله كامل الإنسانية" />
+          </div>
         </header>
 
         {/* ===== Hero ===== */}
@@ -65,7 +72,8 @@ export default function Landing() {
 
           <p className="dhl-hero-countdown-label">الوقت المتبقي على إغلاق التسجيل</p>
 
-          {/* Empty space below the label is reserved for a live countdown overlay */}
+          {/* The artwork reserves this space for the live countdown */}
+          <CountdownTimer targetDate={COUNTDOWN_TARGET} />
 
           <img className="dhl-panel-glow" src={glow.src} alt="" aria-hidden="true" />
           <div className="dhl-panel">
