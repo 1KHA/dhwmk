@@ -688,43 +688,95 @@
   color: var(--maroon);
 }
 
+/* Podium: all three cards share a baseline; height, type size and the medal
+   badge step down from 1st to 3rd so the ranking reads at a glance. */
 .dhl-prize-card {
+  --pz-name: calc(224 * var(--u));
+  --pz-amount: calc(220 * var(--u));
+  --pz-name-bottom: calc(430 * var(--u));
+  --pz-amount-bottom: calc(216 * var(--u));
   position: absolute;
   width: calc(1072 * var(--u));
-  background: linear-gradient(180deg, #f3f9fc 0%, #bcdbf2 100%);
+  background: linear-gradient(180deg, #f5fafd 0%, #cfe4f4 100%);
   border-radius: calc(14 * var(--u)) calc(14 * var(--u)) 0 0;
-}
-.dhl-prize-2 {
-  left: calc(2485 * var(--u));
-  top: calc(713 * var(--u));
-  height: calc(871 * var(--u));
+  box-shadow: 0 calc(24 * var(--u)) calc(48 * var(--u)) calc(-28 * var(--u)) rgba(98, 15, 16, 0.25);
 }
 .dhl-prize-1 {
   left: calc(1385 * var(--u));
   top: calc(400 * var(--u));
   height: calc(1184 * var(--u));
+  background: linear-gradient(180deg, #eef7fc 0%, #a9d0ee 100%);
+  box-shadow: 0 calc(36 * var(--u)) calc(72 * var(--u)) calc(-30 * var(--u)) rgba(98, 15, 16, 0.4);
+  z-index: 1;
+}
+.dhl-prize-2 {
+  --pz-name: calc(196 * var(--u));
+  --pz-amount: calc(190 * var(--u));
+  --pz-name-bottom: calc(390 * var(--u));
+  --pz-amount-bottom: calc(200 * var(--u));
+  left: calc(2485 * var(--u));
+  top: calc(624 * var(--u));
+  height: calc(960 * var(--u));
 }
 .dhl-prize-3 {
+  --pz-name: calc(172 * var(--u));
+  --pz-amount: calc(166 * var(--u));
+  --pz-name-bottom: calc(330 * var(--u));
+  --pz-amount-bottom: calc(170 * var(--u));
   left: calc(285 * var(--u));
-  top: calc(777 * var(--u));
-  height: calc(807 * var(--u));
+  top: calc(824 * var(--u));
+  height: calc(760 * var(--u));
+}
+
+/* medal badge straddling the card's top edge */
+.dhl-prize-badge {
+  position: absolute;
+  top: calc(-76 * var(--u));
+  left: 50%;
+  width: calc(152 * var(--u));
+  height: calc(152 * var(--u));
+  margin-left: calc(-76 * var(--u));
+  border-radius: 50%;
+  border: calc(8 * var(--u)) solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--maroon);
+  font-weight: 700;
+  font-size: calc(84 * var(--u));
+  line-height: 1;
+  box-shadow: 0 calc(10 * var(--u)) calc(24 * var(--u)) rgba(0, 0, 0, 0.18);
+}
+.dhl-prize-1 .dhl-prize-badge {
+  width: calc(176 * var(--u));
+  height: calc(176 * var(--u));
+  top: calc(-88 * var(--u));
+  margin-left: calc(-88 * var(--u));
+  font-size: calc(96 * var(--u));
+  background: linear-gradient(160deg, #f8d77a 0%, #d9a01c 100%);
+}
+.dhl-prize-2 .dhl-prize-badge {
+  background: linear-gradient(160deg, #f1f3f6 0%, #b3bcc8 100%);
+}
+.dhl-prize-3 .dhl-prize-badge {
+  background: linear-gradient(160deg, #eec49b 0%, #c2833f 100%);
 }
 
 .dhl-prize-name {
   position: absolute;
-  bottom: calc(430 * var(--u));
+  bottom: var(--pz-name-bottom);
   left: 0;
   width: 100%;
   text-align: center;
   color: var(--maroon);
   font-weight: 700;
-  font-size: calc(224 * var(--u));
+  font-size: var(--pz-name);
   line-height: 1;
 }
 
 .dhl-prize-amount {
   position: absolute;
-  bottom: calc(216 * var(--u));
+  bottom: var(--pz-amount-bottom);
   left: 0;
   width: 100%;
   display: flex;
@@ -733,13 +785,13 @@
   gap: calc(14 * var(--u));
   color: var(--prize-blue);
   font-weight: 700;
-  font-size: calc(220 * var(--u));
+  font-size: var(--pz-amount);
   line-height: 1;
 }
 
 .dhl-prize-sar {
-  width: calc(117 * var(--u));
-  height: calc(129 * var(--u));
+  width: calc(0.53 * var(--pz-amount));
+  height: calc(0.59 * var(--pz-amount));
 }
 
 /* ---------- target ---------- */

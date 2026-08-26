@@ -132,11 +132,12 @@ export default function Landing() {
             الجوائز <Diamond />
           </h2>
           {[
-            { cls: "dhl-prize-2", title: "المركز الثاني", amount: "70,000", delay: "220ms" },
-            { cls: "dhl-prize-1", title: "المركز الأول", amount: "90,000", delay: "100ms" },
-            { cls: "dhl-prize-3", title: "المركز الثالث", amount: "40,000", delay: "340ms" },
+            { cls: "dhl-prize-2", n: "2", title: "المركز الثاني", amount: "70,000", delay: "220ms" },
+            { cls: "dhl-prize-1", n: "1", title: "المركز الأول", amount: "90,000", delay: "100ms" },
+            { cls: "dhl-prize-3", n: "3", title: "المركز الثالث", amount: "40,000", delay: "340ms" },
           ].map((p) => (
             <div key={p.cls} className={`dhl-prize-card ${p.cls}`} data-reveal style={{ "--reveal-delay": p.delay } as React.CSSProperties}>
+              <span className="dhl-prize-badge" aria-hidden="true">{p.n}</span>
               <div className="dhl-prize-name">{p.title}</div>
               <div className="dhl-prize-amount" dir="ltr">
                 <img className="dhl-prize-sar" src={sarPrize.src} alt="ريال سعودي" />
