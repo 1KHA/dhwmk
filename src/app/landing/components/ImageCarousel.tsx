@@ -141,7 +141,7 @@ export default function ImageCarousel({ slides = WINNERS, autoRotateInterval = 5
   const current = slides[index];
 
   return (
-    <section className="dhl-wc" aria-roledescription="carousel" aria-label="المشاريع الفائزة">
+    <section className="dhl-wc" aria-roledescription="carousel" aria-label="المشاريع الفائزة" data-reveal>
       <div
         ref={stageRef}
         className={`dhl-wc-stage${dragging ? " is-dragging" : ""}`}

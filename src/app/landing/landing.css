@@ -104,6 +104,120 @@
   opacity: 0.1;
 }
 
+/* ---------- motion ---------- */
+
+/* Keyframes declare only `from`: each element animates to its own computed
+   values, so glyphs keep their tinted opacity and rotations. */
+@keyframes dhl-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(calc(48 * var(--u)));
+  }
+}
+@keyframes dhl-in-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Header + hero: a staggered load-in in pure CSS, so it plays before hydration. */
+.dhl-logos img {
+  animation: dhl-in-fade 0.9s ease-out both;
+}
+.dhl-logos img:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.dhl-logos img:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.dhl-hero .dhl-ico {
+  animation: dhl-in-fade 1.4s ease-out 0.2s both;
+}
+.dhl-hero-title,
+.dhl-hero-mark,
+.dhl-hero-badge,
+.dhl-hero-par,
+.dhl-hero-countdown-label,
+.dhl-panel-glow,
+.dhl-panel,
+.dhl-hero-univ {
+  animation: dhl-in-up 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.dhl-hero-title { animation-delay: 0.15s; }
+.dhl-hero-mark { animation-delay: 0.3s; }
+.dhl-hero-badge { animation-delay: 0.4s; }
+.dhl-hero-par { animation-delay: 0.5s; }
+.dhl-hero-countdown-label { animation-delay: 0.6s; }
+.dhl-panel-glow,
+.dhl-panel { animation-delay: 0.8s; }
+.dhl-hero-univ { animation-delay: 0.9s; }
+
+/* Below the fold: elements with [data-reveal] start hidden — only once the
+   inline script in Landing.tsx has confirmed JS by adding .dhl-js — and are
+   revealed by RevealObserver when they scroll into view. Variants pick the
+   direction; --reveal-delay staggers siblings. */
+.dhl.dhl-js [data-reveal] {
+  opacity: 0;
+  transform: translateY(calc(56 * var(--u)));
+  transition:
+    opacity 0.8s ease-out var(--reveal-delay, 0ms),
+    transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.dhl.dhl-js [data-reveal="fade"] {
+  transform: none;
+}
+.dhl.dhl-js [data-reveal="scale"] {
+  transform: scale(0.92);
+}
+.dhl.dhl-js [data-reveal="left"] {
+  transform: translateX(calc(-120 * var(--u)));
+}
+.dhl.dhl-js [data-reveal="right"] {
+  transform: translateX(calc(120 * var(--u)));
+}
+.dhl.dhl-js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+/* "group" containers stay visible themselves; their children's own keyframe
+   entrances (the FAQ) are held until the container scrolls into view. */
+.dhl.dhl-js [data-reveal="group"] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+  will-change: auto;
+}
+.dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-title-row,
+.dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-category {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dhl-logos img,
+  .dhl-hero .dhl-ico,
+  .dhl-hero-title,
+  .dhl-hero-mark,
+  .dhl-hero-badge,
+  .dhl-hero-par,
+  .dhl-hero-countdown-label,
+  .dhl-panel-glow,
+  .dhl-panel,
+  .dhl-hero-univ {
+    animation: none;
+  }
+  .dhl.dhl-js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-title-row,
+  .dhl.dhl-js [data-reveal="group"]:not(.is-in) .dhl-faq-category {
+    animation-play-state: running;
+  }
+}
+
 /* ---------- header ---------- */
 
 .dhl-header {

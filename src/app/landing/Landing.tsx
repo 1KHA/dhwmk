@@ -6,6 +6,7 @@ import CountdownTimer from "./components/CountdownTimer";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import Icon from "./components/Icon";
+import RevealObserver from "./components/RevealObserver";
 
 import heroMark from "./assets/hero-mark.png";
 import glow from "./assets/glow.png";
@@ -34,7 +35,11 @@ const COUNTDOWN_TARGET = "2026-09-24T23:59:59";
 export default function Landing() {
   return (
     <div className="dhl-viewport">
-      <main className="dhl" dir="rtl" lang="ar">
+      <main className="dhl" dir="rtl" lang="ar" suppressHydrationWarning>
+        {/* Marks JS as available before first paint so scroll-reveal elements can start hidden without a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.currentScript.parentNode.classList.add('dhl-js')" }} />
+        <RevealObserver />
+
         {/* ===== Header ===== */}
         <SiteHeader />
 
@@ -84,15 +89,15 @@ export default function Landing() {
 
         {/* ===== Ready for the challenge ===== */}
         <section className="dhl-ready">
-          <h2 className="dhl-ready-head">جاهز للتحدي؟</h2>
-          <p className="dhl-ready-par">
+          <h2 className="dhl-ready-head" data-reveal>جاهز للتحدي؟</h2>
+          <p className="dhl-ready-par" data-reveal style={{ "--reveal-delay": "120ms" } as React.CSSProperties}>
             سجل الآن وكن جزءًا من رحلة الابتكار لتطوير حلول
             <br />
             وضمان جـودة الحيـاة
           </p>
-          <a className="dhl-ready-btn" href={REGISTER_URL}>سجل الآن</a>
+          <a className="dhl-ready-btn" href={REGISTER_URL} data-reveal style={{ "--reveal-delay": "240ms" } as React.CSSProperties}>سجل الآن</a>
 
-          <div className="dhl-banner">
+          <div className="dhl-banner" data-reveal="scale" style={{ "--reveal-delay": "200ms" } as React.CSSProperties}>
             <Diamond />
             <span className="dhl-banner-text">جوائز بقيمة 200,000</span>
             <img className="dhl-banner-sar" src={sarBanner.src} alt="ريال سعودي" />
@@ -103,18 +108,18 @@ export default function Landing() {
         {/* ===== Tracks ===== */}
         <section className="dhl-tracks">
           <Icon name="bars" className="dhl-ico-tracks" />
-          <h2 className="dhl-sect-title dhl-tracks-title">
+          <h2 className="dhl-sect-title dhl-tracks-title" data-reveal>
             المسارات <Diamond />
           </h2>
-          <div className="dhl-track-card dhl-track-1">
+          <div className="dhl-track-card dhl-track-1" data-reveal style={{ "--reveal-delay": "100ms" } as React.CSSProperties}>
             <img className="dhl-track-icon" src="/icons/icon03.png" alt="" aria-hidden="true" />
             <p>تعزيز الدمج المجتمعي<br />لكبار السن والمكفوفين</p>
           </div>
-          <div className="dhl-track-card dhl-track-2">
+          <div className="dhl-track-card dhl-track-2" data-reveal style={{ "--reveal-delay": "220ms" } as React.CSSProperties}>
             <img className="dhl-track-icon" src="/icons/icon02.png" alt="" aria-hidden="true" />
             <p>إثراء تجربة ضيوف الرحمن<br />في المدن المقدسة</p>
           </div>
-          <div className="dhl-track-card dhl-track-3">
+          <div className="dhl-track-card dhl-track-3" data-reveal style={{ "--reveal-delay": "340ms" } as React.CSSProperties}>
             <img className="dhl-track-icon" src="/icons/icon01.png" alt="" aria-hidden="true" />
             <p>الحلول الاجتماعية<br />المستدامة</p>
           </div>
@@ -123,15 +128,15 @@ export default function Landing() {
         {/* ===== Prizes ===== */}
         <section className="dhl-prizes">
           <Icon name="pinwheel" className="dhl-ico-dark dhl-ico-prizes" />
-          <h2 className="dhl-sect-title dhl-prizes-title">
+          <h2 className="dhl-sect-title dhl-prizes-title" data-reveal>
             الجوائز <Diamond />
           </h2>
           {[
-            { cls: "dhl-prize-2", title: "المركز الثاني", amount: "70,000" },
-            { cls: "dhl-prize-1", title: "المركز الأول", amount: "90,000" },
-            { cls: "dhl-prize-3", title: "المركز الثالث", amount: "40,000" },
+            { cls: "dhl-prize-2", title: "المركز الثاني", amount: "70,000", delay: "220ms" },
+            { cls: "dhl-prize-1", title: "المركز الأول", amount: "90,000", delay: "100ms" },
+            { cls: "dhl-prize-3", title: "المركز الثالث", amount: "40,000", delay: "340ms" },
           ].map((p) => (
-            <div key={p.cls} className={`dhl-prize-card ${p.cls}`}>
+            <div key={p.cls} className={`dhl-prize-card ${p.cls}`} data-reveal style={{ "--reveal-delay": p.delay } as React.CSSProperties}>
               <div className="dhl-prize-name">{p.title}</div>
               <div className="dhl-prize-amount" dir="ltr">
                 <img className="dhl-prize-sar" src={sarPrize.src} alt="ريال سعودي" />
@@ -144,16 +149,16 @@ export default function Landing() {
         {/* ===== Target audience ===== */}
         <section className="dhl-target">
           <Icon name="chevron" className="dhl-ico-dark dhl-ico-target" />
-          <h2 className="dhl-target-title">
+          <h2 className="dhl-target-title" data-reveal>
             <Diamond /> الفئة المستهدفة
           </h2>
-          <p className="dhl-target-text">طلبة الجامعات في مرحلتي البكالوريوس والماجستير</p>
+          <p className="dhl-target-text" data-reveal style={{ "--reveal-delay": "150ms" } as React.CSSProperties}>طلبة الجامعات في مرحلتي البكالوريوس والماجستير</p>
         </section>
 
         {/* ===== Conditions ===== */}
         <section className="dhl-conds">
           <Icon name="bars2" className="dhl-ico-dark dhl-ico-conds" />
-          <h2 className="dhl-sect-title dhl-conds-title">
+          <h2 className="dhl-sect-title dhl-conds-title" data-reveal>
             شروط قبول المشاريع في هاكاثون الابتكار <Diamond />
           </h2>
           {[
@@ -165,8 +170,8 @@ export default function Landing() {
             { cls: "dhl-cond-6", text: "يلتـزم الفريــق المقبـول بالحضـور طيلـة أيـام الهاكاثون في مقر جامعة دار الحكمة والمشاركة في ورش العمل الحضورية بالمواعيد المحـددة، وتعد متابعة الحضور والتحضير مسؤولية الفريق نفسه، ويستبعد الفريق في حال تغيبه الكامل ليومين متتاليين" },
             { cls: "dhl-cond-7", text: "يمنـع مشـاركة روابـط الـجلـســات الإرشادية الافتراضية لغير المقبولين" },
             { cls: "dhl-cond-8", text: "يلتزم المشارك باحترام جميع المشاركين دون أي تمييز، ويُعد مسؤولاً عن سلوكـه، ولإدارة التحدي الحق في اتخـاذ ما تـراه مناســباً من إجراءات عند المخالفة" },
-          ].map((c) => (
-            <div key={c.cls} className={`dhl-cond-card ${c.cls}`}>
+          ].map((c, i) => (
+            <div key={c.cls} className={`dhl-cond-card ${c.cls}`} data-reveal style={{ "--reveal-delay": `${(i % 3) * 120 + 80}ms` } as React.CSSProperties}>
               <img className="dhl-cond-check" src={iconCheck.src} alt="" aria-hidden="true" />
               <p>{c.text}</p>
             </div>
@@ -176,7 +181,7 @@ export default function Landing() {
         {/* ===== Participant journey ===== */}
         <section className="dhl-journey">
           <Icon name="cube" className="dhl-ico-journey" />
-          <h2 className="dhl-sect-title dhl-journey-title">
+          <h2 className="dhl-sect-title dhl-journey-title" data-reveal>
             رحلة المشترك <Diamond />
           </h2>
           {[
@@ -186,7 +191,8 @@ export default function Landing() {
             { cls: "dhl-jcard-4", n: "4", title: "تشغيل الهاكاثون", note: "(حضوري)", dates: <>4 - 8 أكتوبر<br />2026 م</> },
             { cls: "dhl-jcard-5", n: "5", title: "الحفــل الختامــي", note: "", dates: <>8&nbsp; أكتوبر<br />2026 م</> },
           ].map((s) => (
-            <div key={s.cls} className={`dhl-jcard ${s.cls}`}>
+            /* odd steps sit on the right, even on the left — each slides in from its own side */
+            <div key={s.cls} className={`dhl-jcard ${s.cls}`} data-reveal={Number(s.n) % 2 ? "right" : "left"}>
               <span className="dhl-jbadge">{s.n}</span>
               <div className="dhl-jcard-head">
                 {s.title} {s.note && <small>{s.note}</small>}
@@ -198,7 +204,7 @@ export default function Landing() {
 
         {/* ===== Bottom band ===== */}
         <section className="dhl-bottom">
-          <h2 className="dhl-bottom-text">
+          <h2 className="dhl-bottom-text" data-reveal>
             المشاريع الفائزة في النسخة الثالثة من جائزة مايدة محي الدين ناظر للابتكار <Diamond />
           </h2>
         </section>

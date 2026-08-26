@@ -128,7 +128,7 @@ export default function FAQSection({
   };
 
   return (
-    <div className="dhl-faq" dir="rtl">
+    <div className="dhl-faq" dir="rtl" data-reveal="group">
       <div className="dhl-faq-header">
         <div className="dhl-faq-title-row">
           <h2 className="dhl-faq-title">{title}</h2>
